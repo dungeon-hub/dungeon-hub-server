@@ -131,7 +131,6 @@ public class CarrylogsRestController
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    //TODO make it return the updated score
     @PostMapping("/v1/log")
     public ResponseEntity<String> logCarry(String carryInformation)
     {
@@ -140,7 +139,15 @@ public class CarrylogsRestController
         try
         {
             DatabaseService.getInstance().logCarryInformation(carry);
-            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().addScore(carry)), HttpStatus.OK);
+
+            if (carry.isDungeonCarry())
+            {
+                return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateDungeonScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
+            }
+            else
+            {
+                return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateSlayerScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
+            }
         }
         catch (SQLException sqlException)
         {
@@ -170,6 +177,20 @@ public class CarrylogsRestController
             }
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(id)), HttpStatus.OK);
+        }
+        catch (SQLException sqlException)
+        {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/v1/carry-score/{id}/{type}")
+    public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable String type, Long amount)
+    {
+        try
+        {
+            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)), HttpStatus.OK);
         }
         catch (SQLException sqlException)
         {

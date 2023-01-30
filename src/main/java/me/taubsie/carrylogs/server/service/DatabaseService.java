@@ -105,33 +105,6 @@ public class DatabaseService
         }
     }
 
-    public long addScore(CarryInformation carryInformation) throws SQLException
-    {
-        String firstSql = carryInformation.isDungeonCarry()
-                ? "SELECT score from dungeon_score where id = ?"
-                : "SELECT score from slayer_score where id = ?";
-        String secondSql = carryInformation.isDungeonCarry()
-                ? "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?"
-                : "INSERT INTO slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
-
-        try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
-             PreparedStatement secondStatement = connection.prepareStatement(secondSql))
-        {
-            firstStatement.setLong(1, carryInformation.getCarrier());
-
-            ResultSet resultSet = firstStatement.executeQuery();
-            long newScore = resultSet.next() ? resultSet.getLong(1) : 0L;
-            newScore += carryInformation.calculateScore();
-
-            secondStatement.setLong(1, carryInformation.getCarrier());
-            secondStatement.setLong(2, newScore);
-            secondStatement.setLong(3, newScore);
-            secondStatement.executeUpdate();
-
-            return newScore;
-        }
-    }
-
     public void addToLogQueue(Long id, CarryInformation carryInformation) throws SQLException
     {
         String sql = "INSERT INTO log_queue (id, carrier, player, amountOfCarries, carryDifficulty, carryType, time) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -296,6 +269,18 @@ public class DatabaseService
     {
         String sql = "select id, score from dungeon_score where score > 0 order by score DESC limit 10";
 
+        return getLeaderboard(sql);
+    }
+
+    public Map<Long, Long> getSlayerLeaderboard() throws SQLException
+    {
+        String sql = "select id, score from slayer_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
+    private Map<Long, Long> getLeaderboard(String sql) throws SQLException
+    {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
         {
             Map<Long, Long> result = new LinkedHashMap<>();
@@ -310,21 +295,42 @@ public class DatabaseService
         }
     }
 
-    public Map<Long, Long> getSlayerLeaderboard() throws SQLException
+    public long updateDungeonScore(long carrierId, long amount) throws SQLException
     {
-        String sql = "select id, score from slayer_score where score > 0 order by score DESC limit 10";
+        return updateScore(carrierId, amount, "dungeons");
+    }
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
+    public long updateSlayerScore(long carrierId, long amount) throws SQLException
+    {
+        return updateScore(carrierId, amount, "slayer");
+    }
+
+    public long updateScore(long carrierId, long amount, String type) throws SQLException
+    {
+        String firstSql = type.equalsIgnoreCase("dungeons")
+                ? "SELECT score from dungeon_score where id = ?"
+                : "SELECT score from slayer_score where id = ?";
+        String secondSql = type.equalsIgnoreCase("dungeons")
+                ? "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?"
+                : "INSERT INTO slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+
+        try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
+             PreparedStatement secondStatement = connection.prepareStatement(secondSql))
         {
-            Map<Long, Long> result = new LinkedHashMap<>();
-            ResultSet resultSet = preparedStatement.executeQuery();
+            firstStatement.setLong(1, carrierId);
 
-            while (resultSet.next())
-            {
-                result.put(resultSet.getLong(1), resultSet.getLong(2));
-            }
+            ResultSet resultSet = firstStatement.executeQuery();
+            long newScore = resultSet.next() ? resultSet.getLong(1) : 0L;
+            newScore += amount;
 
-            return result;
+            newScore = (newScore < 0) ? 0L : newScore;
+
+            secondStatement.setLong(1, carrierId);
+            secondStatement.setLong(2, newScore);
+            secondStatement.setLong(3, newScore);
+            secondStatement.executeUpdate();
+
+            return newScore;
         }
     }
 }
