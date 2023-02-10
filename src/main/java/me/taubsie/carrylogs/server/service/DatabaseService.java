@@ -1,6 +1,7 @@
 package me.taubsie.carrylogs.server.service;
 
 import me.taubsie.carrylogs.CarryInformation;
+import me.taubsie.carrylogs.CarryRole;
 import me.taubsie.carrylogs.config.ConfigProperty;
 import org.mariadb.jdbc.MariaDbDataSource;
 
@@ -332,5 +333,10 @@ public class DatabaseService
 
             return newScore;
         }
+    }
+
+    public void addRoles(long id, List<CarryRole> roles) throws SQLException
+    {
+
     }
 }

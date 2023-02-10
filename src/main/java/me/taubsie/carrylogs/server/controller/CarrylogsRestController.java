@@ -2,6 +2,7 @@ package me.taubsie.carrylogs.server.controller;
 
 import me.taubsie.carrylogs.CarryInformation;
 import me.taubsie.carrylogs.CarryLogService;
+import me.taubsie.carrylogs.CarryRole;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -217,6 +219,21 @@ public class CarrylogsRestController
             }
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()), HttpStatus.OK);
+        }
+        catch (SQLException sqlException)
+        {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/v1/role")
+    public ResponseEntity<String> addRoles(Long id, List<CarryRole> roles)
+    {
+        try
+        {
+            DatabaseService.getInstance().addRoles(id, roles);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
         catch (SQLException sqlException)
         {
