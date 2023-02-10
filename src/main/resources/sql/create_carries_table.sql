@@ -1,7 +1,7 @@
 create table carries
 (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    carrier         BIGINT,
+    carrier         BIGINT REFERENCES carrier(id),
     player          BIGINT,
     approver        BIGINT,
     amountOfCarries mediumint,
@@ -14,7 +14,7 @@ create table carries
 create table log_queue
 (
     id              BIGINT NOT NULL,
-    carrier         BIGINT,
+    carrier         BIGINT REFERENCES carrier(id),
     player          BIGINT,
     amountOfCarries mediumint,
     carryDifficulty varchar(50),
@@ -25,7 +25,7 @@ create table log_queue
 create table log_approving_queue
 (
     id              BIGINT NOT NULL,
-    carrier         BIGINT,
+    carrier         BIGINT REFERENCES carrier(id),
     player          BIGINT,
     amountOfCarries mediumint,
     carryDifficulty varchar(50),
@@ -42,6 +42,6 @@ create table dungeon_score
 
 create table slayer_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY,
+    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
     score BIGINT
 );
