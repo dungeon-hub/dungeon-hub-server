@@ -15,24 +15,19 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-public class CarrylogsRestController
-{
+public class CarrylogsRestController {
     @GetMapping("/v1/hello")
-    public ResponseEntity<String> hello(Principal principal)
-    {
+    public ResponseEntity<String> hello(Principal principal) {
         return new ResponseEntity<>(String.format("Hello, %s!", principal.getName()), HttpStatus.OK);
     }
 
     @PostMapping("/v1/log-queue")
-    public ResponseEntity<String> addLogQueue(Long id, String carryInformation)
-    {
+    public ResponseEntity<String> addLogQueue(Long id, String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
-        try
-        {
+        try {
             DatabaseService.getInstance().addToLogQueue(id, carry);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -40,15 +35,12 @@ public class CarrylogsRestController
     }
 
     @PostMapping("/v1/approving-queue")
-    public ResponseEntity<String> addApprovingQueue(Long id, String carryInformation)
-    {
+    public ResponseEntity<String> addApprovingQueue(Long id, String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
-        try
-        {
+        try {
             DatabaseService.getInstance().addToApprovingQueue(id, carry);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -56,14 +48,11 @@ public class CarrylogsRestController
     }
 
     @DeleteMapping("/v1/log-queue")
-    public ResponseEntity<String> removeLogQueue(Long id)
-    {
-        try
-        {
+    public ResponseEntity<String> removeLogQueue(Long id) {
+        try {
             DatabaseService.getInstance().removeFromLogQueue(id);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -71,62 +60,49 @@ public class CarrylogsRestController
     }
 
     @GetMapping(value = {"/v1/approving-queue", "/v1/approving-queue/{id}"})
-    public ResponseEntity<String> getApprovingQueue(@PathVariable(required = false) String id)
-    {
-        if (id == null)
-        {
+    public ResponseEntity<String> getApprovingQueue(@PathVariable(required = false) String id) {
+        if(id == null) {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
         }
 
-        try
-        {
+        try {
             Long idLong = Long.parseLong(id);
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }
-        catch (NumberFormatException numberFormatException)
-        {
+        catch(NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(value = {"/v1/log-queue", "/v1/log-queue/{id}"})
-    public ResponseEntity<String> getLogQueue(@PathVariable(required = false) Optional<String> id)
-    {
-        if (id.isEmpty())
-        {
+    public ResponseEntity<String> getLogQueue(@PathVariable(required = false) Optional<String> id) {
+        if(id.isEmpty()) {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
         }
 
-        try
-        {
+        try {
             Long idLong = Long.parseLong(id.get());
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromLogQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }
-        catch (NumberFormatException numberFormatException)
-        {
+        catch(NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/v1/approving-queue")
-    public ResponseEntity<String> removeApprovingQueue(Long id)
-    {
-        try
-        {
+    public ResponseEntity<String> removeApprovingQueue(Long id) {
+        try {
             DatabaseService.getInstance().removeFromApprovingQueue(id);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -134,8 +110,7 @@ public class CarrylogsRestController
     }
 
     @PostMapping("/v1/log")
-    public ResponseEntity<String> logCarry(String carryInformation)
-    {
+    public ResponseEntity<String> logCarry(String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
 
         try {
@@ -175,22 +150,19 @@ public class CarrylogsRestController
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(id)), HttpStatus.OK);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/v1/carry-score/{id}/{type}")
-    public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable String type, Long amount)
-    {
-        try
-        {
-            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)), HttpStatus.OK);
+    public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable String type, Long amount) {
+        try {
+            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)),
+                    HttpStatus.OK);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -220,15 +192,12 @@ public class CarrylogsRestController
     }
 
     @PutMapping("/v1/role")
-    public ResponseEntity<String> addRoles(Long id, List<CarryRole> roles)
-    {
-        try
-        {
+    public ResponseEntity<String> addRoles(Long id, List<CarryRole> roles) {
+        try {
             DatabaseService.getInstance().addRoles(id, roles);
             return new ResponseEntity<>(HttpStatus.OK);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
