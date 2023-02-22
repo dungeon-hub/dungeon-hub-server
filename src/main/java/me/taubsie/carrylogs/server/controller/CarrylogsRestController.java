@@ -138,41 +138,36 @@ public class CarrylogsRestController
     {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
 
-        try
-        {
+        try {
             DatabaseService.getInstance().logCarryInformation(carry);
 
-            if (carry.isDungeonCarry())
-            {
+            if(carry.isDungeonCarry()) {
                 return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateDungeonScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
-            }
-            else
-            {
+            } else if(carry.isKuudraCarry()) {
+                return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateKuudraScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
+            } else {
                 return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateSlayerScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
             }
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(value = {"/v1/carry-score/{id}", "/v1/carry-score/{id}/{type}"})
-    public ResponseEntity<String> countScore(@PathVariable Long id, @PathVariable(required = false) Optional<String> type)
-    {
-        try
-        {
-            if (type.isPresent())
-            {
-                switch (type.get().toLowerCase())
-                {
-                    case "dungeon" ->
-                    {
+    public ResponseEntity<String> countScore(@PathVariable Long id,
+                                             @PathVariable(required = false) Optional<String> type) {
+        try {
+            if(type.isPresent()) {
+                switch(type.get().toLowerCase()) {
+                    case "dungeon" -> {
                         return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countDungeonScoreForCarrier(id)), HttpStatus.OK);
                     }
-                    case "slayer" ->
-                    {
+                    case "kuudra" -> {
+                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countKuudraScoreForCarrier(id)), HttpStatus.OK);
+                    }
+                    case "slayer" -> {
                         return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countSlayerScoreForCarrier(id)), HttpStatus.OK);
                     }
                 }
@@ -202,26 +197,23 @@ public class CarrylogsRestController
     }
 
     @GetMapping("/v1/leaderboard/{type}")
-    public ResponseEntity<String> getLeaderboard(@PathVariable String type)
-    {
-        try
-        {
-            switch (type.toLowerCase())
-            {
-                case "dungeon", "dungeons" ->
-                {
+    public ResponseEntity<String> getLeaderboard(@PathVariable String type) {
+        try {
+            switch(type.toLowerCase()) {
+                case "dungeon", "dungeons" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getDungeonLeaderboard()), HttpStatus.OK);
                 }
-                case "slayer" ->
-                {
+                case "slayer" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getSlayerLeaderboard()), HttpStatus.OK);
+                }
+                case "kuudra" -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getKuudraLeaderboard()), HttpStatus.OK);
                 }
             }
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()), HttpStatus.OK);
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

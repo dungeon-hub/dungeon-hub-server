@@ -9,29 +9,16 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.*;
 
-public class DatabaseService
-{
+public class DatabaseService {
     private static DatabaseService instance;
     private final MariaDbDataSource dataSource;
     private final Connection connection;
 
-    public static DatabaseService getInstance()
-    {
-        if (instance == null)
-        {
-            instance = new DatabaseService();
-        }
-
-        return instance;
-    }
-
-    public DatabaseService()
-    {
+    public DatabaseService() {
         dataSource = new MariaDbDataSource();
         Connection activeConnection = null;
 
-        try
-        {
+        try {
             dataSource.setUrl("jdbc:mariadb://" + ConfigProperty.DATABASE_HOST + ":" + ConfigProperty.DATABASE_PORT + "/" + ConfigProperty.DATABASE_SCHEMA);
 
             dataSource.setUser(ConfigProperty.DATABASE_USER.getValue());
@@ -39,16 +26,22 @@ public class DatabaseService
 
             activeConnection = dataSource.getConnection();
         }
-        catch (SQLException sqlException)
-        {
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
         }
 
         connection = activeConnection;
     }
 
-    public boolean hasInvalidConfigValues()
-    {
+    public static DatabaseService getInstance() {
+        if(instance == null) {
+            instance = new DatabaseService();
+        }
+
+        return instance;
+    }
+
+    public boolean hasInvalidConfigValues() {
         ConfigProperty[] configProperties = new ConfigProperty[]{
                 ConfigProperty.DATABASE_HOST,
                 ConfigProperty.DATABASE_PASSWORD,
@@ -56,37 +49,31 @@ public class DatabaseService
                 ConfigProperty.DATABASE_PORT,
                 ConfigProperty.DATABASE_SCHEMA};
 
-        if (Arrays.stream(configProperties).anyMatch(configProperty -> configProperty.getValue() == null))
-        {
+        if(Arrays.stream(configProperties).anyMatch(configProperty -> configProperty.getValue() == null)) {
             return true;
         }
 
-        try
-        {
+        try {
             return Integer.parseInt(ConfigProperty.DATABASE_PORT.getValue()) <= 0;
         }
-        catch (NumberFormatException numberFormatException)
-        {
+        catch(NumberFormatException numberFormatException) {
             return true;
         }
     }
 
-    public DataSource getDataSource()
-    {
-        if (hasInvalidConfigValues())
-        {
+    public DataSource getDataSource() {
+        if(hasInvalidConfigValues()) {
             return null;
         }
 
         return dataSource;
     }
 
-    public void logCarryInformation(CarryInformation carryInformation) throws SQLException
-    {
-        String sql = "INSERT INTO carries (carrier, player, amountOfCarries, carryDifficulty, carryType, attachmentLink, time, approver) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public void logCarryInformation(CarryInformation carryInformation) throws SQLException {
+        String sql = "INSERT INTO carries (carrier, player, amountOfCarries, carryDifficulty, carryType, " +
+                "attachmentLink, time, approver) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carryInformation.getCarrier());
             preparedStatement.setLong(2, carryInformation.getPlayer());
             preparedStatement.setLong(3, carryInformation.getAmountOfCarries());
@@ -94,24 +81,20 @@ public class DatabaseService
             preparedStatement.setString(5, carryInformation.getCarryType());
             preparedStatement.setString(6, carryInformation.getAttachmentLink());
             preparedStatement.setTimestamp(7, Timestamp.from(carryInformation.getTime()));
-            if (carryInformation.getApprover() != null)
-            {
+            if(carryInformation.getApprover() != null) {
                 preparedStatement.setLong(8, carryInformation.getApprover());
-            }
-            else
-            {
+            } else {
                 preparedStatement.setNull(8, Types.BIGINT);
             }
             preparedStatement.executeUpdate();
         }
     }
 
-    public void addToLogQueue(Long id, CarryInformation carryInformation) throws SQLException
-    {
-        String sql = "INSERT INTO log_queue (id, carrier, player, amountOfCarries, carryDifficulty, carryType, time) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public void addToLogQueue(Long id, CarryInformation carryInformation) throws SQLException {
+        String sql = "INSERT INTO log_queue (id, carrier, player, amountOfCarries, carryDifficulty, carryType, time) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setLong(2, carryInformation.getCarrier());
             preparedStatement.setLong(3, carryInformation.getPlayer());
@@ -123,12 +106,11 @@ public class DatabaseService
         }
     }
 
-    public void addToApprovingQueue(Long id, CarryInformation carryInformation) throws SQLException
-    {
-        String sql = "INSERT INTO log_approving_queue (id, carrier, player, amountOfCarries, carryDifficulty, carryType, attachmentLink, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public void addToApprovingQueue(Long id, CarryInformation carryInformation) throws SQLException {
+        String sql = "INSERT INTO log_approving_queue (id, carrier, player, amountOfCarries, carryDifficulty, " +
+                "carryType, attachmentLink, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setLong(2, carryInformation.getCarrier());
             preparedStatement.setLong(4, carryInformation.getAmountOfCarries());
@@ -141,40 +123,34 @@ public class DatabaseService
         }
     }
 
-    public void removeFromLogQueue(Long id) throws SQLException
-    {
+    public void removeFromLogQueue(Long id) throws SQLException {
         String sql = "DELETE from log_queue where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
         }
     }
 
-    public void removeFromApprovingQueue(Long id) throws SQLException
-    {
+    public void removeFromApprovingQueue(Long id) throws SQLException {
         String sql = "DELETE from log_approving_queue where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
         }
     }
 
-    public Set<CarryInformation> getFromApprovingQueue(Long id) throws SQLException
-    {
+    public Set<CarryInformation> getFromApprovingQueue(Long id) throws SQLException {
         Set<CarryInformation> result = new HashSet<>();
-        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, attachmentLink from log_approving_queue where id = ?";
+        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, attachmentLink from " +
+                "log_approving_queue where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next())
-            {
+            while(resultSet.next()) {
                 result.add(new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
@@ -190,18 +166,16 @@ public class DatabaseService
         return result;
     }
 
-    public Set<CarryInformation> getFromLogQueue(Long id) throws SQLException
-    {
+    public Set<CarryInformation> getFromLogQueue(Long id) throws SQLException {
         Set<CarryInformation> result = new HashSet<>();
-        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier from log_queue where id = ?";
+        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier from log_queue where " +
+                "id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next())
-            {
+            while(resultSet.next()) {
                 result.add(new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
@@ -216,20 +190,17 @@ public class DatabaseService
         return result;
     }
 
-    public Map<Long, List<CarryInformation>> getApprovingQueue()
-    {
+    public Map<Long, List<CarryInformation>> getApprovingQueue() {
         //TODO implement -> in a hashmap, one key can only have one value
         return new HashMap<>();
     }
 
-    public Map<Long, List<CarryInformation>> getLogQueue()
-    {
+    public Map<Long, List<CarryInformation>> getLogQueue() {
         //TODO implement -> in a hashmap, one key can only have one value
         return new HashMap<>();
     }
 
-    public Map<String, Long> countScoreForCarrier(long carrierId) throws SQLException
-    {
+    public Map<String, Long> countScoreForCarrier(long carrierId) throws SQLException {
         Map<String, Long> scoreMap = new HashMap<>();
 
         scoreMap.put("dungeon", countDungeonScoreForCarrier(carrierId));
@@ -238,12 +209,10 @@ public class DatabaseService
         return scoreMap;
     }
 
-    public long countDungeonScoreForCarrier(long carrierId) throws SQLException
-    {
+    public long countDungeonScoreForCarrier(long carrierId) throws SQLException {
         String sql = "select score from dungeon_score where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carrierId);
 
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -252,12 +221,22 @@ public class DatabaseService
         }
     }
 
-    public long countSlayerScoreForCarrier(long carrierId) throws SQLException
-    {
+    public long countKuudraScoreForCarrier(long carrierId) throws SQLException {
+        String sql = "select score from kuudra_score where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public long countSlayerScoreForCarrier(long carrierId) throws SQLException {
         String sql = "select score from slayer_score where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carrierId);
 
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -266,29 +245,30 @@ public class DatabaseService
         }
     }
 
-    public Map<Long, Long> getDungeonLeaderboard() throws SQLException
-    {
+    public Map<Long, Long> getDungeonLeaderboard() throws SQLException {
         String sql = "select id, score from dungeon_score where score > 0 order by score DESC limit 10";
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getSlayerLeaderboard() throws SQLException
-    {
+    public Map<Long, Long> getSlayerLeaderboard() throws SQLException {
         String sql = "select id, score from slayer_score where score > 0 order by score DESC limit 10";
 
         return getLeaderboard(sql);
     }
 
-    private Map<Long, Long> getLeaderboard(String sql) throws SQLException
-    {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql))
-        {
+    public Map<Long, Long> getKuudraLeaderboard() throws SQLException {
+        String sql = "select id, score from kuudra_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
+    private Map<Long, Long> getLeaderboard(String sql) throws SQLException {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             Map<Long, Long> result = new LinkedHashMap<>();
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next())
-            {
+            while(resultSet.next()) {
                 result.put(resultSet.getLong(1), resultSet.getLong(2));
             }
 
@@ -296,28 +276,33 @@ public class DatabaseService
         }
     }
 
-    public long updateDungeonScore(long carrierId, long amount) throws SQLException
-    {
+    public long updateDungeonScore(long carrierId, long amount) throws SQLException {
         return updateScore(carrierId, amount, "dungeons");
     }
 
-    public long updateSlayerScore(long carrierId, long amount) throws SQLException
-    {
+    public long updateKuudraScore(long carrierId, long amount) throws SQLException {
+        return updateScore(carrierId, amount, "kuudra");
+    }
+
+    public long updateSlayerScore(long carrierId, long amount) throws SQLException {
         return updateScore(carrierId, amount, "slayer");
     }
 
-    public long updateScore(long carrierId, long amount, String type) throws SQLException
-    {
-        String firstSql = type.equalsIgnoreCase("dungeons")
-                ? "SELECT score from dungeon_score where id = ?"
-                : "SELECT score from slayer_score where id = ?";
-        String secondSql = type.equalsIgnoreCase("dungeons")
-                ? "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?"
-                : "INSERT INTO slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+    public long updateScore(long carrierId, long amount, String type) throws SQLException {
+        String firstSql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" -> "SELECT score from dungeon_score where id = ?";
+            case "kuudra" -> "SELECT score from kuudra_score where id = ?";
+            case "slayer" -> "SELECT score from slayer_score where id = ?";
+        };
 
-        try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
-             PreparedStatement secondStatement = connection.prepareStatement(secondSql))
-        {
+        String secondSql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" -> "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            case "kuudra" -> "INSERT INTO kuudra_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            case "slayer" -> "INSERT INTO slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+        };
+
+        try(PreparedStatement firstStatement = connection.prepareStatement(firstSql);
+            PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
             firstStatement.setLong(1, carrierId);
 
             ResultSet resultSet = firstStatement.executeQuery();
@@ -335,8 +320,7 @@ public class DatabaseService
         }
     }
 
-    public void addRoles(long id, List<CarryRole> roles) throws SQLException
-    {
-
+    public void addRoles(long id, List<CarryRole> roles) throws SQLException {
+        //TODO implement
     }
 }
