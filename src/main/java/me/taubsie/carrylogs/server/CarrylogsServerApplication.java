@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class CarrylogsServerApplication extends ProgramOrigin {
     public static void main(String[] args) {
+        ClassLoaderService.getInstance().loadStartupListeners();
         ClassLoaderService.getInstance().executeStartup(new CarrylogsServerApplication());
 
         if(DatabaseService.getInstance().hasInvalidConfigValues()) {
