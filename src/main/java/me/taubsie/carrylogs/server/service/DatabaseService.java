@@ -293,13 +293,19 @@ public class DatabaseService {
             case "dungeon", "dungeons" -> "SELECT score from dungeon_score where id = ?";
             case "kuudra" -> "SELECT score from kuudra_score where id = ?";
             case "slayer" -> "SELECT score from slayer_score where id = ?";
+            default -> "";
         };
 
         String secondSql = switch(type.toLowerCase()) {
             case "dungeon", "dungeons" -> "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
             case "kuudra" -> "INSERT INTO kuudra_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
             case "slayer" -> "INSERT INTO slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            default -> "";
         };
+
+        if(firstSql.isEmpty() || secondSql.isEmpty()) {
+            return 0L;
+        }
 
         try(PreparedStatement firstStatement = connection.prepareStatement(firstSql);
             PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {

@@ -45,3 +45,9 @@ create table slayer_score
     id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
     score BIGINT
 );
+
+create table kuudra_score
+(
+    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
+    score BIGINT
+);
