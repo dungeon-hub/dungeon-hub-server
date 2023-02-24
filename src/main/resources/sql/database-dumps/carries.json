@@ -8963,5 +8963,137 @@
     "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078607043126104094/transcript-closed-f6-21-9kyll9.html",
     "time": "2023-02-24 10:05:31",
     "approver": null
+  },
+  {
+    "id": 830,
+    "carrier": 726716297114550273,
+    "player": 738316484505239572,
+    "amountOfCarries": 9,
+    "carryDifficulty": "EMAN",
+    "carryType": "Tier 4",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078676398836817971/transcript-t4-eman-20-refractionalt.html",
+    "time": "2023-02-24 10:57:41",
+    "approver": 356134481452597250
+  },
+  {
+    "id": 831,
+    "carrier": 356134481452597250,
+    "player": 738316484505239572,
+    "amountOfCarries": 1,
+    "carryDifficulty": "EMAN",
+    "carryType": "Tier 4",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078687215766474762/transcript-t4-eman-20-refractionalt.html",
+    "time": "2023-02-24 15:37:38",
+    "approver": null
+  },
+  {
+    "id": 832,
+    "carrier": 772654415805939753,
+    "player": 559790831561867264,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F4",
+    "carryType": "Completion",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078732135059439779/transcript-f4-9-oliver4952.html",
+    "time": "2023-02-24 18:36:06",
+    "approver": null
+  },
+  {
+    "id": 833,
+    "carrier": 747500781845872775,
+    "player": 175272210523488256,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F6",
+    "carryType": "S",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078735566486655017/transcript-closed-f6-12-xt41x.html",
+    "time": "2023-02-24 17:59:33",
+    "approver": null
+  },
+  {
+    "id": 834,
+    "carrier": 1030870708647104582,
+    "player": 468076153731809288,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F7",
+    "carryType": "Completion",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078763105657565194/transcript-closed-f7-24-samugamer0892.html",
+    "time": "2023-02-24 18:57:02",
+    "approver": null
+  },
+  {
+    "id": 835,
+    "carrier": 732881183108759613,
+    "player": 278314730236411906,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F7",
+    "carryType": "Completion",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078779712341561465/transcript-closed-f7-8-avrageplayer.html",
+    "time": "2023-02-24 21:19:34",
+    "approver": null
+  },
+  {
+    "id": 836,
+    "carrier": 732881183108759613,
+    "player": 813483560853569536,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F7",
+    "carryType": "Completion",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078779731132035082/transcript-claimed-f7-5098.html",
+    "time": "2023-02-24 21:01:10",
+    "approver": null
+  },
+  {
+    "id": 837,
+    "carrier": 726716297114550273,
+    "player": 758422262176022560,
+    "amountOfCarries": 6,
+    "carryDifficulty": "EMAN",
+    "carryType": "Tier 4",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078783494282559648/transcript-t4-eman-21-rogue15hd.html",
+    "time": "2023-02-24 22:00:22",
+    "approver": 356134481452597250
+  },
+  {
+    "id": 838,
+    "carrier": 726716297114550273,
+    "player": 401335323340177408,
+    "amountOfCarries": 3,
+    "carryDifficulty": "EMAN",
+    "carryType": "Tier 4",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078790637282918480/transcript-closed-t3-eman-26-shxman.html",
+    "time": "2023-02-24 22:26:46",
+    "approver": null
+  },
+  {
+    "id": 839,
+    "carrier": 726716297114550273,
+    "player": 791424789603549215,
+    "amountOfCarries": 11,
+    "carryDifficulty": "EMAN",
+    "carryType": "Tier 4",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078793292654850188/transcript-closed-t3-eman-26-axo280_uwu.html",
+    "time": "2023-02-24 22:38:01",
+    "approver": 356134481452597250
+  },
+  {
+    "id": 840,
+    "carrier": 1030870708647104582,
+    "player": 393595571467714582,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F7",
+    "carryType": "Completion",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078813861043503194/transcript-closed-f7-24-supreme_birb.html",
+    "time": "2023-02-24 23:25:13",
+    "approver": null
+  },
+  {
+    "id": 841,
+    "carrier": 1030870708647104582,
+    "player": 561621400591400966,
+    "amountOfCarries": 1,
+    "carryDifficulty": "F7",
+    "carryType": "Completion",
+    "attachmentLink": "https://cdn.discordapp.com/attachments/796770232340578365/1078813867334979754/transcript-closed-f7-24-p0tat0l0rd2.html",
+    "time": "2023-02-24 23:13:16",
+    "approver": null
   }
 ]

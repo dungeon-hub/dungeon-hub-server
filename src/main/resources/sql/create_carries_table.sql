@@ -36,7 +36,7 @@ create table log_approving_queue
 
 create table dungeon_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY,
+    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
     score BIGINT
 );
 
