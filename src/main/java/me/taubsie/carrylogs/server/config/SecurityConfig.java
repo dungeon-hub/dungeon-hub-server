@@ -40,17 +40,14 @@ import java.security.spec.X509EncodedKeySpec;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig
-{
+public class SecurityConfig {
     private final RsaKeyProperties rsaKeys;
 
-    public SecurityConfig()
-    {
-        try (InputStream publicKeyStream = getClass().getClassLoader().getResourceAsStream("certs/public.pem");
-             InputStream privateKeyStream = getClass().getClassLoader().getResourceAsStream("certs/private.pem"))
-        {
-            if (publicKeyStream == null || privateKeyStream == null)
-            {
+    public SecurityConfig() {
+        try(InputStream publicKeyStream = getClass().getClassLoader().getResourceAsStream("certs/public.pem");
+            InputStream privateKeyStream = getClass().getClassLoader().getResourceAsStream("certs/private.pem")) {
+            if(publicKeyStream == null || privateKeyStream == null) {
+                //TODO replace exception
                 throw new RuntimeException("Key files are missing! Bad developers smh..");
             }
 
@@ -69,30 +66,28 @@ public class SecurityConfig
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(Base64.decodeBase64(privateKey));
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
-            this.rsaKeys = new RsaKeyProperties((RSAPublicKey) keyFactory.generatePublic(publicKeySpec), (RSAPrivateKey) keyFactory.generatePrivate(spec));
+            this.rsaKeys = new RsaKeyProperties((RSAPublicKey) keyFactory.generatePublic(publicKeySpec),
+                    (RSAPrivateKey) keyFactory.generatePrivate(spec));
         }
-        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException exception)
-        {
+        catch(IOException | NoSuchAlgorithmException | InvalidKeySpecException exception) {
+            //TODO replace exception
             throw new RuntimeException(exception);
         }
     }
 
     @Bean
-    public DataSource dataSource()
-    {
+    public DataSource dataSource() {
         return DatabaseService.getInstance().getDataSource();
     }
 
     //when creating a new user, you need to add PasswordEncoder as a parameter and encode the password
     @Bean
-    public JdbcUserDetailsManager users(DataSource datasource)
-    {
+    public JdbcUserDetailsManager users(DataSource datasource) {
         return new JdbcUserDetailsManager(datasource);
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception
-    {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
@@ -104,14 +99,12 @@ public class SecurityConfig
     }
 
     @Bean
-    JwtDecoder jwtDecoder()
-    {
+    JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(rsaKeys.publicKey()).build();
     }
 
     @Bean
-    JwtEncoder jwtEncoder()
-    {
+    JwtEncoder jwtEncoder() {
         JWK jwk = new RSAKey
                 .Builder(rsaKeys.publicKey())
                 .privateKey(rsaKeys.privateKey())
@@ -121,8 +114,7 @@ public class SecurityConfig
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder()
-    {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

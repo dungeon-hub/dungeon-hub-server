@@ -205,6 +205,7 @@ public class DatabaseService {
 
         scoreMap.put("dungeon", countDungeonScoreForCarrier(carrierId));
         scoreMap.put("slayer", countSlayerScoreForCarrier(carrierId));
+        scoreMap.put("kuudra", countKuudraScoreForCarrier(carrierId));
 
         return scoreMap;
     }

@@ -6,6 +6,7 @@ import me.taubsie.carrylogs.CarryRole;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@EnableMethodSecurity
 public class CarrylogsRestController {
     @GetMapping("/v1/hello")
     public ResponseEntity<String> hello(Principal principal) {
@@ -145,6 +147,9 @@ public class CarrylogsRestController {
                     case "slayer" -> {
                         return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countSlayerScoreForCarrier(id)), HttpStatus.OK);
                     }
+                    default -> {
+                        return new ResponseEntity<>("0", HttpStatus.OK);
+                    }
                 }
             }
 
@@ -181,9 +186,11 @@ public class CarrylogsRestController {
                 case "kuudra" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getKuudraLeaderboard()), HttpStatus.OK);
                 }
+                default -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()),
+                            HttpStatus.OK);
+                }
             }
-
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()), HttpStatus.OK);
         }
         catch(SQLException sqlException) {
             sqlException.printStackTrace();
@@ -192,9 +199,11 @@ public class CarrylogsRestController {
     }
 
     @PutMapping("/v1/role")
-    public ResponseEntity<String> addRoles(Long id, List<CarryRole> roles) {
+    public ResponseEntity<String> addRoles(Long id, String roles) {
         try {
-            DatabaseService.getInstance().addRoles(id, roles);
+            List<CarryRole> roleList = CarryLogService.getInstance().getGson().fromJson(roles,
+                    CarryLogService.getInstance().getCarryRoleListType());
+            DatabaseService.getInstance().addRoles(id, roleList);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(SQLException sqlException) {

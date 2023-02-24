@@ -15,6 +15,8 @@ public class AuthController
         this.tokenService = tokenService;
     }
 
+    //TODO get spring logger
+
     @GetMapping("/token")
     public String token(Authentication authentication)
     {

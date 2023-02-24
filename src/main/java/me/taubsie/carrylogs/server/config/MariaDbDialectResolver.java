@@ -12,6 +12,7 @@ public class MariaDbDialectResolver implements DialectResolver.JdbcDialectProvid
 {
     @Override
     public @NotNull Optional<Dialect> getDialect(@NotNull JdbcOperations jdbcOperations) {
+        //TODO can you use MariaDbDialect.INSTANCE ?
         return Optional.of(MySqlDialect.INSTANCE);
     }
 }

@@ -25,4 +25,25 @@ public class CarrylogsServerApplication extends ProgramOrigin {
     public ConfigType getConfigType() {
         return ConfigType.SERVER;
     }
+
+    @Override
+    public void log(String message) {
+        System.out.println(message);
+    }
+
+    @Override
+    public void warn(String message) {
+        System.out.println(message);
+    }
+
+    @Override
+    public void error(String message) {
+        System.out.println(message);
+    }
+
+    @Override
+    public void error(String message, Throwable throwable) {
+        System.out.println(message);
+        throwable.printStackTrace();
+    }
 }
