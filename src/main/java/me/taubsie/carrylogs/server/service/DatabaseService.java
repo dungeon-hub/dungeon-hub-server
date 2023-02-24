@@ -8,6 +8,7 @@ import org.mariadb.jdbc.MariaDbDataSource;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DatabaseService {
     private static DatabaseService instance;
@@ -25,8 +26,7 @@ public class DatabaseService {
             dataSource.setPassword(ConfigProperty.DATABASE_PASSWORD.getValue());
 
             activeConnection = dataSource.getConnection();
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
         }
 
@@ -55,8 +55,7 @@ public class DatabaseService {
 
         try {
             return Integer.parseInt(ConfigProperty.DATABASE_PORT.getValue()) <= 0;
-        }
-        catch(NumberFormatException numberFormatException) {
+        } catch(NumberFormatException numberFormatException) {
             return true;
         }
     }
@@ -298,7 +297,8 @@ public class DatabaseService {
         };
 
         String secondSql = switch(type.toLowerCase()) {
-            case "dungeon", "dungeons" -> "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            case "dungeon", "dungeons" ->
+                    "INSERT INTO dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
             case "kuudra" -> "INSERT INTO kuudra_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
             case "slayer" -> "INSERT INTO slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
             default -> "";
@@ -328,6 +328,40 @@ public class DatabaseService {
     }
 
     public void addRoles(long id, List<CarryRole> roles) throws SQLException {
-        //TODO implement
+        Map<CarryRole, Boolean> roleMap = new HashMap<>();
+
+        for(CarryRole carryRole : CarryRole.values()) {
+            roleMap.put(carryRole, roles.contains(carryRole));
+        }
+
+        String sql = "INSERT INTO carrier(id, " + getKeys(roleMap) + ") VALUES (?, " + getValues(roleMap) + ") ON DUPLICATE KEY UPDATE " + getKeysWithValues(roleMap);
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    public void addUserIfNotExists(long id) throws SQLException {
+        String sql = "INSERT IGNORE INTO carrier(id) VALUES (?)";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private String getKeys(Map<CarryRole, Boolean> roleMap) {
+        return roleMap.keySet().stream().map(Enum::name).collect(Collectors.joining(", "));
+    }
+
+    private String getValues(Map<CarryRole, Boolean> roleMap) {
+        return roleMap.values().stream().map(String::valueOf).collect(Collectors.joining(", "));
+    }
+
+    private String getKeysWithValues(Map<CarryRole, Boolean> roleMap) {
+        return roleMap.entrySet().stream().map(carryRole -> carryRole.getKey().name() + " = " + carryRole.getValue()).collect(Collectors.joining(", "));
     }
 }
