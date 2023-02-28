@@ -15,7 +15,9 @@ public class CarrylogsServerApplication extends ProgramOrigin {
     private static final Logger logger = LoggerFactory.getLogger(CarrylogsServerApplication.class);
 
     public static void main(String[] args) {
-        ClassLoaderService.getInstance().loadStartupListeners();
+        //TODO fix -> class name start with "BOOT_INF.classes." also
+        //ClassLoaderService.getInstance().loadStartupListeners();
+        ClassLoaderService.getInstance().addStartupListener(ConfigService.getInstance());
         ClassLoaderService.getInstance().executeStartup(new CarrylogsServerApplication());
 
         if(DatabaseService.getInstance().hasInvalidConfigValues()) {
