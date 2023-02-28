@@ -2,6 +2,7 @@ package me.taubsie.carrylogs.server;
 
 import me.taubsie.carrylogs.ClassLoaderService;
 import me.taubsie.carrylogs.ProgramOrigin;
+import me.taubsie.carrylogs.config.ConfigService;
 import me.taubsie.carrylogs.config.ConfigType;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.slf4j.Logger;
@@ -48,5 +49,10 @@ public class CarrylogsServerApplication extends ProgramOrigin {
     @Override
     public void error(String message, Throwable throwable) {
         logger.error(message, throwable);
+    }
+
+    @Override
+    public void debug(String message) {
+        logger.debug(message);
     }
 }
