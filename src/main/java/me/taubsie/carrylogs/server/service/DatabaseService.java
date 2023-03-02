@@ -26,7 +26,8 @@ public class DatabaseService {
             dataSource.setPassword(ConfigProperty.DATABASE_PASSWORD.getValue());
 
             activeConnection = dataSource.getConnection();
-        } catch(SQLException sqlException) {
+        }
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
         }
 
@@ -55,7 +56,8 @@ public class DatabaseService {
 
         try {
             return Integer.parseInt(ConfigProperty.DATABASE_PORT.getValue()) <= 0;
-        } catch(NumberFormatException numberFormatException) {
+        }
+        catch(NumberFormatException numberFormatException) {
             return true;
         }
     }
@@ -334,7 +336,8 @@ public class DatabaseService {
             roleMap.put(carryRole, roles.contains(carryRole));
         }
 
-        String sql = "INSERT INTO carrier(id, " + getKeys(roleMap) + ") VALUES (?, " + getValues(roleMap) + ") ON DUPLICATE KEY UPDATE " + getKeysWithValues(roleMap);
+        String sql = "INSERT INTO carrier(id, " + getKeys(roleMap) + ") VALUES (?, " + getValues(roleMap) + ") ON " +
+                "DUPLICATE KEY UPDATE " + getKeysWithValues(roleMap);
 
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
@@ -363,5 +366,39 @@ public class DatabaseService {
 
     private String getKeysWithValues(Map<CarryRole, Boolean> roleMap) {
         return roleMap.entrySet().stream().map(carryRole -> carryRole.getKey().name() + " = " + carryRole.getValue()).collect(Collectors.joining(", "));
+    }
+
+    public Map<Long, Long> getUsersWithLessScore(String type, long score) throws SQLException {
+        Map<Long, Long> result = new HashMap<>();
+        String sql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" ->
+                    "SELECT carrier.id, score FROM carrier LEFT JOIN dungeon_score score ON carrier" +
+                            ".id = score.id where (f4 = 1 or f5 = 1 or f6 = 1 or f7 = 1 or master_mode = 1) and " +
+                            "(score <= ? or score is null)";
+            case "slayer" ->
+                    "SELECT carrier.id, score FROM carrier LEFT JOIN slayer_score score ON carrier.id = score.id " +
+                            "where (eman_t3 = 1 or eman_t4 = 1 or blaze_t2 = 1 or blaze_t3 = 1 or blaze_t4 = 1) and " +
+                            "(score <= ? or score is null)";
+            case "kuudra" ->
+                    "SELECT carrier.id, score FROM carrier LEFT JOIN kuudra_score score ON carrier.id = score.id " +
+                            "where (basic = 1 or hot = 1 or burning = 1 or fiery = 1 or infernal = 1) and (score <= ?" +
+                            " or score is null)";
+            default -> "";
+        };
+
+        if(sql.isEmpty()) {
+            return result;
+        }
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, score);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next()) {
+                result.put(resultSet.getLong(1), resultSet.getLong(2));
+            }
+        }
+
+        return result;
     }
 }
