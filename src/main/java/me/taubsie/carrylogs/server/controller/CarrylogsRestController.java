@@ -27,6 +27,8 @@ public class CarrylogsRestController {
     public ResponseEntity<String> addLogQueue(Long id, String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
         try {
+            DatabaseService.getInstance().addUserIfNotExists(carry.getCarrier());
+
             DatabaseService.getInstance().addToLogQueue(id, carry);
         }
         catch(SQLException sqlException) {
@@ -40,6 +42,8 @@ public class CarrylogsRestController {
     public ResponseEntity<String> addApprovingQueue(Long id, String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
         try {
+            DatabaseService.getInstance().addUserIfNotExists(carry.getCarrier());
+
             DatabaseService.getInstance().addToApprovingQueue(id, carry);
         }
         catch(SQLException sqlException) {
@@ -166,6 +170,8 @@ public class CarrylogsRestController {
     @PutMapping("/v1/carry-score/{id}/{type}")
     public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable String type, Long amount) {
         try {
+            DatabaseService.getInstance().addUserIfNotExists(id);
+
             return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)),
                     HttpStatus.OK);
         }
