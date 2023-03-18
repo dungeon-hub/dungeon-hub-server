@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.context.annotation.Bean;
@@ -47,8 +48,7 @@ public class SecurityConfig {
         try(InputStream publicKeyStream = getClass().getClassLoader().getResourceAsStream("certs/public.pem");
             InputStream privateKeyStream = getClass().getClassLoader().getResourceAsStream("certs/private.pem")) {
             if(publicKeyStream == null || privateKeyStream == null) {
-                //TODO replace exception
-                throw new RuntimeException("Key files are missing! Bad developers smh..");
+                throw new ProgramStartException("Key files are missing!");
             }
 
             String publicKey = new String(publicKeyStream.readAllBytes())
@@ -70,8 +70,7 @@ public class SecurityConfig {
                     (RSAPrivateKey) keyFactory.generatePrivate(spec));
         }
         catch(IOException | NoSuchAlgorithmException | InvalidKeySpecException exception) {
-            //TODO replace exception
-            throw new RuntimeException(exception);
+            throw new ProgramStartException(exception);
         }
     }
 

@@ -1,8 +1,8 @@
 package me.taubsie.carrylogs.server.service;
 
-import me.taubsie.carrylogs.CarryInformation;
-import me.taubsie.carrylogs.CarryRole;
-import me.taubsie.carrylogs.config.ConfigProperty;
+import me.taubsie.dungeonhub.common.CarryInformation;
+import me.taubsie.dungeonhub.common.CarryRole;
+import me.taubsie.dungeonhub.common.config.ConfigProperty;
 import org.mariadb.jdbc.MariaDbDataSource;
 
 import javax.sql.DataSource;

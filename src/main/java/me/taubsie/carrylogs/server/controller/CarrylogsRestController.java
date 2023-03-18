@@ -1,8 +1,8 @@
 package me.taubsie.carrylogs.server.controller;
 
-import me.taubsie.carrylogs.CarryInformation;
-import me.taubsie.carrylogs.CarryLogService;
-import me.taubsie.carrylogs.CarryRole;
+import me.taubsie.dungeonhub.common.CarryInformation;
+import me.taubsie.dungeonhub.common.CarryLogService;
+import me.taubsie.dungeonhub.common.CarryRole;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

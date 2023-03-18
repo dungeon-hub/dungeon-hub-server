@@ -1,9 +1,9 @@
 package me.taubsie.carrylogs.server;
 
-import me.taubsie.carrylogs.ClassLoaderService;
-import me.taubsie.carrylogs.ProgramOrigin;
-import me.taubsie.carrylogs.config.ConfigService;
-import me.taubsie.carrylogs.config.ConfigType;
+import me.taubsie.dungeonhub.common.ClassLoaderService;
+import me.taubsie.dungeonhub.common.ProgramOrigin;
+import me.taubsie.dungeonhub.common.config.ConfigService;
+import me.taubsie.dungeonhub.common.config.ConfigType;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
