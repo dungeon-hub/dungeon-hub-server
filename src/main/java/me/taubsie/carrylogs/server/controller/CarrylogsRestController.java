@@ -13,6 +13,7 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -30,8 +31,7 @@ public class CarrylogsRestController {
             DatabaseService.getInstance().addUserIfNotExists(carry.getCarrier());
 
             DatabaseService.getInstance().addToLogQueue(id, carry);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -45,8 +45,7 @@ public class CarrylogsRestController {
             DatabaseService.getInstance().addUserIfNotExists(carry.getCarrier());
 
             DatabaseService.getInstance().addToApprovingQueue(id, carry);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -57,8 +56,7 @@ public class CarrylogsRestController {
     public ResponseEntity<String> removeLogQueue(Long id) {
         try {
             DatabaseService.getInstance().removeFromLogQueue(id);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -74,11 +72,9 @@ public class CarrylogsRestController {
         try {
             Long idLong = Long.parseLong(id);
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
-        }
-        catch(NumberFormatException numberFormatException) {
+        } catch(NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -93,11 +89,9 @@ public class CarrylogsRestController {
         try {
             Long idLong = Long.parseLong(id.get());
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromLogQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
-        }
-        catch(NumberFormatException numberFormatException) {
+        } catch(NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -107,8 +101,7 @@ public class CarrylogsRestController {
     public ResponseEntity<String> removeApprovingQueue(Long id) {
         try {
             DatabaseService.getInstance().removeFromApprovingQueue(id);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -131,8 +124,7 @@ public class CarrylogsRestController {
             } else {
                 return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateSlayerScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
             }
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -160,8 +152,7 @@ public class CarrylogsRestController {
             }
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(id)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -174,8 +165,7 @@ public class CarrylogsRestController {
 
             return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)),
                     HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -199,8 +189,7 @@ public class CarrylogsRestController {
                             HttpStatus.OK);
                 }
             }
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -209,12 +198,24 @@ public class CarrylogsRestController {
     @PutMapping("/v1/role")
     public ResponseEntity<String> addRoles(Long id, String roles) {
         try {
-            List<CarryRole> roleList = CarryLogService.getInstance().getGson().fromJson(roles,
-                    CarryLogService.getInstance().getCarryRoleListType());
+            List<CarryRole> roleList = CarryLogService.getInstance().getGson()
+                    .fromJson(roles, CarryLogService.getInstance().getCarryRoleListType());
             DatabaseService.getInstance().addRoles(id, roleList);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch(SQLException sqlException) {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        catch(SQLException sqlException) {
+    }
+
+    @PutMapping("/v1/roles")
+    public ResponseEntity<String> addMultipleRoles(String roles) {
+        try {
+            Map<Long, List<CarryRole>> roleData = CarryLogService.getInstance().getGson()
+                    .fromJson(roles, CarryLogService.getInstance().getLongCarryRoleListMap());
+            DatabaseService.getInstance().addRoles(roleData);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -225,8 +226,7 @@ public class CarrylogsRestController {
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().getUsersWithLessScore(type, amount)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

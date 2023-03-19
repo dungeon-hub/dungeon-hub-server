@@ -26,8 +26,7 @@ public class DatabaseService {
             dataSource.setPassword(ConfigProperty.DATABASE_PASSWORD.getValue());
 
             activeConnection = dataSource.getConnection();
-        }
-        catch(SQLException sqlException) {
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
         }
 
@@ -56,8 +55,7 @@ public class DatabaseService {
 
         try {
             return Integer.parseInt(ConfigProperty.DATABASE_PORT.getValue()) <= 0;
-        }
-        catch(NumberFormatException numberFormatException) {
+        } catch(NumberFormatException numberFormatException) {
             return true;
         }
     }
@@ -343,6 +341,33 @@ public class DatabaseService {
             preparedStatement.setLong(1, id);
 
             preparedStatement.executeUpdate();
+        }
+    }
+
+    public void addRoles(Map<Long, List<CarryRole>> roleData) throws SQLException {
+        String sql = "INSERT INTO carrier(id, " +
+                "F4, F5, F6, F7, MASTER_MODE, " +
+                "EMAN_T3, EMAN_T4, BLAZE_T2, BLAZE_T3, BLAZE_T4, " +
+                "BASIC, HOT, BURNING, FIERY, INFERNAL) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON " +
+                "DUPLICATE KEY UPDATE " +
+                "F4=?, F5=?, F6=?, F7=?, MASTER_MODE=?, " +
+                "EMAN_T3=?, EMAN_T4=?, BLAZE_T2=?, BLAZE_T3=?, BLAZE_T4=?, " +
+                "BASIC=?, HOT=?, BURNING=?, FIERY=?, INFERNAL=?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            for(Map.Entry<Long, List<CarryRole>> roleEntry : roleData.entrySet()) {
+                preparedStatement.setLong(1, roleEntry.getKey());
+
+                for(int i = 0; i < CarryRole.values().length; i++) {
+                    preparedStatement.setBoolean(i + 2, roleEntry.getValue().contains(CarryRole.values()[i]));
+                    preparedStatement.setBoolean(CarryRole.values().length + i + 2, roleEntry.getValue().contains(CarryRole.values()[i]));
+                }
+
+                preparedStatement.addBatch();
+            }
+
+            preparedStatement.executeBatch();
         }
     }
 
