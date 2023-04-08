@@ -178,11 +178,20 @@ public class CarrylogsRestController {
                 case "dungeon", "dungeons" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getDungeonLeaderboard()), HttpStatus.OK);
                 }
+                case "alltime-dungeon", "alltime-dungeons" -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeDungeonLeaderboard()), HttpStatus.OK);
+                }
                 case "slayer" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getSlayerLeaderboard()), HttpStatus.OK);
                 }
+                case "alltime-slayer" -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeSlayerLeaderboard()), HttpStatus.OK);
+                }
                 case "kuudra" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getKuudraLeaderboard()), HttpStatus.OK);
+                }
+                case "alltime-kuudra" -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeKuudraLeaderboard()), HttpStatus.OK);
                 }
                 default -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()),

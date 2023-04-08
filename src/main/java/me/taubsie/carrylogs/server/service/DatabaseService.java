@@ -251,14 +251,32 @@ public class DatabaseService {
         return getLeaderboard(sql);
     }
 
+    public Map<Long, Long> getAlltimeDungeonLeaderboard() throws SQLException {
+        String sql = "select id, score from alltime_dungeon_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
     public Map<Long, Long> getSlayerLeaderboard() throws SQLException {
         String sql = "select id, score from slayer_score where score > 0 order by score DESC limit 10";
 
         return getLeaderboard(sql);
     }
 
+    public Map<Long, Long> getAlltimeSlayerLeaderboard() throws SQLException {
+        String sql = "select id, score from alltime_slayer_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
     public Map<Long, Long> getKuudraLeaderboard() throws SQLException {
         String sql = "select id, score from kuudra_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
+    public Map<Long, Long> getAlltimeKuudraLeaderboard() throws SQLException {
+        String sql = "select id, score from alltime_kuudra_score where score > 0 order by score DESC limit 10";
 
         return getLeaderboard(sql);
     }
@@ -308,6 +326,8 @@ public class DatabaseService {
             return 0L;
         }
 
+        updateLifetimeScore(carrierId, amount, type);
+
         try(PreparedStatement firstStatement = connection.prepareStatement(firstSql);
             PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
             firstStatement.setLong(1, carrierId);
@@ -317,6 +337,47 @@ public class DatabaseService {
             newScore += amount;
 
             newScore = (newScore < 0) ? 0L : newScore;
+
+            secondStatement.setLong(1, carrierId);
+            secondStatement.setLong(2, newScore);
+            secondStatement.setLong(3, newScore);
+            secondStatement.executeUpdate();
+
+            return newScore;
+        }
+    }
+
+    public long updateLifetimeScore(long carrierId, long amount, String type) throws SQLException {
+        String firstSql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" -> "SELECT score from alltime_dungeon_score where id = ?";
+            case "kuudra" -> "SELECT score from alltime_kuudra_score where id = ?";
+            case "slayer" -> "SELECT score from alltime_slayer_score where id = ?";
+            default -> "";
+        };
+
+        String secondSql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" ->
+                    "INSERT INTO alltime_dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            case "kuudra" ->
+                    "INSERT INTO alltime_kuudra_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            case "slayer" ->
+                    "INSERT INTO alltime_slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            default -> "";
+        };
+
+        if(firstSql.isEmpty() || secondSql.isEmpty()) {
+            return 0L;
+        }
+
+        try(PreparedStatement firstStatement = connection.prepareStatement(firstSql);
+            PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
+            firstStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = firstStatement.executeQuery();
+            long newScore = resultSet.next() ? resultSet.getLong(1) : 0L;
+            newScore += amount;
+
+            newScore = (newScore >= 0) ? newScore : 0L;
 
             secondStatement.setLong(1, carrierId);
             secondStatement.setLong(2, newScore);
@@ -399,14 +460,14 @@ public class DatabaseService {
             case "dungeon", "dungeons" ->
                     "SELECT carrier.id, score FROM carrier LEFT JOIN dungeon_score score ON carrier" +
                             ".id = score.id where (f4 = 1 or f5 = 1 or f6 = 1 or f7 = 1 or master_mode = 1) and " +
-                            "(score <= ? or score is null)";
+                            "(score < ? or score is null)";
             case "slayer" ->
                     "SELECT carrier.id, score FROM carrier LEFT JOIN slayer_score score ON carrier.id = score.id " +
                             "where (eman_t3 = 1 or eman_t4 = 1 or blaze_t2 = 1 or blaze_t3 = 1 or blaze_t4 = 1) and " +
-                            "(score <= ? or score is null)";
+                            "(score < ? or score is null)";
             case "kuudra" ->
                     "SELECT carrier.id, score FROM carrier LEFT JOIN kuudra_score score ON carrier.id = score.id " +
-                            "where (basic = 1 or hot = 1 or burning = 1 or fiery = 1 or infernal = 1) and (score <= ?" +
+                            "where (basic = 1 or hot = 1 or burning = 1 or fiery = 1 or infernal = 1) and (score < ?" +
                             " or score is null)";
             default -> "";
         };
