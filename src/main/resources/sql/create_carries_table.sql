@@ -51,3 +51,21 @@ create table kuudra_score
     id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
     score BIGINT
 );
+
+create table alltime_dungeon_score
+(
+    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
+    score BIGINT
+);
+
+create table alltime_slayer_score
+(
+    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
+    score BIGINT
+);
+
+create table alltime_kuudra_score
+(
+    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
+    score BIGINT
+);
