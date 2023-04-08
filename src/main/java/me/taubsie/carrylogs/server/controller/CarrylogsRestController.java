@@ -6,6 +6,7 @@ import me.taubsie.dungeonhub.common.CarryRole;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,12 @@ public class CarrylogsRestController {
     @GetMapping("/v1/hello")
     public ResponseEntity<String> hello(Principal principal) {
         return new ResponseEntity<>(String.format("Hello, %s!", principal.getName()), HttpStatus.OK);
+    }
+
+    @PostAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @GetMapping("/v1/admin")
+    public ResponseEntity<String> admin(Principal principal) {
+        return new ResponseEntity<>(String.format("Hello, %s! Welcome to the secret endpoint.", principal.getName()), HttpStatus.OK);
     }
 
     @PostMapping("/v1/log-queue")
