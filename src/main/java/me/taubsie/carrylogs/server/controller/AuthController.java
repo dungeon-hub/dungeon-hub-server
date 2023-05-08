@@ -18,7 +18,7 @@ public class AuthController
         this.tokenService = tokenService;
     }
 
-    @GetMapping("/token")
+    @GetMapping("/api/token")
     public String token(Authentication authentication)
     {
         logger.info("Token requested for user: '" + authentication.getName() + "'");

@@ -19,19 +19,20 @@ import java.util.Optional;
 
 @RestController
 @EnableMethodSecurity
+@RequestMapping("/api/v1/")
 public class CarrylogsRestController {
-    @GetMapping("/v1/hello")
+    @GetMapping("hello")
     public ResponseEntity<String> hello(Principal principal) {
         return new ResponseEntity<>(String.format("Hello, %s!", principal.getName()), HttpStatus.OK);
     }
 
     @PostAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    @GetMapping("/v1/admin")
+    @GetMapping("admin")
     public ResponseEntity<String> admin(Principal principal) {
         return new ResponseEntity<>(String.format("Hello, %s! Welcome to the secret endpoint.", principal.getName()), HttpStatus.OK);
     }
 
-    @PostMapping("/v1/log-queue")
+    @PostMapping("log-queue")
     public ResponseEntity<String> addLogQueue(Long id, String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
         try {
@@ -45,7 +46,7 @@ public class CarrylogsRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/v1/approving-queue")
+    @PostMapping("approving-queue")
     public ResponseEntity<String> addApprovingQueue(Long id, String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
         try {
@@ -59,7 +60,7 @@ public class CarrylogsRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/v1/log-queue")
+    @DeleteMapping("log-queue")
     public ResponseEntity<String> removeLogQueue(Long id) {
         try {
             DatabaseService.getInstance().removeFromLogQueue(id);
@@ -70,7 +71,7 @@ public class CarrylogsRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping(value = {"/v1/approving-queue", "/v1/approving-queue/{id}"})
+    @GetMapping(value = {"approving-queue", "approving-queue/{id}"})
     public ResponseEntity<String> getApprovingQueue(@PathVariable(required = false) String id) {
         if(id == null) {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
@@ -87,7 +88,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping(value = {"/v1/log-queue", "/v1/log-queue/{id}"})
+    @GetMapping(value = {"log-queue", "log-queue/{id}"})
     public ResponseEntity<String> getLogQueue(@PathVariable(required = false) Optional<String> id) {
         if(id.isEmpty()) {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
@@ -104,7 +105,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @DeleteMapping("/v1/approving-queue")
+    @DeleteMapping("approving-queue")
     public ResponseEntity<String> removeApprovingQueue(Long id) {
         try {
             DatabaseService.getInstance().removeFromApprovingQueue(id);
@@ -115,7 +116,7 @@ public class CarrylogsRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/v1/log")
+    @PostMapping("log")
     public ResponseEntity<String> logCarry(String carryInformation) {
         CarryInformation carry = CarryInformation.fromJson(carryInformation);
 
@@ -137,7 +138,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping(value = {"/v1/carry-score/{id}", "/v1/carry-score/{id}/{type}"})
+    @GetMapping(value = {"carry-score/{id}", "carry-score/{id}/{type}"})
     public ResponseEntity<String> countScore(@PathVariable Long id,
                                              @PathVariable(required = false) Optional<String> type) {
         try {
@@ -165,7 +166,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @PutMapping("/v1/carry-score/{id}/{type}")
+    @PutMapping("carry-score/{id}/{type}")
     public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable String type, Long amount) {
         try {
             DatabaseService.getInstance().addUserIfNotExists(id);
@@ -178,7 +179,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("/v1/leaderboard/{type}")
+    @GetMapping("leaderboard/{type}")
     public ResponseEntity<String> getLeaderboard(@PathVariable String type) {
         try {
             switch(type.toLowerCase()) {
@@ -211,7 +212,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @PutMapping("/v1/role")
+    @PutMapping("role")
     public ResponseEntity<String> addRoles(Long id, String roles) {
         try {
             List<CarryRole> roleList = CarryLogService.getInstance().getGson()
@@ -224,7 +225,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @PutMapping("/v1/roles")
+    @PutMapping("roles")
     public ResponseEntity<String> addMultipleRoles(String roles) {
         try {
             Map<Long, List<CarryRole>> roleData = CarryLogService.getInstance().getGson()
@@ -237,7 +238,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("/v1/purge/{type}/{amount}")
+    @GetMapping("purge/{type}/{amount}")
     public ResponseEntity<String> getScorelessUsers(@PathVariable String type, @PathVariable long amount) {
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
