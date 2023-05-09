@@ -165,6 +165,25 @@ public class CarrylogsRestController {
                     case "slayer" -> {
                         return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countSlayerScoreForCarrier(id)), HttpStatus.OK);
                     }
+                    case "alltime-dungeon" -> {
+                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countAlltimeDungeonScoreForCarrier(id)), HttpStatus.OK);
+                    }
+                    case "alltime-slayer" -> {
+                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countAlltimeSlayerScoreForCarrier(id)), HttpStatus.OK);
+                    }
+                    case "alltime-kuudra" -> {
+                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countAlltimeKuudraScoreForCarrier(id)), HttpStatus.OK);
+                    }
+                    case "event-dungeon" -> {
+                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countEventDungeonScoreForCarrier(id)), HttpStatus.OK);
+                    }
+                    case "event-slayer" -> {
+                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countEventSlayerScoreForCarrier(id)), HttpStatus.OK);
+                    }
+                    case "event-kuudra" -> {
+                        //lmao this isn't even implemented yet?!
+                        return new ResponseEntity<>(String.valueOf(0L), HttpStatus.OK);
+                    }
                     default -> {
                         return new ResponseEntity<>("0", HttpStatus.OK);
                     }
@@ -214,6 +233,12 @@ public class CarrylogsRestController {
                 }
                 case "alltime-kuudra" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeKuudraLeaderboard()), HttpStatus.OK);
+                }
+                case "event-dungeon" -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getEventDungeonLeaderboard()), HttpStatus.OK);
+                }
+                case "event-slayer" -> {
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getEventSlayerLeaderboard()), HttpStatus.OK);
                 }
                 default -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()),

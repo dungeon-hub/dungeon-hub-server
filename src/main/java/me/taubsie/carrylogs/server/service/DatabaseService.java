@@ -209,6 +209,11 @@ public class DatabaseService {
         scoreMap.put("dungeon", countDungeonScoreForCarrier(carrierId));
         scoreMap.put("slayer", countSlayerScoreForCarrier(carrierId));
         scoreMap.put("kuudra", countKuudraScoreForCarrier(carrierId));
+        scoreMap.put("alltime-dungeon", countAlltimeDungeonScoreForCarrier(carrierId));
+        scoreMap.put("alltime-slayer", countAlltimeSlayerScoreForCarrier(carrierId));
+        scoreMap.put("alltime-kuudra", countAlltimeKuudraScoreForCarrier(carrierId));
+        scoreMap.put("event-dungeon", countEventDungeonScoreForCarrier(carrierId));
+        scoreMap.put("event-slayer", countEventSlayerScoreForCarrier(carrierId));
 
         return scoreMap;
     }
@@ -239,6 +244,66 @@ public class DatabaseService {
 
     public long countSlayerScoreForCarrier(long carrierId) throws SQLException {
         String sql = "select score from slayer_score where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public long countAlltimeDungeonScoreForCarrier(long carrierId) throws SQLException {
+        String sql = "select score from alltime_dungeon_score where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public long countAlltimeSlayerScoreForCarrier(long carrierId) throws SQLException {
+        String sql = "select score from alltime_slayer_score where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public long countAlltimeKuudraScoreForCarrier(long carrierId) throws SQLException {
+        String sql = "select score from alltime_kuudra_score where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public long countEventDungeonScoreForCarrier(long carrierId) throws SQLException {
+        String sql = "select score from event_dungeon_score where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public long countEventSlayerScoreForCarrier(long carrierId) throws SQLException {
+        String sql = "select score from event_slayer_score where id = ?";
 
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carrierId);
@@ -281,6 +346,18 @@ public class DatabaseService {
 
     public Map<Long, Long> getAlltimeKuudraLeaderboard() throws SQLException {
         String sql = "select id, score from alltime_kuudra_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
+    public Map<Long, Long> getEventDungeonLeaderboard() throws SQLException {
+        String sql = "select id, score from event_dungeon_score where score > 0 order by score DESC limit 10";
+
+        return getLeaderboard(sql);
+    }
+
+    public Map<Long, Long> getEventSlayerLeaderboard() throws SQLException {
+        String sql = "select id, score from event_slayer_score where score > 0 order by score DESC limit 10";
 
         return getLeaderboard(sql);
     }
@@ -332,6 +409,8 @@ public class DatabaseService {
 
         updateLifetimeScore(carrierId, amount, type);
 
+        updateEventScore(carrierId, amount, type);
+
         try(PreparedStatement firstStatement = connection.prepareStatement(firstSql);
             PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
             firstStatement.setLong(1, carrierId);
@@ -341,6 +420,44 @@ public class DatabaseService {
             newScore += amount;
 
             newScore = (newScore < 0) ? 0L : newScore;
+
+            secondStatement.setLong(1, carrierId);
+            secondStatement.setLong(2, newScore);
+            secondStatement.setLong(3, newScore);
+            secondStatement.executeUpdate();
+
+            return newScore;
+        }
+    }
+
+    public long updateEventScore(long carrierId, long amount, String type) throws SQLException {
+        String firstSql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" -> "SELECT score from event_dungeon_score where id = ?";
+            case "slayer" -> "SELECT score from event_slayer_score where id = ?";
+            default -> "";
+        };
+
+        String secondSql = switch(type.toLowerCase()) {
+            case "dungeon", "dungeons" ->
+                    "INSERT INTO event_dungeon_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            case "slayer" ->
+                    "INSERT INTO event_slayer_score (id, score) VALUES (?, ?) ON DUPLICATE KEY UPDATE score = ?";
+            default -> "";
+        };
+
+        if(firstSql.isEmpty() || secondSql.isEmpty()) {
+            return 0L;
+        }
+
+        try(PreparedStatement firstStatement = connection.prepareStatement(firstSql);
+            PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
+            firstStatement.setLong(1, carrierId);
+
+            ResultSet resultSet = firstStatement.executeQuery();
+            long newScore = resultSet.next() ? resultSet.getLong(1) : 0L;
+            newScore += amount;
+
+            newScore = (newScore >= 0) ? newScore : 0L;
 
             secondStatement.setLong(1, carrierId);
             secondStatement.setLong(2, newScore);
