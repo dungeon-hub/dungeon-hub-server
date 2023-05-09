@@ -2,6 +2,7 @@ package me.taubsie.carrylogs.server.service;
 
 import me.taubsie.dungeonhub.common.CarryInformation;
 import me.taubsie.dungeonhub.common.CarryRole;
+import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.common.config.ConfigProperty;
 import org.mariadb.jdbc.MariaDbDataSource;
 
@@ -55,7 +56,8 @@ public class DatabaseService {
 
         try {
             return Integer.parseInt(ConfigProperty.DATABASE_PORT.getValue()) <= 0;
-        } catch(NumberFormatException numberFormatException) {
+        }
+        catch(NumberFormatException numberFormatException) {
             return true;
         }
     }
@@ -486,5 +488,59 @@ public class DatabaseService {
         }
 
         return result;
+    }
+
+    public List<StrikeData> getValidStrikeData(long serverId, long userId) throws SQLException {
+        //TODO implement
+        return getAllStrikeData(serverId, userId);
+    }
+
+    public List<StrikeData> getAllStrikeData(long serverId, long userId) throws SQLException {
+        String sql = "select * from strikes where serverId = ? and user = ?";
+
+        List<StrikeData> strikes = new ArrayList<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, serverId);
+            preparedStatement.setLong(2, userId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                strikes.add(StrikeData.fromResultSet(resultSet));
+            }
+        }
+
+        return strikes;
+    }
+
+    public StrikeData insertStrikeData(StrikeData strikeData) throws SQLException, UnsupportedOperationException {
+        if(strikeData.getId() != null) {
+            throw new UnsupportedOperationException("Strike was already inserted - has an id");
+        }
+
+        String sql = "insert into strikes(serverId, user, striker, reason, time) VALUES (?, ?, ?, ?, ?)";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, strikeData.getServer());
+            preparedStatement.setLong(2, strikeData.getUser());
+            if(strikeData.getStriker() != null) {
+                preparedStatement.setLong(3, strikeData.getStriker());
+            } else {
+                preparedStatement.setNull(3, Types.BIGINT);
+            }
+            preparedStatement.setString(4, strikeData.getReason());
+            preparedStatement.setTimestamp(5, Timestamp.from(strikeData.getStrikeTime()));
+
+            preparedStatement.executeUpdate();
+
+            ResultSet keys = preparedStatement.getGeneratedKeys();
+
+            if(keys.next()) {
+                return strikeData.setId(keys.getLong(1));
+            }
+        }
+
+        return strikeData;
     }
 }

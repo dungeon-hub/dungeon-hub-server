@@ -69,3 +69,13 @@ create table alltime_kuudra_score
     id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
     score BIGINT
 );
+
+create table strikes
+(
+    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    serverId BIGINT NOT NULL,
+    user BIGINT NOT NULL,
+    striker BIGINT,
+    reason varchar(250),
+    time TIMESTAMP NOT NULL
+);
