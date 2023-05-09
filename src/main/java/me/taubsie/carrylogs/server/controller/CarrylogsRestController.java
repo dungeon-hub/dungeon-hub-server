@@ -1,5 +1,6 @@
 package me.taubsie.carrylogs.server.controller;
 
+import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.dungeonhub.common.CarryInformation;
 import me.taubsie.dungeonhub.common.CarryLogService;
 import me.taubsie.dungeonhub.common.CarryRole;
@@ -290,13 +291,42 @@ public class CarrylogsRestController {
         }
     }
 
+    @GetMapping("strike/{server}/{id}")
+    public ResponseEntity<String> getStrikeById(@PathVariable long server, @PathVariable long id) {
+        try {
+            return DatabaseService.getInstance().getStrikeDataById(id)
+                    .filter(data -> data.getServer() == server)
+                    .map(data -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(data), HttpStatus.OK))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        }
+        catch(SQLException sqlException) {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping("strike")
-    public ResponseEntity<String> insertNewStrike(String strikeDataJson) {
-        StrikeData strikeData = CarryLogService.getInstance().getGson().fromJson(strikeDataJson, StrikeData.class);
+    public ResponseEntity<String> insertNewStrike(String strikeData) {
+        StrikeData strikeDataObj = CarryLogService.getInstance().getGson().fromJson(strikeData, StrikeData.class);
 
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
-                    DatabaseService.getInstance().insertStrikeData(strikeData)), HttpStatus.OK);
+                    DatabaseService.getInstance().insertStrikeData(strikeDataObj)), HttpStatus.OK);
+        }
+        catch(SQLException sqlException) {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("strike/{server}/{id}")
+    public ResponseEntity<String> removeStrike(@PathVariable long server, @PathVariable long id) {
+        try {
+            DatabaseService.getInstance().removeStrike(server, id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        catch(ForbiddenException forbiddenException) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         catch(SQLException sqlException) {
             sqlException.printStackTrace();

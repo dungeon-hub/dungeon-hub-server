@@ -1,5 +1,6 @@
 package me.taubsie.carrylogs.server.service;
 
+import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.dungeonhub.common.CarryInformation;
 import me.taubsie.dungeonhub.common.CarryRole;
 import me.taubsie.dungeonhub.common.StrikeData;
@@ -27,7 +28,8 @@ public class DatabaseService {
             dataSource.setPassword(ConfigProperty.DATABASE_PASSWORD.getValue());
 
             activeConnection = dataSource.getConnection();
-        } catch(SQLException sqlException) {
+        }
+        catch(SQLException sqlException) {
             sqlException.printStackTrace();
         }
 
@@ -490,6 +492,22 @@ public class DatabaseService {
         return result;
     }
 
+    public Optional<StrikeData> getStrikeDataById(long id) throws SQLException {
+        String sql = "select * from strikes where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(StrikeData.fromResultSet(resultSet));
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public List<StrikeData> getValidStrikeData(long serverId, long userId) throws SQLException {
         //TODO implement
         return getAllStrikeData(serverId, userId);
@@ -521,7 +539,7 @@ public class DatabaseService {
 
         String sql = "insert into strikes(serverId, user, striker, reason, time) VALUES (?, ?, ?, ?, ?)";
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setLong(1, strikeData.getServer());
             preparedStatement.setLong(2, strikeData.getUser());
             if(strikeData.getStriker() != null) {
@@ -542,5 +560,31 @@ public class DatabaseService {
         }
 
         return strikeData;
+    }
+
+    public void removeStrike(long serverId, long id) throws SQLException, ForbiddenException {
+        String firstSql = "select serverId from strikes where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(firstSql)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                if(resultSet.getLong(1) != serverId) {
+                    throw new ForbiddenException();
+                }
+            } else {
+                return;
+            }
+        }
+
+        String secondSql = "delete from strikes where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(secondSql)) {
+            preparedStatement.setLong(1, id);
+
+            preparedStatement.executeUpdate();
+        }
     }
 }
