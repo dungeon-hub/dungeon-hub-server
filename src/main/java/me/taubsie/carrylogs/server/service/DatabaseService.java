@@ -443,7 +443,7 @@ public class DatabaseService {
                 case "dungeons" -> "select count(*) from dungeon_score where score > 0";
                 case "slayer" -> "select count(*) from slayer_score where score > 0";
                 case "kuudra" -> "select count(*) from kuudra_score where score > 0";
-                case "alltime-dungeon" -> "select count(*) from alltime_dungeon_score where score > 0";
+                case "alltime-dungeons" -> "select count(*) from alltime_dungeon_score where score > 0";
                 case "alltime-slayer" -> "select count(*) from alltime_slayer_score where score > 0";
                 case "alltime-kuudra" -> "select count(*) from alltime_kuudra_score where score > 0";
                 case "event-slayer" -> "select count(*) from event_slayer_score where score > 0";
