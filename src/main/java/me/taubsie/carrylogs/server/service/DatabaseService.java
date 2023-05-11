@@ -1,5 +1,6 @@
 package me.taubsie.carrylogs.server.service;
 
+import com.google.common.collect.Lists;
 import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.dungeonhub.common.CarryInformation;
 import me.taubsie.dungeonhub.common.CarryRole;
