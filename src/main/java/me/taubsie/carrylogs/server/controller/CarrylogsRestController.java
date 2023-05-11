@@ -77,13 +77,14 @@ public class CarrylogsRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    //TODO change url to use query parameters
     @GetMapping(value = {"approving-queue", "approving-queue/{id}"})
     public ResponseEntity<String> getApprovingQueue(@PathVariable(required = false) String id) {
-        if(id == null) {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
-        }
-
         try {
+            if(id == null) {
+                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
+            }
+
             Long idLong = Long.parseLong(id);
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }
@@ -96,13 +97,14 @@ public class CarrylogsRestController {
         }
     }
 
+    //TODO change url to use query parameters
     @GetMapping(value = {"log-queue", "log-queue/{id}"})
     public ResponseEntity<String> getLogQueue(@PathVariable(required = false) Optional<String> id) {
-        if(id.isEmpty()) {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
-        }
-
         try {
+            if(id.isEmpty()) {
+                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
+            }
+
             Long idLong = Long.parseLong(id.get());
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromLogQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }

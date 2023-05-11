@@ -193,14 +193,71 @@ public class DatabaseService {
         return result;
     }
 
-    public Map<Long, List<CarryInformation>> getApprovingQueue() {
-        //TODO implement -> in a hashmap, one key can only have one value
-        return new HashMap<>();
+    public Map<Long, List<CarryInformation>> getApprovingQueue() throws SQLException {
+        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, attachmentLink, id " +
+                "from log_approving_queue";
+
+        Map<Long, List<CarryInformation>> result = new HashMap<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                CarryInformation carryInformation = new CarryInformation(
+                        resultSet.getTimestamp(1).toInstant(),
+                        resultSet.getLong(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getLong(5),
+                        resultSet.getLong(6)
+                );
+                carryInformation.setAttachmentLink(resultSet.getString(7));
+
+                long id = resultSet.getLong(8);
+
+                if(result.containsKey(id)) {
+                    //TODO test this pls ty
+                    result.get(id).add(carryInformation);
+                } else {
+                    result.put(id, Lists.newArrayList(carryInformation));
+                }
+            }
+        }
+
+        return result;
     }
 
-    public Map<Long, List<CarryInformation>> getLogQueue() {
-        //TODO implement -> in a hashmap, one key can only have one value
-        return new HashMap<>();
+    public Map<Long, List<CarryInformation>> getLogQueue() throws SQLException {
+        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, id " +
+                "from log_queue";
+
+        Map<Long, List<CarryInformation>> result = new HashMap<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                CarryInformation carryInformation = new CarryInformation(
+                        resultSet.getTimestamp(1).toInstant(),
+                        resultSet.getLong(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getLong(5),
+                        resultSet.getLong(6)
+                );
+
+                long id = resultSet.getLong(7);
+
+                if(result.containsKey(id)) {
+                    //TODO test this pls ty
+                    result.get(id).add(carryInformation);
+                } else {
+                    result.put(id, Lists.newArrayList(carryInformation));
+                }
+            }
+        }
+
+        return result;
     }
 
     public Map<String, Long> countScoreForCarrier(long carrierId) throws SQLException {
