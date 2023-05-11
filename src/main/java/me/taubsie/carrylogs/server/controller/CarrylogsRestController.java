@@ -214,33 +214,52 @@ public class CarrylogsRestController {
         }
     }
 
+    @GetMapping("leaderboard/{type}/pages")
+    public ResponseEntity<String> getLeaderboardPages(@PathVariable String type) {
+        try {
+            Long entries = DatabaseService.getInstance().getLeaderboardPages(type);
+
+            return new ResponseEntity<>(String.valueOf(entries), HttpStatus.OK);
+        }
+        catch(SQLException sqlException) {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //TODO test default value
     @GetMapping("leaderboard/{type}")
-    public ResponseEntity<String> getLeaderboard(@PathVariable String type) {
+    public ResponseEntity<String> getLeaderboard(@PathVariable String type,
+                                                 @RequestParam(required = false) Integer page) {
+        if(page == null) {
+            page = 1;
+        }
+
         try {
             switch(type.toLowerCase()) {
                 case "dungeon", "dungeons" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getDungeonLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getDungeonLeaderboard(page)), HttpStatus.OK);
                 }
                 case "alltime-dungeon", "alltime-dungeons" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeDungeonLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeDungeonLeaderboard(page)), HttpStatus.OK);
                 }
                 case "slayer" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getSlayerLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getSlayerLeaderboard(page)), HttpStatus.OK);
                 }
                 case "alltime-slayer" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeSlayerLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeSlayerLeaderboard(page)), HttpStatus.OK);
                 }
                 case "kuudra" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getKuudraLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getKuudraLeaderboard(page)), HttpStatus.OK);
                 }
                 case "alltime-kuudra" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeKuudraLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getAlltimeKuudraLeaderboard(page)), HttpStatus.OK);
                 }
                 case "event-dungeon" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getEventDungeonLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getEventDungeonLeaderboard(page)), HttpStatus.OK);
                 }
                 case "event-slayer" -> {
-                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getEventSlayerLeaderboard()), HttpStatus.OK);
+                    return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getEventSlayerLeaderboard(page)), HttpStatus.OK);
                 }
                 default -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(new HashMap<>()),

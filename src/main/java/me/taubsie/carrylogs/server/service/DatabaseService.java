@@ -371,52 +371,94 @@ public class DatabaseService {
         }
     }
 
-    public Map<Long, Long> getDungeonLeaderboard() throws SQLException {
-        String sql = "select id, score from dungeon_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getDungeonLeaderboard(int page) throws SQLException {
+        String sql =
+                "select id, score from dungeon_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getAlltimeDungeonLeaderboard() throws SQLException {
-        String sql = "select id, score from alltime_dungeon_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getAlltimeDungeonLeaderboard(int page) throws SQLException {
+        String sql = "select id, score from alltime_dungeon_score where score > 0 order by score DESC limit 10 offset" +
+                " " + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getSlayerLeaderboard() throws SQLException {
-        String sql = "select id, score from slayer_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getSlayerLeaderboard(int page) throws SQLException {
+        String sql =
+                "select id, score from slayer_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getAlltimeSlayerLeaderboard() throws SQLException {
-        String sql = "select id, score from alltime_slayer_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getAlltimeSlayerLeaderboard(int page) throws SQLException {
+        String sql = "select id, score from alltime_slayer_score where score > 0 order by score DESC limit 10 offset "
+                + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getKuudraLeaderboard() throws SQLException {
-        String sql = "select id, score from kuudra_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getKuudraLeaderboard(int page) throws SQLException {
+        String sql =
+                "select id, score from kuudra_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getAlltimeKuudraLeaderboard() throws SQLException {
-        String sql = "select id, score from alltime_kuudra_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getAlltimeKuudraLeaderboard(int page) throws SQLException {
+        String sql = "select id, score from alltime_kuudra_score where score > 0 order by score DESC limit 10 offset "
+                + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getEventDungeonLeaderboard() throws SQLException {
-        String sql = "select id, score from event_dungeon_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getEventDungeonLeaderboard(int page) throws SQLException {
+        String sql =
+                "select id, score from event_dungeon_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    public Map<Long, Long> getEventSlayerLeaderboard() throws SQLException {
-        String sql = "select id, score from event_slayer_score where score > 0 order by score DESC limit 10";
+    public Map<Long, Long> getEventSlayerLeaderboard(int page) throws SQLException {
+        String sql =
+                "select id, score from event_slayer_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
+    }
+
+    private int getOffsetFromPageNumber(int page) {
+        // 1 -> 0
+        // 2 -> 10
+        // 3 -> 20
+        // 4 -> 30
+
+        return 10 * (page - 1);
+    }
+
+    public Long getLeaderboardEntries(String type) throws SQLException {
+        //TODO implement and take type into consideration
+        String sql = "select count(*) from alltime_dungeon_score where score > 0";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return resultSet.getLong(1);
+            }
+        }
+
+        return 0L;
+    }
+
+    public Long getLeaderboardPages(String type) throws SQLException {
+        Long entries = getLeaderboardEntries(type);
+
+        if(entries == null || entries <= 0) {
+            entries = 1L;
+        }
+
+        return Math.round(Math.ceil(entries / 10.0));
     }
 
     private Map<Long, Long> getLeaderboard(String sql) throws SQLException {
