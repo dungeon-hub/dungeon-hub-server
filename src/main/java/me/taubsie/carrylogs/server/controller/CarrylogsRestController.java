@@ -292,8 +292,8 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("strike/all/{server}/{user}")
-    public ResponseEntity<String> getAllStrikes(@PathVariable long server, @PathVariable long user) {
+    @GetMapping("strike/{server}/all")
+    public ResponseEntity<String> getAllStrikesForUser(@PathVariable long server, @RequestParam long user) {
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().getAllStrikeData(server, user)), HttpStatus.OK);
@@ -304,39 +304,27 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("strike/{server}/{user}")
-    public ResponseEntity<String> getValidStrikes(@PathVariable long server, @PathVariable long user) {
+    @GetMapping("strike/{server}")
+    public ResponseEntity<String> getStrikeData(@PathVariable long server,
+                                                @RequestParam(required = false) Optional<Long> user,
+                                                @RequestParam(required = false) Optional<Long> id) {
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
-                    DatabaseService.getInstance().getValidStrikeData(server, user)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
-            sqlException.printStackTrace();
-            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+            if(user.isEmpty() && id.isEmpty()) {
+                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+                        DatabaseService.getInstance().getStrikesInServer(server)), HttpStatus.OK);
+            }
 
-    @GetMapping("strike/{server}/{id}")
-    public ResponseEntity<String> getStrikeById(@PathVariable long server, @PathVariable long id) {
-        try {
-            return DatabaseService.getInstance().getStrikeDataById(id)
+            if(user.isPresent() && id.isEmpty()) {
+                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+                        DatabaseService.getInstance().getValidStrikeData(server, user.get())), HttpStatus.OK);
+            }
+
+            return DatabaseService.getInstance().getStrikeDataById(id.get())
                     .filter(data -> data.getServer() == server)
-                    .map(data -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(data), HttpStatus.OK))
+                    .filter(data -> user.isEmpty() || data.getUser() == user.get())
+                    .map(data -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(data),
+                            HttpStatus.OK))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        }
-        catch(SQLException sqlException) {
-            sqlException.printStackTrace();
-            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("strike")
-    public ResponseEntity<String> insertNewStrike(String strikeData) {
-        StrikeData strikeDataObj = CarryLogService.getInstance().getGson().fromJson(strikeData, StrikeData.class);
-
-        try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
-                    DatabaseService.getInstance().insertStrikeData(strikeDataObj)), HttpStatus.OK);
         }
         catch(SQLException sqlException) {
             sqlException.printStackTrace();
@@ -352,6 +340,20 @@ public class CarrylogsRestController {
         }
         catch(ForbiddenException forbiddenException) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        catch(SQLException sqlException) {
+            sqlException.printStackTrace();
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("strike")
+    public ResponseEntity<String> insertNewStrike(String strikeData) {
+        StrikeData strikeDataObj = CarryLogService.getInstance().getGson().fromJson(strikeData, StrikeData.class);
+
+        try {
+            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+                    DatabaseService.getInstance().insertStrikeData(strikeDataObj)), HttpStatus.OK);
         }
         catch(SQLException sqlException) {
             sqlException.printStackTrace();

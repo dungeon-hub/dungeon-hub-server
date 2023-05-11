@@ -625,7 +625,7 @@ public class DatabaseService {
         return Optional.empty();
     }
 
-    public List<StrikeData> getValidStrikeData(long serverId, long userId) throws SQLException {
+    public List<StrikeData> getValidStrikeData(long serverId, Long userId) throws SQLException {
         //TODO implement
         return getAllStrikeData(serverId, userId);
     }
@@ -703,5 +703,10 @@ public class DatabaseService {
 
             preparedStatement.executeUpdate();
         }
+    }
+
+    public Map<Long, StrikeData> getStrikesInServer(Long serverId) throws SQLException {
+        //TODO implement
+        return new HashMap<>();
     }
 }
