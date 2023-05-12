@@ -81,7 +81,9 @@ public class SecurityConfig {
 
     //when creating a new user, you need to add PasswordEncoder as a parameter and encode the password
     @Bean
-    public JdbcUserDetailsManager users(DataSource datasource) {
+    public JdbcUserDetailsManager users(DataSource datasource, PasswordEncoder passwordEncoder) {
+        //TODO write method (api ?) to add user to database
+        passwordEncoder.encode("1234");
         return new JdbcUserDetailsManager(datasource);
     }
 
