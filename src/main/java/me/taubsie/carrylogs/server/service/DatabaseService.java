@@ -7,6 +7,8 @@ import me.taubsie.dungeonhub.common.CarryRole;
 import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.common.config.ConfigProperty;
 import org.mariadb.jdbc.MariaDbDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -14,13 +16,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DatabaseService {
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
+
     private static DatabaseService instance;
     private final MariaDbDataSource dataSource;
-    private final Connection connection;
+
+    private final Map<Long, Map<CarryRole, Boolean>> carrierMap = new HashMap<>();
+
+    private Connection connection;
 
     public DatabaseService() {
         dataSource = new MariaDbDataSource();
-        Connection activeConnection = null;
 
         try {
             dataSource.setUrl("jdbc:mariadb://" + ConfigProperty.DATABASE_HOST + ":" + ConfigProperty.DATABASE_PORT + "/" + ConfigProperty.DATABASE_SCHEMA);
@@ -28,13 +34,21 @@ public class DatabaseService {
             dataSource.setUser(ConfigProperty.DATABASE_USER.getValue());
             dataSource.setPassword(ConfigProperty.DATABASE_PASSWORD.getValue());
 
-            activeConnection = dataSource.getConnection();
+            new Timer().scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        reloadConnection();
+                    }
+                    catch(SQLException sqlException) {
+                        logger.error("Error during connection establishment.", sqlException);
+                    }
+                }
+            }, 0L, 1000L * 60 * 5);
         }
         catch(SQLException sqlException) {
-            sqlException.printStackTrace();
+            logger.error("Error during startup of database service.", sqlException);
         }
-
-        connection = activeConnection;
     }
 
     public static DatabaseService getInstance() {
@@ -43,6 +57,51 @@ public class DatabaseService {
         }
 
         return instance;
+    }
+
+    private void reloadConnection() throws SQLException {
+        if(connection == null || !connection.isValid(5)) {
+            if(connection != null) {
+                connection.close();
+            }
+
+            Connection activeConnection = null;
+
+            try {
+                activeConnection = dataSource.getConnection();
+            }
+            catch(SQLException sqlException) {
+                sqlException.printStackTrace();
+            }
+
+            connection = activeConnection;
+        }
+
+        if(connection != null) {
+            reloadRoles();
+        }
+    }
+
+    private void reloadRoles() {
+        carrierMap.clear();
+
+        String sql = "SELECT * FROM carrier";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                Map<CarryRole, Boolean> roleMap = new EnumMap<>(CarryRole.class);
+                for(CarryRole carryRole : CarryRole.values()) {
+                    roleMap.put(carryRole, resultSet.getBoolean(carryRole.name()));
+                }
+
+                carrierMap.put(resultSet.getLong(1), roleMap);
+            }
+        }
+        catch(SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
     }
 
     public boolean hasInvalidConfigValues() {
@@ -438,7 +497,6 @@ public class DatabaseService {
     }
 
     public Long getLeaderboardEntries(String type) throws SQLException {
-        //TODO implement and take type into consideration
         String sql = switch(type.toLowerCase()) {
                 case "dungeons" -> "select count(*) from dungeon_score where score > 0";
                 case "slayer" -> "select count(*) from slayer_score where score > 0";
@@ -620,10 +678,14 @@ public class DatabaseService {
     }
 
     public void addRoles(long id, List<CarryRole> roles) throws SQLException {
-        Map<CarryRole, Boolean> roleMap = new HashMap<>();
+        Map<CarryRole, Boolean> roleMap = new EnumMap<>(CarryRole.class);
 
         for(CarryRole carryRole : CarryRole.values()) {
             roleMap.put(carryRole, roles.contains(carryRole));
+        }
+
+        if(carrierMap.containsKey(id) && carrierMap.get(id).equals(roleMap)) {
+            return;
         }
 
         String sql = "INSERT INTO carrier(id, " + getKeys(roleMap) + ") VALUES (?, " + getValues(roleMap) + ") ON " +
@@ -634,6 +696,8 @@ public class DatabaseService {
 
             preparedStatement.executeUpdate();
         }
+
+        carrierMap.put(id, roleMap);
     }
 
     public void addRoles(Map<Long, List<CarryRole>> roleData) throws SQLException {
@@ -653,7 +717,8 @@ public class DatabaseService {
 
                 for(int i = 0; i < CarryRole.values().length; i++) {
                     preparedStatement.setBoolean(i + 2, roleEntry.getValue().contains(CarryRole.values()[i]));
-                    preparedStatement.setBoolean(CarryRole.values().length + i + 2, roleEntry.getValue().contains(CarryRole.values()[i]));
+                    preparedStatement.setBoolean(CarryRole.values().length + i + 2,
+                            roleEntry.getValue().contains(CarryRole.values()[i]));
                 }
 
                 preparedStatement.addBatch();
@@ -664,6 +729,12 @@ public class DatabaseService {
     }
 
     public void addUserIfNotExists(long id) throws SQLException {
+        if(carrierMap.containsKey(id)) {
+            return;
+        }
+
+        carrierMap.put(id, getEmptyRoleMap());
+
         String sql = "INSERT IGNORE INTO carrier(id) VALUES (?)";
 
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -671,6 +742,16 @@ public class DatabaseService {
 
             preparedStatement.executeUpdate();
         }
+    }
+
+    public Map<CarryRole, Boolean> getEmptyRoleMap() {
+        Map<CarryRole, Boolean> emptyRoleMap = new EnumMap<>(CarryRole.class);
+
+        for(CarryRole carryRole : CarryRole.values()) {
+            emptyRoleMap.put(carryRole, false);
+        }
+
+        return emptyRoleMap;
     }
 
     private String getKeys(Map<CarryRole, Boolean> roleMap) {
