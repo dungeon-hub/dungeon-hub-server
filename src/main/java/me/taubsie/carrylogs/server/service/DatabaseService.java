@@ -3,6 +3,7 @@ package me.taubsie.carrylogs.server.service;
 import com.google.common.collect.Lists;
 import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.dungeonhub.common.CarryInformation;
+import me.taubsie.dungeonhub.common.CarryLogService;
 import me.taubsie.dungeonhub.common.CarryRole;
 import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.common.config.ConfigProperty;
@@ -433,80 +434,71 @@ public class DatabaseService {
 
     public Map<Long, Long> getDungeonLeaderboard(int page) throws SQLException {
         String sql =
-                "select id, score from dungeon_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
+                "select id, score from dungeon_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getAlltimeDungeonLeaderboard(int page) throws SQLException {
         String sql = "select id, score from alltime_dungeon_score where score > 0 order by score DESC limit 10 offset" +
-                " " + getOffsetFromPageNumber(page);
+                " " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getSlayerLeaderboard(int page) throws SQLException {
         String sql =
-                "select id, score from slayer_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
+                "select id, score from slayer_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getAlltimeSlayerLeaderboard(int page) throws SQLException {
         String sql = "select id, score from alltime_slayer_score where score > 0 order by score DESC limit 10 offset "
-                + getOffsetFromPageNumber(page);
+                + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getKuudraLeaderboard(int page) throws SQLException {
         String sql =
-                "select id, score from kuudra_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
+                "select id, score from kuudra_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getAlltimeKuudraLeaderboard(int page) throws SQLException {
         String sql = "select id, score from alltime_kuudra_score where score > 0 order by score DESC limit 10 offset "
-                + getOffsetFromPageNumber(page);
+                + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getEventDungeonLeaderboard(int page) throws SQLException {
         String sql =
-                "select id, score from event_dungeon_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
+                "select id, score from event_dungeon_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
     public Map<Long, Long> getEventSlayerLeaderboard(int page) throws SQLException {
         String sql =
-                "select id, score from event_slayer_score where score > 0 order by score DESC limit 10 offset " + getOffsetFromPageNumber(page);
+                "select id, score from event_slayer_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql);
     }
 
-    private int getOffsetFromPageNumber(int page) {
-        // 1 -> 0
-        // 2 -> 10
-        // 3 -> 20
-        // 4 -> 30
-
-        return 10 * (page - 1);
-    }
-
     public Long getLeaderboardEntries(String type) throws SQLException {
         String sql = switch(type.toLowerCase()) {
-                case "dungeons" -> "select count(*) from dungeon_score where score > 0";
-                case "slayer" -> "select count(*) from slayer_score where score > 0";
-                case "kuudra" -> "select count(*) from kuudra_score where score > 0";
-                case "alltime-dungeons" -> "select count(*) from alltime_dungeon_score where score > 0";
-                case "alltime-slayer" -> "select count(*) from alltime_slayer_score where score > 0";
-                case "alltime-kuudra" -> "select count(*) from alltime_kuudra_score where score > 0";
-                case "event-slayer" -> "select count(*) from event_slayer_score where score > 0";
-                case "event-dungeons" -> "select count(*) from event_dungeon_score where score > 0";
-                default -> "";
+            case "dungeons" -> "select count(*) from dungeon_score where score > 0";
+            case "slayer" -> "select count(*) from slayer_score where score > 0";
+            case "kuudra" -> "select count(*) from kuudra_score where score > 0";
+            case "alltime-dungeons" -> "select count(*) from alltime_dungeon_score where score > 0";
+            case "alltime-slayer" -> "select count(*) from alltime_slayer_score where score > 0";
+            case "alltime-kuudra" -> "select count(*) from alltime_kuudra_score where score > 0";
+            case "event-slayer" -> "select count(*) from event_slayer_score where score > 0";
+            case "event-dungeons" -> "select count(*) from event_dungeon_score where score > 0";
+            default -> "";
         };
 
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
