@@ -227,7 +227,6 @@ public class CarrylogsRestController {
         }
     }
 
-    //TODO test default value
     @GetMapping("leaderboard/{type}")
     public ResponseEntity<String> getLeaderboard(@PathVariable String type,
                                                  @RequestParam(required = false) Integer page) {

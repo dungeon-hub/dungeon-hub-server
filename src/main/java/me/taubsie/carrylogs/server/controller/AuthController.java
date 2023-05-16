@@ -21,9 +21,9 @@ public class AuthController
     @GetMapping("/api/token")
     public String token(Authentication authentication)
     {
-        logger.info("Token requested for user: '" + authentication.getName() + "'");
+        logger.info("Token requested for user: '{}'", authentication.getName());
         String token = tokenService.generateToken(authentication);
-        logger.debug("Token granted " + token);
+        logger.debug("Token granted: {}", token);
         return token;
     }
 }

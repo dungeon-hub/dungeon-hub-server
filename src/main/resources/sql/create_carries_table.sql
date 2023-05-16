@@ -1,6 +1,7 @@
 create table carries
 (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    serverId        BIGINT NOT NULL,
     carrier         BIGINT REFERENCES carrier(id),
     player          BIGINT,
     approver        BIGINT,
@@ -14,6 +15,7 @@ create table carries
 create table log_queue
 (
     id              BIGINT NOT NULL,
+    serverId        BIGINT NOT NULL,
     carrier         BIGINT REFERENCES carrier(id),
     player          BIGINT,
     amountOfCarries mediumint,
@@ -25,6 +27,7 @@ create table log_queue
 create table log_approving_queue
 (
     id              BIGINT NOT NULL,
+    serverId        BIGINT NOT NULL,
     carrier         BIGINT REFERENCES carrier(id),
     player          BIGINT,
     amountOfCarries mediumint,
@@ -36,50 +39,66 @@ create table log_approving_queue
 
 create table dungeon_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id       BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score    BIGINT,
+    primary key(id,serverId)
 );
 
 create table slayer_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table kuudra_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table alltime_dungeon_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table alltime_slayer_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table alltime_kuudra_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table event_dungeon_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table event_slayer_score
 (
-    id    BIGINT NOT NULL PRIMARY KEY REFERENCES carrier(id),
-    score BIGINT
+    id    BIGINT NOT NULL REFERENCES carrier(id),
+    serverId BIGINT NOT NULL,
+    score BIGINT,
+    primary key(id,serverId)
 );
 
 create table strikes
