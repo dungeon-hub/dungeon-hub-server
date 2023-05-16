@@ -12,7 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CarrylogsServerApplication extends ProgramOrigin {
+public class CarrylogsServerApplication implements ProgramOrigin {
     private static final Logger logger = LoggerFactory.getLogger(CarrylogsServerApplication.class);
 
     public static void main(String[] args) {
