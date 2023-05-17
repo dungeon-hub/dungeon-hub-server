@@ -77,15 +77,14 @@ public class CarrylogsRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    //TODO change url to use query parameters
-    @GetMapping(value = {"approving-queue", "approving-queue/{id}"})
-    public ResponseEntity<String> getApprovingQueue(@PathVariable(required = false) String id) {
+    @GetMapping(value = {"approving-queue"})
+    public ResponseEntity<String> getApprovingQueue(@RequestParam(required = false) Optional<String> id) {
         try {
-            if(id == null) {
+            if(id.isEmpty()) {
                 return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
             }
 
-            Long idLong = Long.parseLong(id);
+            Long idLong = Long.parseLong(id.get());
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }
         catch(NumberFormatException numberFormatException) {
@@ -97,9 +96,8 @@ public class CarrylogsRestController {
         }
     }
 
-    //TODO change url to use query parameters
-    @GetMapping(value = {"log-queue", "log-queue/{id}"})
-    public ResponseEntity<String> getLogQueue(@PathVariable(required = false) Optional<String> id) {
+    @GetMapping(value = {"log-queue"})
+    public ResponseEntity<String> getLogQueue(@RequestParam(required = false) Optional<String> id) {
         try {
             if(id.isEmpty()) {
                 return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
