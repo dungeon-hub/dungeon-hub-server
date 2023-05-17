@@ -889,7 +889,20 @@ public class DatabaseService {
     }
 
     public Map<Long, StrikeData> getStrikesInServer(Long serverId) throws SQLException {
-        //TODO implement
-        return new HashMap<>();
+        String sql = "select * from strikes where serverId = ?";
+
+        Map<Long, StrikeData> result = new HashMap<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, serverId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                result.put(resultSet.getLong("id"), StrikeData.fromResultSet(resultSet));
+            }
+        }
+
+        return result;
     }
 }
