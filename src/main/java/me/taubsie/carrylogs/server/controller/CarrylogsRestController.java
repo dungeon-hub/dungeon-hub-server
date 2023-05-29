@@ -291,7 +291,7 @@ public class CarrylogsRestController {
     public ResponseEntity<String> addMultipleRoles(String roles) {
         try {
             Map<Long, List<CarryRole>> roleData = CarryLogService.getInstance().getGson()
-                    .fromJson(roles, CarryLogService.getInstance().getLongCarryRoleListMap());
+                    .fromJson(roles, CarryLogService.getInstance().getLongCarryRoleListMapType());
             DatabaseService.getInstance().addRoles(roleData);
             return new ResponseEntity<>(HttpStatus.OK);
         }
