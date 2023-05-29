@@ -7,6 +7,8 @@ import me.taubsie.dungeonhub.common.CarryLogService;
 import me.taubsie.dungeonhub.common.CarryRole;
 import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.common.config.ConfigProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.mariadb.jdbc.MariaDbDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DatabaseService {
@@ -809,11 +812,38 @@ public class DatabaseService {
     }
 
     public List<StrikeData> getValidStrikeData(long serverId, Long userId) throws SQLException {
-        //TODO implement
-        return getAllStrikeData(serverId, userId);
+        List<StrikeData> strikeData = new ArrayList<>(getAllStrikeData(serverId, userId));
+
+        if(strikeData.size() >= 4) {
+            return strikeData;
+        }
+
+        if(filterStrikesByTime(strikeData, 9) >= 3) {
+            return strikeData;
+        }
+
+        if(filterStrikesByTime(strikeData, 6) >= 2) {
+            return strikeData;
+        }
+
+        filterStrikesByTime(strikeData, 3);
+
+        return strikeData;
     }
 
-    public List<StrikeData> getAllStrikeData(long serverId, long userId) throws SQLException {
+    //called by reference, thanks to groldi <3
+    private int filterStrikesByTime(List<StrikeData> strikeData, int amount) {
+        List<StrikeData> copied = new ArrayList<>(strikeData);
+        strikeData.clear();
+        strikeData.addAll(copied.stream()
+                .filter(data -> data.getStrikeTime()
+                        .isAfter(data.getStrikeTime()
+                                .minus(amount * 30L, TimeUnit.DAYS.toChronoUnit())))
+                .toList());
+        return strikeData.size();
+    }
+
+    public @Unmodifiable @NotNull List<StrikeData> getAllStrikeData(long serverId, long userId) throws SQLException {
         String sql = "select * from strikes where serverId = ? and user = ?";
 
         List<StrikeData> strikes = new ArrayList<>();
@@ -829,7 +859,7 @@ public class DatabaseService {
             }
         }
 
-        return strikes;
+        return Collections.unmodifiableList(strikes);
     }
 
     public StrikeData insertStrikeData(StrikeData strikeData) throws SQLException, UnsupportedOperationException {
