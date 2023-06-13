@@ -283,7 +283,7 @@ public class DatabaseService {
                     //TODO test this pls ty
                     result.get(id).add(carryInformation);
                 } else {
-                    result.put(id, Lists.newArrayList(carryInformation));
+                    result.put(id, new ArrayList<>(List.of(carryInformation)));
                 }
             }
         }
@@ -316,7 +316,7 @@ public class DatabaseService {
                     //TODO test this pls ty
                     result.get(id).add(carryInformation);
                 } else {
-                    result.put(id, Lists.newArrayList(carryInformation));
+                    result.put(id, new ArrayList<>(List.of(carryInformation)));
                 }
             }
         }
