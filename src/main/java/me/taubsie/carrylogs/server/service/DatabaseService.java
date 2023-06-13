@@ -2,10 +2,7 @@ package me.taubsie.carrylogs.server.service;
 
 import com.google.common.collect.Lists;
 import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
-import me.taubsie.dungeonhub.common.CarryInformation;
-import me.taubsie.dungeonhub.common.CarryLogService;
-import me.taubsie.dungeonhub.common.CarryRole;
-import me.taubsie.dungeonhub.common.StrikeData;
+import me.taubsie.dungeonhub.common.*;
 import me.taubsie.dungeonhub.common.config.ConfigProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -140,12 +137,13 @@ public class DatabaseService {
         String sql = "INSERT INTO carries (carrier, player, amountOfCarries, carryDifficulty, carryType, " +
                 "attachmentLink, time, approver) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
+        //TODO rework with new system
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carryInformation.getCarrier());
             preparedStatement.setLong(2, carryInformation.getPlayer());
             preparedStatement.setLong(3, carryInformation.getAmountOfCarries());
-            preparedStatement.setString(4, carryInformation.getCarryDifficulty());
-            preparedStatement.setString(5, carryInformation.getCarryType());
+            preparedStatement.setString(4, carryInformation.getCarryDifficulty().getIdentifier());
+            preparedStatement.setString(5, carryInformation.getCarryType().getIdentifier());
             preparedStatement.setString(6, carryInformation.getAttachmentLink());
             preparedStatement.setTimestamp(7, Timestamp.from(carryInformation.getTime()));
             if(carryInformation.getApprover() != null) {
@@ -161,13 +159,14 @@ public class DatabaseService {
         String sql = "INSERT INTO log_queue (id, carrier, player, amountOfCarries, carryDifficulty, carryType, time) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+        //TODO rework with new system
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setLong(2, carryInformation.getCarrier());
             preparedStatement.setLong(3, carryInformation.getPlayer());
             preparedStatement.setLong(4, carryInformation.getAmountOfCarries());
-            preparedStatement.setString(5, carryInformation.getCarryDifficulty());
-            preparedStatement.setString(6, carryInformation.getCarryType());
+            preparedStatement.setString(5, carryInformation.getCarryDifficulty().getIdentifier());
+            preparedStatement.setString(6, carryInformation.getCarryType().getIdentifier());
             preparedStatement.setTimestamp(7, Timestamp.from(carryInformation.getTime()));
             preparedStatement.executeUpdate();
         }
@@ -177,13 +176,14 @@ public class DatabaseService {
         String sql = "INSERT INTO log_approving_queue (id, carrier, player, amountOfCarries, carryDifficulty, " +
                 "carryType, attachmentLink, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
+        //TODO rework with new system
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setLong(2, carryInformation.getCarrier());
             preparedStatement.setLong(4, carryInformation.getAmountOfCarries());
             preparedStatement.setLong(3, carryInformation.getPlayer());
-            preparedStatement.setString(5, carryInformation.getCarryDifficulty());
-            preparedStatement.setString(6, carryInformation.getCarryType());
+            preparedStatement.setString(5, carryInformation.getCarryDifficulty().getIdentifier());
+            preparedStatement.setString(6, carryInformation.getCarryType().getIdentifier());
             preparedStatement.setString(7, carryInformation.getAttachmentLink());
             preparedStatement.setTimestamp(8, Timestamp.from(carryInformation.getTime()));
             preparedStatement.executeUpdate();
@@ -218,11 +218,16 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
+                //TODO implement
+                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
+                        .loadCarryDifficulties()
+                        .get(0);
+
+                //TODO rework with new system
                 result.add(new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
-                        resultSet.getString(3),
-                        resultSet.getString(4),
+                        carryDifficulty,
                         resultSet.getLong(5),
                         resultSet.getLong(6),
                         resultSet.getString(7)
@@ -241,13 +246,18 @@ public class DatabaseService {
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
+            //TODO rework with new system
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
+                //TODO implement
+                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
+                                .loadCarryDifficulties()
+                                        .get(0);
+
                 result.add(new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
-                        resultSet.getString(3),
-                        resultSet.getString(4),
+                        carryDifficulty,
                         resultSet.getLong(5),
                         resultSet.getLong(6)
                 ));
@@ -266,12 +276,17 @@ public class DatabaseService {
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
+            //TODO rework with new system
             while(resultSet.next()) {
+                //TODO implement
+                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
+                        .loadCarryDifficulties()
+                        .get(0);
+
                 CarryInformation carryInformation = new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
-                        resultSet.getString(3),
-                        resultSet.getString(4),
+                        carryDifficulty,
                         resultSet.getLong(5),
                         resultSet.getLong(6)
                 );
@@ -280,7 +295,6 @@ public class DatabaseService {
                 long id = resultSet.getLong(8);
 
                 if(result.containsKey(id)) {
-                    //TODO test this pls ty
                     result.get(id).add(carryInformation);
                 } else {
                     result.put(id, new ArrayList<>(List.of(carryInformation)));
@@ -300,12 +314,17 @@ public class DatabaseService {
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
+            //TODO rework with new system
             while(resultSet.next()) {
+                //TODO implement
+                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
+                        .loadCarryDifficulties()
+                        .get(0);
+
                 CarryInformation carryInformation = new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
-                        resultSet.getString(3),
-                        resultSet.getString(4),
+                        carryDifficulty,
                         resultSet.getLong(5),
                         resultSet.getLong(6)
                 );
@@ -313,7 +332,6 @@ public class DatabaseService {
                 long id = resultSet.getLong(7);
 
                 if(result.containsKey(id)) {
-                    //TODO test this pls ty
                     result.get(id).add(carryInformation);
                 } else {
                     result.put(id, new ArrayList<>(List.of(carryInformation)));
