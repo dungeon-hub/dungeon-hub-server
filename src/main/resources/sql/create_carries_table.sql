@@ -110,3 +110,11 @@ create table strikes
     reason varchar(250),
     time TIMESTAMP NOT NULL
 );
+
+create table carry_type
+(
+    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier varchar(250),
+    server BIGINT NOT NULL,
+    UNIQUE (identifier, server)
+);

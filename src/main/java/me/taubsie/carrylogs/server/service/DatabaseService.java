@@ -21,7 +21,7 @@ public class DatabaseService {
     private static DatabaseService instance;
     private final MariaDbDataSource dataSource;
 
-    private final Map<Long, Map<CarryRole, Boolean>> carrierMap = new HashMap<>();
+    private final Map<Long, Map<OldCarryRole, Boolean>> carrierMap = new HashMap<>();
 
     private Connection connection;
 
@@ -88,9 +88,9 @@ public class DatabaseService {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                Map<CarryRole, Boolean> roleMap = new EnumMap<>(CarryRole.class);
-                for (CarryRole carryRole : CarryRole.values()) {
-                    roleMap.put(carryRole, resultSet.getBoolean(carryRole.name()));
+                Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
+                for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+                    roleMap.put(oldCarryRole, resultSet.getBoolean(oldCarryRole.name()));
                 }
 
                 carrierMap.put(resultSet.getLong(1), roleMap);
@@ -655,11 +655,11 @@ public class DatabaseService {
         }
     }
 
-    public void addRoles(long id, List<CarryRole> roles) throws SQLException {
-        Map<CarryRole, Boolean> roleMap = new EnumMap<>(CarryRole.class);
+    public void addRoles(long id, List<OldCarryRole> roles) throws SQLException {
+        Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
 
-        for (CarryRole carryRole : CarryRole.values()) {
-            roleMap.put(carryRole, roles.contains(carryRole));
+        for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+            roleMap.put(oldCarryRole, roles.contains(oldCarryRole));
         }
 
         if (carrierMap.containsKey(id) && carrierMap.get(id).equals(roleMap)) {
@@ -679,7 +679,7 @@ public class DatabaseService {
     }
 
     //TODO rework and maybe put into mongodb
-    public void addRoles(Map<Long, List<CarryRole>> roleData) throws SQLException {
+    public void addRoles(Map<Long, List<OldCarryRole>> roleData) throws SQLException {
         String sql = "INSERT INTO carrier(id, " +
                 "F4, F5, F6, F7, MASTER_MODE, " +
                 "EMAN_T3, EMAN_T4, BLAZE_T2, BLAZE_T3, BLAZE_T4, " +
@@ -691,13 +691,13 @@ public class DatabaseService {
                 "BASIC=?, HOT=?, BURNING=?, FIERY=?, INFERNAL=?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            for (Map.Entry<Long, List<CarryRole>> roleEntry : roleData.entrySet()) {
+            for (Map.Entry<Long, List<OldCarryRole>> roleEntry : roleData.entrySet()) {
                 preparedStatement.setLong(1, roleEntry.getKey());
 
-                for (int i = 0; i < CarryRole.values().length; i++) {
-                    preparedStatement.setBoolean(i + 2, roleEntry.getValue().contains(CarryRole.values()[i]));
-                    preparedStatement.setBoolean(CarryRole.values().length + i + 2,
-                            roleEntry.getValue().contains(CarryRole.values()[i]));
+                for (int i = 0; i < OldCarryRole.values().length; i++) {
+                    preparedStatement.setBoolean(i + 2, roleEntry.getValue().contains(OldCarryRole.values()[i]));
+                    preparedStatement.setBoolean(OldCarryRole.values().length + i + 2,
+                            roleEntry.getValue().contains(OldCarryRole.values()[i]));
                 }
 
                 preparedStatement.addBatch();
@@ -723,25 +723,25 @@ public class DatabaseService {
         }
     }
 
-    public Map<CarryRole, Boolean> getEmptyRoleMap() {
-        Map<CarryRole, Boolean> emptyRoleMap = new EnumMap<>(CarryRole.class);
+    public Map<OldCarryRole, Boolean> getEmptyRoleMap() {
+        Map<OldCarryRole, Boolean> emptyRoleMap = new EnumMap<>(OldCarryRole.class);
 
-        for (CarryRole carryRole : CarryRole.values()) {
-            emptyRoleMap.put(carryRole, false);
+        for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+            emptyRoleMap.put(oldCarryRole, false);
         }
 
         return emptyRoleMap;
     }
 
-    private String getKeys(Map<CarryRole, Boolean> roleMap) {
+    private String getKeys(Map<OldCarryRole, Boolean> roleMap) {
         return roleMap.keySet().stream().map(Enum::name).collect(Collectors.joining(", "));
     }
 
-    private String getValues(Map<CarryRole, Boolean> roleMap) {
+    private String getValues(Map<OldCarryRole, Boolean> roleMap) {
         return roleMap.values().stream().map(String::valueOf).collect(Collectors.joining(", "));
     }
 
-    private String getKeysWithValues(Map<CarryRole, Boolean> roleMap) {
+    private String getKeysWithValues(Map<OldCarryRole, Boolean> roleMap) {
         return roleMap.entrySet().stream().map(carryRole -> carryRole.getKey().name() + " = " + carryRole.getValue()).collect(Collectors.joining(", "));
     }
 
@@ -918,5 +918,23 @@ public class DatabaseService {
         }
 
         return result;
+    }
+
+    public List<CarryType> loadCarryTypes() throws SQLException {
+        String sql = "select * from carry_type";
+
+        List<CarryType> carryTypes = new ArrayList<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            carryTypes.add(new CarryType(
+                    resultSet.getLong("id"),
+                    resultSet.getString("identifier"),
+                    resultSet.getLong("server")
+            ));
+        }
+
+        return carryTypes;
     }
 }

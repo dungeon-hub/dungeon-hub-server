@@ -4,7 +4,7 @@ import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.carrylogs.server.service.DatabaseService;
 import me.taubsie.dungeonhub.common.CarryInformation;
 import me.taubsie.dungeonhub.common.CarryLogService;
-import me.taubsie.dungeonhub.common.CarryRole;
+import me.taubsie.dungeonhub.common.OldCarryRole;
 import me.taubsie.dungeonhub.common.StrikeData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -228,7 +228,7 @@ public class CarrylogsRestController {
     @PutMapping("role")
     public ResponseEntity<String> addRoles(Long id, String roles) {
         try {
-            List<CarryRole> roleList = CarryLogService.getInstance().getGson()
+            List<OldCarryRole> roleList = CarryLogService.getInstance().getGson()
                     .fromJson(roles, CarryLogService.getInstance().getCarryRoleListType());
             DatabaseService.getInstance().addRoles(id, roleList);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -241,7 +241,7 @@ public class CarrylogsRestController {
     @PutMapping("roles")
     public ResponseEntity<String> addMultipleRoles(String roles) {
         try {
-            Map<Long, List<CarryRole>> roleData = CarryLogService.getInstance().getGson()
+            Map<Long, List<OldCarryRole>> roleData = CarryLogService.getInstance().getGson()
                     .fromJson(roles, CarryLogService.getInstance().getLongCarryRoleListMapType());
             DatabaseService.getInstance().addRoles(roleData);
             return new ResponseEntity<>(HttpStatus.OK);

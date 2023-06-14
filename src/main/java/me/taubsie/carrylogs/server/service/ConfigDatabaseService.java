@@ -126,8 +126,11 @@ public class ConfigDatabaseService {
                             .filter(carryType -> carryType.getId().equalsIgnoreCase(document.getObjectId("carry-type"
                             ).toString()))
                             .findFirst()
-                            .orElse(null),
-                    document.getList("roles", Long.TYPE));
+                            .orElse(null));
+
+            if(document.getLong("role") != null) {
+                carryTier.setRole(document.getLong("role"));
+            }
 
             if (document.getLong("category") != null) {
                 carryTier.setCategory(document.getLong("category"));
@@ -166,6 +169,10 @@ public class ConfigDatabaseService {
                             .findFirst()
                             .orElse(null));
 
+            if(document.getLong("role") != null) {
+                carryDifficulty.setRole(document.getLong("role"));
+            }
+
             carryDifficulties.add(carryDifficulty);
         });
 
@@ -173,17 +180,32 @@ public class ConfigDatabaseService {
     }
 
     public List<CarryDifficulty> loadCarryDifficultiesForServer(long serverId) {
-        //TODO implement
-        return new ArrayList<>();
+        return loadCarryTypesForServer(serverId)
+                .stream()
+                .flatMap(carryType -> loadCarryTiersOfCarryType(carryType).stream())
+                .flatMap(carryTier -> loadCarryDifficultiesOfCarryTier(carryTier).stream())
+                .toList();
     }
 
     public List<CarryDifficulty> loadCarryDifficultiesOfCarryTier(CarryTier carryTier) {
-        //TODO implement
-        return new ArrayList<>();
+        return loadCarryDifficultiesOfCarryTier(carryTier.getId());
     }
 
     public List<CarryDifficulty> loadCarryDifficultiesOfCarryTier(String id) {
-        //TODO implement
-        return new ArrayList<>();
+        return loadCarryDifficulties()
+                .stream().filter(carryDifficulty -> carryDifficulty.getCarryTier().getId().equalsIgnoreCase(id))
+                .toList();
+    }
+
+    public List<CarryTier> loadCarryTiersWithRole() {
+        return loadCarryTiers().stream()
+                .filter(carryTier -> carryTier.getRole().isPresent())
+                .toList();
+    }
+
+    public List<CarryDifficulty> loadCarryDifficultiesWithRole() {
+        return loadCarryDifficulties().stream()
+                .filter(carryDifficulty -> carryDifficulty.getRole().isPresent())
+                .toList();
     }
 }
