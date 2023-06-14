@@ -1,10 +1,10 @@
 package me.taubsie.carrylogs.server.controller;
 
 import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
+import me.taubsie.carrylogs.server.service.DatabaseService;
 import me.taubsie.dungeonhub.common.CarryInformation;
 import me.taubsie.dungeonhub.common.CarryLogService;
 import me.taubsie.dungeonhub.common.CarryRole;
-import me.taubsie.carrylogs.server.service.DatabaseService;
 import me.taubsie.dungeonhub.common.StrikeData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,7 @@ public class CarrylogsRestController {
             DatabaseService.getInstance().addUserIfNotExists(carry.getCarrier());
 
             DatabaseService.getInstance().addToLogQueue(id, carry);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to add element to log queue.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -61,8 +60,7 @@ public class CarrylogsRestController {
             DatabaseService.getInstance().addUserIfNotExists(carry.getCarrier());
 
             DatabaseService.getInstance().addToApprovingQueue(id, carry);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to add element to approving queue.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -73,8 +71,7 @@ public class CarrylogsRestController {
     public ResponseEntity<String> removeLogQueue(Long id) {
         try {
             DatabaseService.getInstance().removeFromLogQueue(id);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to delete element from log queue.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -84,16 +81,14 @@ public class CarrylogsRestController {
     @GetMapping(value = {"approving-queue"})
     public ResponseEntity<String> getApprovingQueue(@RequestParam(required = false) Optional<Long> id) {
         try {
-            if(id.isEmpty()) {
+            if (id.isEmpty()) {
                 return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
             }
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(id.get()), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
-        }
-        catch(NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to load approving queue.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -102,17 +97,15 @@ public class CarrylogsRestController {
     @GetMapping(value = {"log-queue"})
     public ResponseEntity<String> getLogQueue(@RequestParam(required = false) Optional<String> id) {
         try {
-            if(id.isEmpty()) {
+            if (id.isEmpty()) {
                 return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
             }
 
             Long idLong = Long.parseLong(id.get());
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromLogQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
-        }
-        catch(NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to load log queue.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -122,8 +115,7 @@ public class CarrylogsRestController {
     public ResponseEntity<String> removeApprovingQueue(Long id) {
         try {
             DatabaseService.getInstance().removeFromApprovingQueue(id);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to delete element from approving queue.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -139,63 +131,25 @@ public class CarrylogsRestController {
 
             DatabaseService.getInstance().logCarryInformation(carry);
 
-            if(carry.isDungeonCarry()) {
-                return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateDungeonScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
-            } else if(carry.isKuudraCarry()) {
-                return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateKuudraScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateSlayerScore(carry.getCarrier(), carry.calculateScore())), HttpStatus.OK);
-            }
-        }
-        catch(SQLException sqlException) {
+            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(carry.getCarrier(), carry.calculateScore(), carry.getCarryType().getIdentifier())), HttpStatus.OK);
+        } catch (SQLException sqlException) {
             logger.error("Error when logging carry.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    //TODO rework with new carry type
     @GetMapping(value = {"carry-score/{id}", "carry-score/{id}/{type}"})
     public ResponseEntity<String> countScore(@PathVariable Long id,
                                              @PathVariable(required = false) Optional<String> type) {
         try {
-            if(type.isPresent()) {
-                switch(type.get().toLowerCase()) {
-                    case "dungeon" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countDungeonScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "kuudra" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countKuudraScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "slayer" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countSlayerScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "alltime-dungeon" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countAlltimeDungeonScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "alltime-slayer" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countAlltimeSlayerScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "alltime-kuudra" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countAlltimeKuudraScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "event-dungeon" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countEventDungeonScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "event-slayer" -> {
-                        return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().countEventSlayerScoreForCarrier(id)), HttpStatus.OK);
-                    }
-                    case "event-kuudra" -> {
-                        //lmao this isn't even implemented yet?! It's a TODO!! :D
-                        return new ResponseEntity<>(String.valueOf(0L), HttpStatus.OK);
-                    }
-                    default -> {
-                        return new ResponseEntity<>("0", HttpStatus.OK);
-                    }
-                }
-            }
-
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(id)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+            return new ResponseEntity<>(
+                    type.isPresent()
+                            ? String.valueOf(DatabaseService.getInstance().countScoreForCarrier(id, type.get()))
+                            : CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(id)),
+                    HttpStatus.OK
+            );
+        } catch (SQLException sqlException) {
             logger.error("Error when loading carry score of type {}.", type.orElse("none"), sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -208,8 +162,7 @@ public class CarrylogsRestController {
 
             return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)),
                     HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when modifying carry score.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -221,8 +174,7 @@ public class CarrylogsRestController {
             Long entries = DatabaseService.getInstance().getLeaderboardPages(type);
 
             return new ResponseEntity<>(String.valueOf(entries), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when loading leaderboard pages.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -231,12 +183,13 @@ public class CarrylogsRestController {
     @GetMapping("leaderboard/{type}")
     public ResponseEntity<String> getLeaderboard(@PathVariable String type,
                                                  @RequestParam(required = false) Integer page) {
-        if(page == null) {
+        if (page == null) {
             page = 1;
         }
 
         try {
-            switch(type.toLowerCase()) {
+            //TODO switch to new system
+            switch (type.toLowerCase()) {
                 case "dungeon", "dungeons" -> {
                     return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getDungeonLeaderboard(page)), HttpStatus.OK);
                 }
@@ -266,8 +219,7 @@ public class CarrylogsRestController {
                             HttpStatus.OK);
                 }
             }
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when loading leaderboard.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -280,8 +232,7 @@ public class CarrylogsRestController {
                     .fromJson(roles, CarryLogService.getInstance().getCarryRoleListType());
             DatabaseService.getInstance().addRoles(id, roleList);
             return new ResponseEntity<>(HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when adding a role to user.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -294,8 +245,7 @@ public class CarrylogsRestController {
                     .fromJson(roles, CarryLogService.getInstance().getLongCarryRoleListMapType());
             DatabaseService.getInstance().addRoles(roleData);
             return new ResponseEntity<>(HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when adding multiple roles to user.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -306,8 +256,7 @@ public class CarrylogsRestController {
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().getUsersWithLessScore(type, amount)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when loading purge data.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -318,8 +267,7 @@ public class CarrylogsRestController {
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().getAllStrikeData(server, user)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to load all strikes.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -330,12 +278,12 @@ public class CarrylogsRestController {
                                                 @RequestParam(required = false) Optional<Long> user,
                                                 @RequestParam(required = false) Optional<Long> id) {
         try {
-            if(user.isEmpty() && id.isEmpty()) {
+            if (user.isEmpty() && id.isEmpty()) {
                 return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                         DatabaseService.getInstance().getStrikesInServer(server)), HttpStatus.OK);
             }
 
-            if(user.isPresent() && id.isEmpty()) {
+            if (user.isPresent() && id.isEmpty()) {
                 return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                         DatabaseService.getInstance().getValidStrikeData(server, user.get())), HttpStatus.OK);
             }
@@ -346,8 +294,7 @@ public class CarrylogsRestController {
                     .map(data -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(data),
                             HttpStatus.OK))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to load strikes.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -356,13 +303,13 @@ public class CarrylogsRestController {
     @DeleteMapping("strike/{server}/{id}")
     public ResponseEntity<String> removeStrike(@PathVariable long server, @PathVariable long id) {
         try {
+            //TODO does it make sense to just return the strike data removed?
+            //TODO return something if strike already exists
             DatabaseService.getInstance().removeStrike(server, id);
             return new ResponseEntity<>(HttpStatus.OK);
-        }
-        catch(ForbiddenException forbiddenException) {
+        } catch (ForbiddenException forbiddenException) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to remove strike.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -375,8 +322,7 @@ public class CarrylogsRestController {
         try {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().insertStrikeData(strikeDataObj)), HttpStatus.OK);
-        }
-        catch(SQLException sqlException) {
+        } catch (SQLException sqlException) {
             logger.error("Error when trying to add strike.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

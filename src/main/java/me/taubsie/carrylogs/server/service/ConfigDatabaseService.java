@@ -1,6 +1,9 @@
 package me.taubsie.carrylogs.server.service;
 
-import com.mongodb.*;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerApi;
+import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -59,7 +62,7 @@ public class ConfigDatabaseService {
     }
 
     public static ConfigDatabaseService getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new ConfigDatabaseService();
         }
 
@@ -69,7 +72,7 @@ public class ConfigDatabaseService {
     private void reloadConnection() {
         MongoClient newClient = MongoClients.create(getMongoClientSettings());
 
-        if(mongoClient != null) {
+        if (mongoClient != null) {
             mongoClient.close();
         }
 
@@ -114,19 +117,28 @@ public class ConfigDatabaseService {
         List<CarryType> carryTypes = loadCarryTypes();
         List<CarryTier> carryTiers = new ArrayList<>();
 
-        getCarryTierCollection().find().forEach(document ->
-                carryTiers.add(new CarryTier(
-                        document.getObjectId("_id").toString(),
-                        document.getString("identifier"),
-                        document.getString("display_name"),
-                        carryTypes.stream()
-                                .filter(carryTier -> carryTier.getId().equalsIgnoreCase(document.getObjectId("carry-type"
-                                ).toString()))
-                                .findFirst()
-                                .orElse(null),
-                        document.getList("roles", Long.TYPE)
-                ))
-        );
+        getCarryTierCollection().find().forEach(document -> {
+            CarryTier carryTier = new CarryTier(
+                    document.getObjectId("_id").toString(),
+                    document.getString("identifier"),
+                    document.getString("display_name"),
+                    carryTypes.stream()
+                            .filter(carryType -> carryType.getId().equalsIgnoreCase(document.getObjectId("carry-type"
+                            ).toString()))
+                            .findFirst()
+                            .orElse(null),
+                    document.getList("roles", Long.TYPE));
+
+            if (document.getLong("category") != null) {
+                carryTier.setCategory(document.getLong("category"));
+            }
+
+            if (document.getString("descriptive_name") != null) {
+                carryTier.setDescriptiveName(document.getString("descriptive_name"));
+            }
+
+            carryTiers.add(carryTier);
+        });
 
         return carryTiers;
     }
@@ -140,8 +152,24 @@ public class ConfigDatabaseService {
     }
 
     public List<CarryDifficulty> loadCarryDifficulties() {
-        //TODO implement
-        return new ArrayList<>();
+        List<CarryTier> carryTiers = loadCarryTiers();
+        List<CarryDifficulty> carryDifficulties = new ArrayList<>();
+
+        getCarryDifficultyCollection().find().forEach(document -> {
+            CarryDifficulty carryDifficulty = new CarryDifficulty(
+                    document.getObjectId("_id").toString(),
+                    document.getString("identifier"),
+                    document.getString("displayName"),
+                    carryTiers.stream()
+                            .filter(carryTier -> carryTier.getId().equalsIgnoreCase(document.getObjectId("carry-tier"
+                            ).toString()))
+                            .findFirst()
+                            .orElse(null));
+
+            carryDifficulties.add(carryDifficulty);
+        });
+
+        return carryDifficulties;
     }
 
     public List<CarryDifficulty> loadCarryDifficultiesForServer(long serverId) {
