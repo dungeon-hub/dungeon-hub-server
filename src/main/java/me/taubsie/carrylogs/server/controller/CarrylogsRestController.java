@@ -2,10 +2,7 @@ package me.taubsie.carrylogs.server.controller;
 
 import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.carrylogs.server.service.DatabaseService;
-import me.taubsie.dungeonhub.common.CarryInformation;
-import me.taubsie.dungeonhub.common.CarryLogService;
-import me.taubsie.dungeonhub.common.OldCarryRole;
-import me.taubsie.dungeonhub.common.StrikeData;
+import me.taubsie.dungeonhub.common.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,10 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @EnableMethodSecurity
@@ -324,6 +318,41 @@ public class CarrylogsRestController {
                     DatabaseService.getInstance().insertStrikeData(strikeDataObj)), HttpStatus.OK);
         } catch (SQLException sqlException) {
             logger.error("Error when trying to add strike.", sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("server/{server}/category/{category}/carry-tier")
+    public ResponseEntity<String> getCarryTierFromCategory(@PathVariable long server, @PathVariable long category) {
+        try {
+            Optional<CarryTier> carryTier = DatabaseService.getInstance().loadCarryTierFromCategory(category);
+
+            carryTier = carryTier.filter(tier -> tier.getCarryType().getServer() == server);
+
+            return carryTier.map(tier -> new ResponseEntity<>(tier.toJson(), HttpStatus.OK))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        } catch (SQLException sqlException) {
+            logger.error("Error when trying to load carry tier for category {}.", category, sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("leaderboard-types/{server}")
+    public ResponseEntity<String> getLeaderboardTypes(@PathVariable long server) {
+        try {
+            List<String> result = new ArrayList<>();
+            List<CarryType> carryTypes = DatabaseService.getInstance().loadCarryTypesForServer(server);
+
+            for(CarryType carryType : carryTypes) {
+                result.add(carryType.getIdentifier());
+                result.add("alltime-" + carryType.getIdentifier());
+                result.add("event-" + carryType.getIdentifier());
+            }
+
+            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(result), HttpStatus.OK);
+        } catch (SQLException sqlException) {
+            logger.error("Error while trying to load score types for server {}.", server, sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

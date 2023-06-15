@@ -14,6 +14,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DatabaseService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
@@ -212,12 +213,8 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                //TODO implement
-                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
-                        .loadCarryDifficulties()
-                        .get(0);
+                CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
-                //TODO rework with new system
                 result.add(new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
@@ -240,13 +237,9 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
-            //TODO rework with new system
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                //TODO implement
-                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
-                        .loadCarryDifficulties()
-                        .get(0);
+                CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 result.add(new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
@@ -270,12 +263,8 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            //TODO rework with new system
             while (resultSet.next()) {
-                //TODO implement
-                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
-                        .loadCarryDifficulties()
-                        .get(0);
+                CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 CarryInformation carryInformation = new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
@@ -308,12 +297,8 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            //TODO rework with new system
             while (resultSet.next()) {
-                //TODO implement
-                CarryDifficulty carryDifficulty = ConfigDatabaseService.getInstance()
-                        .loadCarryDifficulties()
-                        .get(0);
+                CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 CarryInformation carryInformation = new CarryInformation(
                         resultSet.getTimestamp(1).toInstant(),
@@ -928,13 +913,159 @@ public class DatabaseService {
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            carryTypes.add(new CarryType(
-                    resultSet.getLong("id"),
-                    resultSet.getString("identifier"),
-                    resultSet.getLong("server")
-            ));
+            while(resultSet.next()) {
+                carryTypes.add(CarryType.fromResultSet(resultSet));
+            }
         }
 
         return carryTypes;
+    }
+
+    public Map<Long, CarryType> loadCarryTypeMap() throws SQLException {
+        Map<Long, CarryType> result = new HashMap<>();
+
+        for(CarryType carryType : loadCarryTypes()) {
+            result.put(carryType.getId(), carryType);
+        }
+
+        return result;
+    }
+
+    public List<CarryType> loadCarryTypesForServer(long serverId) throws SQLException {
+        String sql = "select * from carry_type where server = ?";
+
+        List<CarryType> carryTypes = new ArrayList<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, serverId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                carryTypes.add(CarryType.fromResultSet(resultSet));
+            }
+        }
+
+        return carryTypes;
+    }
+
+    public List<CarryTier> loadCarryTiers() throws SQLException {
+        String sql = "select * from carry_tier";
+
+        Map<Long, CarryType> carryTypes = loadCarryTypeMap();
+        List<CarryTier> carryTiers = new ArrayList<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                carryTiers.add(CarryTier.fromResultSet(resultSet, carryTypes));
+            }
+        }
+
+        return carryTiers;
+    }
+
+    public Map<Long, CarryTier> loadCarryTierMap() throws SQLException {
+        String sql = "select * from carry_tier";
+
+        Map<Long, CarryType> carryTypes = loadCarryTypeMap();
+        Map<Long, CarryTier> result = new HashMap<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                result.put(resultSet.getLong("id"), CarryTier.fromResultSet(resultSet, carryTypes));
+            }
+        }
+
+        return result;
+    }
+
+    public List<CarryTier> loadCarryTiersOfCarryType(CarryType carryType) throws SQLException {
+        return loadCarryTiers().stream()
+                .filter(carryTier -> Objects.equals(carryTier.getCarryType().getId(), carryType.getId()))
+                .toList();
+    }
+
+    public Optional<CarryTier> loadCarryTierFromCategory(long categoryId) throws SQLException {
+        String sql = "select * from carry_tier where category = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, categoryId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(CarryTier.fromResultSet(resultSet, loadCarryTypeMap()));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public List<CarryDifficulty> loadCarryDifficulties() throws SQLException {
+        String sql = "select * from carry_difficulty";
+
+        Map<Long, CarryTier> carryTiers = loadCarryTierMap();
+        List<CarryDifficulty> carryDifficulties = new ArrayList<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()) {
+                carryDifficulties.add(CarryDifficulty.fromResultSet(resultSet, carryTiers));
+            }
+        }
+
+        return carryDifficulties;
+    }
+
+    public List<CarryDifficulty> loadCarryDifficultiesForServer(long serverId) throws SQLException {
+        return loadCarryTypesForServer(serverId)
+                .stream()
+                .flatMap(carryType -> {
+                    try {
+                        return loadCarryTiersOfCarryType(carryType).stream();
+                    }
+                    catch (SQLException sqlException) {
+                        logger.error(null, sqlException);
+                        return Stream.empty();
+                    }
+                })
+                .flatMap(carryTier -> {
+                    try {
+                        return loadCarryDifficultiesOfCarryTier(carryTier).stream();
+                    }
+                    catch (SQLException sqlException) {
+                        logger.error(null, sqlException);
+                        return Stream.empty();
+                    }
+                })
+                .toList();
+    }
+
+    public List<CarryDifficulty> loadCarryDifficultiesOfCarryTier(CarryTier carryTier) throws SQLException {
+        return loadCarryDifficulties()
+                .stream().filter(carryDifficulty -> Objects.equals(carryDifficulty.getCarryTier().getId(), carryTier.getId()))
+                .toList();
+    }
+
+    public Optional<CarryDifficulty> loadCarryDifficulty(long id) throws SQLException {
+        String sql = "select * from carry_difficulty where id = ?";
+        Map<Long, CarryTier> carryTiers = loadCarryTierMap();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(CarryDifficulty.fromResultSet(resultSet, carryTiers));
+            }
+        }
+
+        return Optional.empty();
     }
 }

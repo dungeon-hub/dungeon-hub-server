@@ -116,5 +116,6 @@ create table carry_type
     id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier varchar(250),
     server BIGINT NOT NULL,
+    logChannel BIGINT
     UNIQUE (identifier, server)
 );
