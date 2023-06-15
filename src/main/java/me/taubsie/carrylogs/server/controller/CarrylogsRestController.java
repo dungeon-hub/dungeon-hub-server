@@ -344,7 +344,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("server/{server}/leaderboard-types")
+    @GetMapping("server/{server}/leaderboard-type")
     public ResponseEntity<String> getLeaderboardTypes(@PathVariable long server) {
         try {
             List<String> result = new ArrayList<>();
@@ -363,10 +363,18 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("server/{server}/carry-types")
-    public ResponseEntity<String> getCarryTypesForServer(@PathVariable long server) {
+    @GetMapping("server/{server}/carry-type")
+    public ResponseEntity<String> getCarryTypesForServer(@PathVariable long server, @RequestParam(required = false) Optional<String> identifier) {
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypesForServer(server)), HttpStatus.OK);
+            if(identifier.isEmpty()) {
+                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypesForServer(server)), HttpStatus.OK);
+            }
+
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(server, identifier.get());
+
+            return carryType.map(type -> new ResponseEntity<>(type.toJson(), HttpStatus.OK))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
         } catch (SQLException sqlException) {
             logger.error("Error while trying to load carry types of server {}.", server, sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

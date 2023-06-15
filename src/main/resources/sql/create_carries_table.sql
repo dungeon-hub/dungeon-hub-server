@@ -37,70 +37,6 @@ create table log_approving_queue
     time            TIMESTAMP
 );
 
-create table dungeon_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table slayer_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table kuudra_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table alltime_dungeon_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table alltime_slayer_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table alltime_kuudra_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table event_dungeon_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
-create table event_slayer_score
-(
-    id       BIGINT NOT NULL REFERENCES carrier (id),
-    serverId BIGINT NOT NULL,
-    score    BIGINT,
-    primary key (id, serverId)
-);
-
 create table strikes
 (
     id       BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -142,9 +78,26 @@ from slayer_score as old_score
 
 create table carry_type
 (
-    id         BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier varchar(50),
-    server     BIGINT                NOT NULL,
-    logChannel BIGINT,
+    id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier   varchar(50),
+    server       BIGINT                NOT NULL,
+    logChannel   BIGINT,
+    thumbnailUrl varchar(200),
     UNIQUE (identifier, server)
+);
+
+create table carry_tier
+(
+    id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier   varchar(50),
+    carry_type   BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
+    thumbnailUrl varchar(200),
+    UNIQUE (identifier, carry_type)
+);
+
+create table carry_difficulty
+(
+    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier varchar(50),
+    carry_tier BIGINT NOT NULL REFERENCES carry_tier(id) on delete cascade on update cascade
 );

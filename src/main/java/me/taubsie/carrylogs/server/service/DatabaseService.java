@@ -947,6 +947,23 @@ public class DatabaseService {
         return Optional.empty();
     }
 
+    public Optional<CarryType> getCarryType(long server, String identifier) throws SQLException {
+        String sql = "select * from carry_type where server = ? and identifier = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, server);
+            preparedStatement.setString(2, identifier);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(CarryType.fromResultSet(resultSet));
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public List<CarryTier> loadCarryTiers() throws SQLException {
         String sql = "select * from carry_tier";
 
