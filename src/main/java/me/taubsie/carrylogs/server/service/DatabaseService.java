@@ -541,24 +541,18 @@ public class DatabaseService {
         }
     }
 
-    //TODO add server argument
-    public long updateScore(long carrierId, long amount, String type) throws SQLException {
-        String firstSql = "SELECT score from score where type = ? and id = ?";
+    public long updateScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
+        String firstSql = "SELECT score from score where carry_type = ? and id = ?";
 
-        String secondSql = "INSERT INTO score (id, type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
+        String secondSql = "INSERT INTO score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
 
-        //TODO check if type is valid?
-        if (type.isBlank()) {
-            return 0L;
-        }
+        updateLifetimeScore(carrierId, amount, carryType);
 
-        updateLifetimeScore(carrierId, amount, type);
-
-        updateEventScore(carrierId, amount, type);
+        updateEventScore(carrierId, amount, carryType);
 
         try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
              PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
-            firstStatement.setString(1, type);
+            firstStatement.setLong(1, carryType.getId());
             firstStatement.setLong(2, carrierId);
 
             ResultSet resultSet = firstStatement.executeQuery();
@@ -567,7 +561,7 @@ public class DatabaseService {
             newScore = (newScore < 0) ? 0L : newScore;
 
             secondStatement.setLong(1, carrierId);
-            secondStatement.setString(2, type);
+            secondStatement.setLong(2, carryType.getId());
             secondStatement.setLong(3, newScore);
             secondStatement.setLong(4, newScore);
             secondStatement.executeUpdate();
@@ -576,20 +570,14 @@ public class DatabaseService {
         }
     }
 
-    //TODO add server argument
-    public long updateEventScore(long carrierId, long amount, String type) throws SQLException {
-        String firstSql = "SELECT score from event_score where type = ? and id = ?";
+    public long updateEventScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
+        String firstSql = "SELECT score from event_score where carry_type = ? and id = ?";
 
-        String secondSql = "INSERT INTO event_score (id, type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
-
-        //TODO check if type is valid?
-        if (type.isBlank()) {
-            return 0L;
-        }
+        String secondSql = "INSERT INTO event_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
 
         try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
              PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
-            firstStatement.setString(1, type);
+            firstStatement.setLong(1, carryType.getId());
             firstStatement.setLong(2, carrierId);
 
             ResultSet resultSet = firstStatement.executeQuery();
@@ -599,7 +587,7 @@ public class DatabaseService {
             newScore = (newScore >= 0) ? newScore : 0L;
 
             secondStatement.setLong(1, carrierId);
-            secondStatement.setString(2, type);
+            secondStatement.setLong(2, carryType.getId());
             secondStatement.setLong(3, newScore);
             secondStatement.setLong(4, newScore);
             secondStatement.executeUpdate();
@@ -608,20 +596,14 @@ public class DatabaseService {
         }
     }
 
-    //TODO add server argument
-    public long updateLifetimeScore(long carrierId, long amount, String type) throws SQLException {
-        String firstSql = "SELECT score from alltime_score where type = ? and id = ?";
+    public long updateLifetimeScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
+        String firstSql = "SELECT score from alltime_score where carry_type = ? and id = ?";
 
-        String secondSql = "INSERT INTO alltime_score (id, type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
-
-        //TODO check if type is valid?
-        if (type.isBlank()) {
-            return 0L;
-        }
+        String secondSql = "INSERT INTO alltime_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
 
         try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
              PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
-            firstStatement.setString(1, type);
+            firstStatement.setLong(1, carryType.getId());
             firstStatement.setLong(2, carrierId);
 
             ResultSet resultSet = firstStatement.executeQuery();
@@ -631,7 +613,7 @@ public class DatabaseService {
             newScore = (newScore >= 0) ? newScore : 0L;
 
             secondStatement.setLong(1, carrierId);
-            secondStatement.setString(2, type);
+            secondStatement.setLong(2, carryType.getId());
             secondStatement.setLong(3, newScore);
             secondStatement.setLong(4, newScore);
             secondStatement.executeUpdate();
@@ -947,6 +929,22 @@ public class DatabaseService {
         }
 
         return carryTypes;
+    }
+
+    public Optional<CarryType> getCarryType(long id) throws SQLException {
+        String sql = "select * from carry_type where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(CarryType.fromResultSet(resultSet));
+            }
+        }
+
+        return Optional.empty();
     }
 
     public List<CarryTier> loadCarryTiers() throws SQLException {

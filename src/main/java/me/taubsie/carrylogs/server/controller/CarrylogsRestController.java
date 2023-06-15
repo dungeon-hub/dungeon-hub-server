@@ -125,7 +125,7 @@ public class CarrylogsRestController {
 
             DatabaseService.getInstance().logCarryInformation(carry);
 
-            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(carry.getCarrier(), carry.calculateScore(), carry.getCarryType().getIdentifier())), HttpStatus.OK);
+            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(carry.getCarrier(), carry.calculateScore(), carry.getCarryType())), HttpStatus.OK);
         } catch (SQLException sqlException) {
             logger.error("Error when logging carry.", sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -150,11 +150,17 @@ public class CarrylogsRestController {
     }
 
     @PutMapping("carry-score/{id}/{type}")
-    public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable String type, Long amount) {
+    public ResponseEntity<String> updateScore(@PathVariable Long id, @PathVariable(name = "type") Long carryTypeId, Long amount) {
         try {
             DatabaseService.getInstance().addUserIfNotExists(id);
 
-            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, type)),
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(carryTypeId);
+
+            if(carryType.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            return new ResponseEntity<>(String.valueOf(DatabaseService.getInstance().updateScore(id, amount, carryType.get())),
                     HttpStatus.OK);
         } catch (SQLException sqlException) {
             logger.error("Error when modifying carry score.", sqlException);
@@ -338,7 +344,7 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("leaderboard-types/{server}")
+    @GetMapping("server/{server}/leaderboard-types")
     public ResponseEntity<String> getLeaderboardTypes(@PathVariable long server) {
         try {
             List<String> result = new ArrayList<>();
@@ -353,6 +359,16 @@ public class CarrylogsRestController {
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(result), HttpStatus.OK);
         } catch (SQLException sqlException) {
             logger.error("Error while trying to load score types for server {}.", server, sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("server/{server}/carry-types")
+    public ResponseEntity<String> getCarryTypesForServer(@PathVariable long server) {
+        try {
+            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypesForServer(server)), HttpStatus.OK);
+        } catch (SQLException sqlException) {
+            logger.error("Error while trying to load carry types of server {}.", server, sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
