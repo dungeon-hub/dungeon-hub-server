@@ -79,7 +79,8 @@ from slayer_score as old_score
 create table carry_type
 (
     id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier   varchar(50),
+    identifier   varchar(50)           NOT NULL,
+    displayName  varchar(50),
     server       BIGINT                NOT NULL,
     logChannel   BIGINT,
     thumbnailUrl varchar(200),
@@ -90,6 +91,7 @@ create table carry_tier
 (
     id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier   varchar(50),
+    displayName  varchar(50),
     carry_type   BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
     thumbnailUrl varchar(200),
     UNIQUE (identifier, carry_type)
@@ -99,5 +101,6 @@ create table carry_difficulty
 (
     id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier varchar(50),
+    displayName varchar(50),
     carry_tier BIGINT NOT NULL REFERENCES carry_tier(id) on delete cascade on update cascade
 );
