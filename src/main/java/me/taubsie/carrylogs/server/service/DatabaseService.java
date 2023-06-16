@@ -18,12 +18,10 @@ import java.util.stream.Stream;
 
 public class DatabaseService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
-
+    private static final String SCORE_SUFFIX = "-Score";
     private static DatabaseService instance;
     private final MariaDbDataSource dataSource;
-
     private final Map<Long, Map<OldCarryRole, Boolean>> carrierMap = new HashMap<>();
-
     private Connection connection;
 
     public DatabaseService() {
@@ -40,12 +38,14 @@ public class DatabaseService {
                 public void run() {
                     try {
                         reloadConnection();
-                    } catch (SQLException sqlException) {
+                    }
+                    catch (SQLException sqlException) {
                         logger.error("Error during connection establishment.", sqlException);
                     }
                 }
             }, 0L, 1000L * 60 * 5);
-        } catch (SQLException sqlException) {
+        }
+        catch (SQLException sqlException) {
             logger.error("Error during startup of database service.", sqlException);
         }
     }
@@ -68,7 +68,8 @@ public class DatabaseService {
 
             try {
                 activeConnection = dataSource.getConnection();
-            } catch (SQLException sqlException) {
+            }
+            catch (SQLException sqlException) {
                 sqlException.printStackTrace();
             }
 
@@ -88,15 +89,16 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
-                for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+                for(OldCarryRole oldCarryRole : OldCarryRole.values()) {
                     roleMap.put(oldCarryRole, resultSet.getBoolean(oldCarryRole.name()));
                 }
 
                 carrierMap.put(resultSet.getLong(1), roleMap);
             }
-        } catch (SQLException sqlException) {
+        }
+        catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }
     }
@@ -115,7 +117,8 @@ public class DatabaseService {
 
         try {
             return Integer.parseInt(ConfigProperty.DATABASE_PORT.getValue()) <= 0;
-        } catch (NumberFormatException numberFormatException) {
+        }
+        catch (NumberFormatException numberFormatException) {
             return true;
         }
     }
@@ -212,7 +215,7 @@ public class DatabaseService {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 result.add(new CarryInformation(
@@ -238,7 +241,7 @@ public class DatabaseService {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 result.add(new CarryInformation(
@@ -263,7 +266,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 CarryInformation carryInformation = new CarryInformation(
@@ -297,7 +300,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 CarryInformation carryInformation = new CarryInformation(
@@ -321,177 +324,60 @@ public class DatabaseService {
         return result;
     }
 
-    public long countScoreForCarrier(long carrierId, String type) throws SQLException {
-        //TODO implement
-        return 0L;
+    public long countScoreForCarrier(long carrierId, CarryType carryType) throws SQLException {
+        String sql = "select score from score where id = ? and carry_type = ?";
+
+        return countScore(sql, carrierId, carryType);
     }
 
-    //TODO rework with new system
-    public Map<String, Long> countScoreForCarrier(long carrierId) throws SQLException {
+    public long countAlltimeScoreForCarrier(long carrierId, CarryType carryType) throws SQLException {
+        String sql = "select score from alltime_score where id = ? and carry_type = ?";
+
+        return countScore(sql, carrierId, carryType);
+    }
+
+    public long countEventScoreForCarrier(long carrierId, CarryType carryType) throws SQLException {
+        String sql = "select score from event_score where id = ? and carry_type = ?";
+
+        return countScore(sql, carrierId, carryType);
+    }
+
+    private long countScore(@NotNull String sql, long carrierId, CarryType carryType) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carrierId);
+            preparedStatement.setLong(2, carryType.getId());
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next() ? resultSet.getLong(1) : 0L;
+        }
+    }
+
+    public Map<String, Long> countScoreForCarrier(long serverId, long carrierId) throws SQLException {
         Map<String, Long> scoreMap = new HashMap<>();
 
-        scoreMap.put("dungeon", countDungeonScoreForCarrier(carrierId));
-        scoreMap.put("slayer", countSlayerScoreForCarrier(carrierId));
-        scoreMap.put("kuudra", countKuudraScoreForCarrier(carrierId));
-        scoreMap.put("alltime-dungeon", countAlltimeDungeonScoreForCarrier(carrierId));
-        scoreMap.put("alltime-slayer", countAlltimeSlayerScoreForCarrier(carrierId));
-        scoreMap.put("alltime-kuudra", countAlltimeKuudraScoreForCarrier(carrierId));
-        scoreMap.put("event-dungeon", countEventDungeonScoreForCarrier(carrierId));
-        scoreMap.put("event-slayer", countEventSlayerScoreForCarrier(carrierId));
+        for(CarryType carryType : loadCarryTypesForServer(serverId)) {
+            scoreMap.put(carryType.getDisplayName() + SCORE_SUFFIX, countScoreForCarrier(carrierId, carryType));
+            scoreMap.put("Alltime-" + carryType.getDisplayName() + SCORE_SUFFIX, countAlltimeScoreForCarrier(carrierId,
+                    carryType));
+            scoreMap.put("Event-" + carryType.getDisplayName() + SCORE_SUFFIX, countEventScoreForCarrier(carrierId,
+                    carryType));
+        }
 
         return scoreMap;
     }
 
-    public long countDungeonScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from dungeon_score where id = ?";
+    public Map<Long, Long> getLeaderboard(int page, CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
+        String table = switch (leaderboardType) {
+            case NORMAL -> "score";
+            case EVENT -> "event_score";
+            case ALLTIME -> "alltime_score";
+        };
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
+        String sql = "select id, score from " + table + " where score > 0 and carry-type = ? order by score DESC " +
+                "limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countKuudraScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from kuudra_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countSlayerScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from slayer_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countAlltimeDungeonScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from alltime_dungeon_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countAlltimeSlayerScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from alltime_slayer_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countAlltimeKuudraScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from alltime_kuudra_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countEventDungeonScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from event_dungeon_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public long countEventSlayerScoreForCarrier(long carrierId) throws SQLException {
-        String sql = "select score from event_slayer_score where id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, carrierId);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            return resultSet.next() ? resultSet.getLong(1) : 0L;
-        }
-    }
-
-    public Map<Long, Long> getDungeonLeaderboard(int page) throws SQLException {
-        String sql =
-                "select id, score from dungeon_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getAlltimeDungeonLeaderboard(int page) throws SQLException {
-        String sql = "select id, score from alltime_dungeon_score where score > 0 order by score DESC limit 10 offset" +
-                " " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getSlayerLeaderboard(int page) throws SQLException {
-        String sql =
-                "select id, score from slayer_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getAlltimeSlayerLeaderboard(int page) throws SQLException {
-        String sql = "select id, score from alltime_slayer_score where score > 0 order by score DESC limit 10 offset "
-                + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getKuudraLeaderboard(int page) throws SQLException {
-        String sql =
-                "select id, score from kuudra_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getAlltimeKuudraLeaderboard(int page) throws SQLException {
-        String sql = "select id, score from alltime_kuudra_score where score > 0 order by score DESC limit 10 offset "
-                + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getEventDungeonLeaderboard(int page) throws SQLException {
-        String sql =
-                "select id, score from event_dungeon_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
-    }
-
-    public Map<Long, Long> getEventSlayerLeaderboard(int page) throws SQLException {
-        String sql =
-                "select id, score from event_slayer_score where score > 0 order by score DESC limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
-
-        return getLeaderboard(sql);
+        return getLeaderboard(sql, carryType);
     }
 
     public Long getLeaderboardEntries(String type) throws SQLException {
@@ -528,12 +414,14 @@ public class DatabaseService {
         return Math.round(Math.ceil(entries / 10.0));
     }
 
-    private Map<Long, Long> getLeaderboard(String sql) throws SQLException {
+    private Map<Long, Long> getLeaderboard(String sql, CarryType carryType) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carryType.getId());
+
             Map<Long, Long> result = new LinkedHashMap<>();
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 result.put(resultSet.getLong(1), resultSet.getLong(2));
             }
 
@@ -544,7 +432,8 @@ public class DatabaseService {
     public long updateScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
         String firstSql = "SELECT score from score where carry_type = ? and id = ?";
 
-        String secondSql = "INSERT INTO score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
+        String secondSql = "INSERT INTO score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score " +
+                "= ?";
 
         updateLifetimeScore(carrierId, amount, carryType);
 
@@ -573,7 +462,8 @@ public class DatabaseService {
     public long updateEventScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
         String firstSql = "SELECT score from event_score where carry_type = ? and id = ?";
 
-        String secondSql = "INSERT INTO event_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
+        String secondSql = "INSERT INTO event_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE " +
+                "score = ?";
 
         try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
              PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
@@ -599,7 +489,8 @@ public class DatabaseService {
     public long updateLifetimeScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
         String firstSql = "SELECT score from alltime_score where carry_type = ? and id = ?";
 
-        String secondSql = "INSERT INTO alltime_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE score = ?";
+        String secondSql = "INSERT INTO alltime_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY " +
+                "UPDATE score = ?";
 
         try (PreparedStatement firstStatement = connection.prepareStatement(firstSql);
              PreparedStatement secondStatement = connection.prepareStatement(secondSql)) {
@@ -625,7 +516,7 @@ public class DatabaseService {
     public void addRoles(long id, List<OldCarryRole> roles) throws SQLException {
         Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
 
-        for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+        for(OldCarryRole oldCarryRole : OldCarryRole.values()) {
             roleMap.put(oldCarryRole, roles.contains(oldCarryRole));
         }
 
@@ -658,10 +549,10 @@ public class DatabaseService {
                 "BASIC=?, HOT=?, BURNING=?, FIERY=?, INFERNAL=?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            for (Map.Entry<Long, List<OldCarryRole>> roleEntry : roleData.entrySet()) {
+            for(Map.Entry<Long, List<OldCarryRole>> roleEntry : roleData.entrySet()) {
                 preparedStatement.setLong(1, roleEntry.getKey());
 
-                for (int i = 0; i < OldCarryRole.values().length; i++) {
+                for(int i = 0; i < OldCarryRole.values().length; i++) {
                     preparedStatement.setBoolean(i + 2, roleEntry.getValue().contains(OldCarryRole.values()[i]));
                     preparedStatement.setBoolean(OldCarryRole.values().length + i + 2,
                             roleEntry.getValue().contains(OldCarryRole.values()[i]));
@@ -693,7 +584,7 @@ public class DatabaseService {
     public Map<OldCarryRole, Boolean> getEmptyRoleMap() {
         Map<OldCarryRole, Boolean> emptyRoleMap = new EnumMap<>(OldCarryRole.class);
 
-        for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+        for(OldCarryRole oldCarryRole : OldCarryRole.values()) {
             emptyRoleMap.put(oldCarryRole, false);
         }
 
@@ -738,7 +629,7 @@ public class DatabaseService {
             preparedStatement.setLong(1, score);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 result.put(resultSet.getLong(1), resultSet.getLong(2));
             }
         }
@@ -805,7 +696,7 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 strikes.add(StrikeData.fromResultSet(resultSet));
             }
         }
@@ -879,7 +770,7 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            while(resultSet.next()) {
                 result.put(resultSet.getLong("id"), StrikeData.fromResultSet(resultSet));
             }
         }
@@ -892,7 +783,7 @@ public class DatabaseService {
 
         List<CarryType> carryTypes = new ArrayList<>();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()) {
@@ -918,7 +809,7 @@ public class DatabaseService {
 
         List<CarryType> carryTypes = new ArrayList<>();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, serverId);
 
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -934,12 +825,12 @@ public class DatabaseService {
     public Optional<CarryType> getCarryType(long id) throws SQLException {
         String sql = "select * from carry_type where id = ?";
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 return Optional.of(CarryType.fromResultSet(resultSet));
             }
         }
@@ -950,13 +841,13 @@ public class DatabaseService {
     public Optional<CarryType> getCarryType(long server, String identifier) throws SQLException {
         String sql = "select * from carry_type where server = ? and identifier = ?";
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, server);
             preparedStatement.setString(2, identifier);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 return Optional.of(CarryType.fromResultSet(resultSet));
             }
         }
@@ -970,7 +861,7 @@ public class DatabaseService {
         Map<Long, CarryType> carryTypes = loadCarryTypeMap();
         List<CarryTier> carryTiers = new ArrayList<>();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()) {
@@ -987,7 +878,7 @@ public class DatabaseService {
         Map<Long, CarryType> carryTypes = loadCarryTypeMap();
         Map<Long, CarryTier> result = new HashMap<>();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()) {
@@ -1007,12 +898,12 @@ public class DatabaseService {
     public Optional<CarryTier> loadCarryTierFromCategory(long categoryId) throws SQLException {
         String sql = "select * from carry_tier where category = ?";
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, categoryId);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 return Optional.of(CarryTier.fromResultSet(resultSet, loadCarryTypeMap()));
             }
         }
@@ -1026,7 +917,7 @@ public class DatabaseService {
         Map<Long, CarryTier> carryTiers = loadCarryTierMap();
         List<CarryDifficulty> carryDifficulties = new ArrayList<>();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()) {
@@ -1063,7 +954,8 @@ public class DatabaseService {
 
     public List<CarryDifficulty> loadCarryDifficultiesOfCarryTier(CarryTier carryTier) throws SQLException {
         return loadCarryDifficulties()
-                .stream().filter(carryDifficulty -> Objects.equals(carryDifficulty.getCarryTier().getId(), carryTier.getId()))
+                .stream().filter(carryDifficulty -> Objects.equals(carryDifficulty.getCarryTier().getId(),
+                        carryTier.getId()))
                 .toList();
     }
 
@@ -1071,12 +963,12 @@ public class DatabaseService {
         String sql = "select * from carry_difficulty where id = ?";
         Map<Long, CarryTier> carryTiers = loadCarryTierMap();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 return Optional.of(CarryDifficulty.fromResultSet(resultSet, carryTiers));
             }
         }
