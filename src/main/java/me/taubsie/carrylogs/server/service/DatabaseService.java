@@ -324,6 +324,14 @@ public class DatabaseService {
         return result;
     }
 
+    public long countScoreForCarrier(long carrierId, CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
+        return switch (leaderboardType) {
+            case DEFAULT -> countScoreForCarrier(carrierId, carryType);
+            case ALLTIME -> countAlltimeScoreForCarrier(carrierId, carryType);
+            case EVENT -> countEventScoreForCarrier(carrierId, carryType);
+        };
+    }
+
     public long countScoreForCarrier(long carrierId, CarryType carryType) throws SQLException {
         String sql = "select score from score where id = ? and carry_type = ?";
 
@@ -354,14 +362,20 @@ public class DatabaseService {
     }
 
     public Map<String, Long> countScoreForCarrier(long serverId, long carrierId) throws SQLException {
-        Map<String, Long> scoreMap = new HashMap<>();
+        Map<String, Long> scoreMap = new LinkedHashMap<>();
 
         for(CarryType carryType : loadCarryTypesForServer(serverId)) {
-            scoreMap.put(carryType.getDisplayName() + SCORE_SUFFIX, countScoreForCarrier(carrierId, carryType));
-            scoreMap.put("Alltime-" + carryType.getDisplayName() + SCORE_SUFFIX, countAlltimeScoreForCarrier(carrierId,
-                    carryType));
-            scoreMap.put("Event-" + carryType.getDisplayName() + SCORE_SUFFIX, countEventScoreForCarrier(carrierId,
-                    carryType));
+            for(LeaderboardType leaderboardType : LeaderboardType.values()) {
+                String name = switch (leaderboardType) {
+                    case ALLTIME -> "Alltime-";
+                    case EVENT -> "Event-";
+                    default -> "";
+                };
+
+                name += carryType.getDisplayName() + SCORE_SUFFIX;
+
+                scoreMap.put(name, countScoreForCarrier(carrierId, carryType, leaderboardType));
+            }
         }
 
         return scoreMap;
@@ -369,31 +383,29 @@ public class DatabaseService {
 
     public Map<Long, Long> getLeaderboard(int page, CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
         String table = switch (leaderboardType) {
-            case NORMAL -> "score";
+            case DEFAULT -> "score";
             case EVENT -> "event_score";
             case ALLTIME -> "alltime_score";
         };
 
-        String sql = "select id, score from " + table + " where score > 0 and carry-type = ? order by score DESC " +
+        String sql = "select id, score from " + table + " where score > 0 and carry_type = ? order by score DESC " +
                 "limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql, carryType);
     }
 
-    public Long getLeaderboardEntries(String type) throws SQLException {
-        String sql = switch (type.toLowerCase()) {
-            case "dungeons" -> "select count(*) from dungeon_score where score > 0";
-            case "slayer" -> "select count(*) from slayer_score where score > 0";
-            case "kuudra" -> "select count(*) from kuudra_score where score > 0";
-            case "alltime-dungeons" -> "select count(*) from alltime_dungeon_score where score > 0";
-            case "alltime-slayer" -> "select count(*) from alltime_slayer_score where score > 0";
-            case "alltime-kuudra" -> "select count(*) from alltime_kuudra_score where score > 0";
-            case "event-slayer" -> "select count(*) from event_slayer_score where score > 0";
-            case "event-dungeons" -> "select count(*) from event_dungeon_score where score > 0";
-            default -> "";
+    public Long getLeaderboardEntries(CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
+        String table = switch (leaderboardType) {
+            case DEFAULT -> "score";
+            case EVENT -> "event_score";
+            case ALLTIME -> "alltime_score";
         };
 
+        String sql = "select count(*) from " + table + " where score > 0 and carry_type = ?";
+
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carryType.getId());
+
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
@@ -404,8 +416,8 @@ public class DatabaseService {
         return 0L;
     }
 
-    public Long getLeaderboardPages(String type) throws SQLException {
-        Long entries = getLeaderboardEntries(type);
+    public Long getLeaderboardPages(CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
+        Long entries = getLeaderboardEntries(carryType, leaderboardType);
 
         if (entries == null || entries <= 0) {
             entries = 1L;

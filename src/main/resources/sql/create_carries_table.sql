@@ -78,29 +78,36 @@ from slayer_score as old_score
 
 create table carry_type
 (
-    id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier   varchar(50)           NOT NULL,
-    displayName  varchar(50),
-    server       BIGINT                NOT NULL,
-    logChannel   BIGINT,
-    thumbnailUrl varchar(200),
+    id                 BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier         varchar(50)           NOT NULL,
+    displayName        varchar(50),
+    server             BIGINT                NOT NULL,
+    logChannel         BIGINT,
+    leaderboardChannel BIGINT,
     UNIQUE (identifier, server)
 );
 
 create table carry_tier
 (
-    id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier   varchar(50),
-    displayName  varchar(50),
-    carry_type   BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
-    thumbnailUrl varchar(200),
+    id               BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier       varchar(50),
+    displayName      varchar(50),
+    carry_type       BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
+    thumbnailUrl     varchar(200),
+    category         BIGINT,
+    descriptive_name varchar(75),
     UNIQUE (identifier, carry_type)
 );
 
 create table carry_difficulty
 (
-    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier varchar(50),
-    displayName varchar(50),
-    carry_tier BIGINT NOT NULL REFERENCES carry_tier(id) on delete cascade on update cascade
+    id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier   varchar(50),
+    displayName  varchar(50),
+    carry_tier   BIGINT                NOT NULL REFERENCES carry_tier (id) on delete cascade on update cascade,
+    thumbnailUrl varchar(200),
+    score        BIGINT                NOT NULL,
+    price        BIGINT                NOT NULL,
+    bulkPrice    BIGINT,
+    bulkAmount   BIGINT
 );

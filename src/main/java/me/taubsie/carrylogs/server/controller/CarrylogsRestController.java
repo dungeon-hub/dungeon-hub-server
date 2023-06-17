@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @EnableMethodSecurity
@@ -201,10 +204,18 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("leaderboard/{type}/pages")
-    public ResponseEntity<String> getLeaderboardPages(@PathVariable String type) {
+    @GetMapping(path = {"leaderboard/{type}/pages/{leaderboard}", "leaderboard/{type}/pages"})
+    public ResponseEntity<String> getLeaderboardPages(@PathVariable long type, @PathVariable(required = false) Optional<String> leaderboard) {
         try {
-            Long entries = DatabaseService.getInstance().getLeaderboardPages(type);
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(type);
+
+            if(carryType.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            LeaderboardType leaderboardType = leaderboard.flatMap(LeaderboardType::fromName).orElse(LeaderboardType.DEFAULT);
+
+            Long entries = DatabaseService.getInstance().getLeaderboardPages(carryType.get(), leaderboardType);
 
             return new ResponseEntity<>(String.valueOf(entries), HttpStatus.OK);
         }
@@ -229,7 +240,7 @@ public class CarrylogsRestController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            LeaderboardType leaderboardType = type.flatMap(LeaderboardType::fromName).orElse(LeaderboardType.NORMAL);
+            LeaderboardType leaderboardType = type.flatMap(LeaderboardType::fromName).orElse(LeaderboardType.DEFAULT);
 
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLeaderboard(page, carryType.get(), leaderboardType)), HttpStatus.OK);
         }
