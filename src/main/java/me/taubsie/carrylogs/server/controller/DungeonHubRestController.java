@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,8 +20,8 @@ import java.util.Optional;
 @RestController
 @EnableMethodSecurity
 @RequestMapping("/api/v1/")
-public class CarrylogsRestController {
-    private static final Logger logger = LoggerFactory.getLogger(CarrylogsRestController.class);
+public class DungeonHubRestController {
+    private static final Logger logger = LoggerFactory.getLogger(DungeonHubRestController.class);
 
     @GetMapping("hello")
     public ResponseEntity<String> hello(Principal principal) {
@@ -170,8 +169,7 @@ public class CarrylogsRestController {
 
             return new ResponseEntity<>(
                     carryType.isPresent()
-                            ? String.valueOf(DatabaseService.getInstance().countScoreForCarrier(id, carryType.get()))
-                            :
+                            ? String.valueOf(DatabaseService.getInstance().countScoreForCarrier(id, carryType.get())) :
                             CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(server, id)),
                     HttpStatus.OK
             );
@@ -209,7 +207,7 @@ public class CarrylogsRestController {
         try {
             Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(type);
 
-            if(carryType.isEmpty()) {
+            if (carryType.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
@@ -378,26 +376,6 @@ public class CarrylogsRestController {
         }
     }
 
-    @GetMapping("server/{server}/leaderboard-type")
-    public ResponseEntity<String> getLeaderboardTypes(@PathVariable long server) {
-        try {
-            List<String> result = new ArrayList<>();
-            List<CarryType> carryTypes = DatabaseService.getInstance().loadCarryTypesForServer(server);
-
-            for(CarryType carryType : carryTypes) {
-                result.add(carryType.getIdentifier());
-                result.add("alltime-" + carryType.getIdentifier());
-                result.add("event-" + carryType.getIdentifier());
-            }
-
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(result), HttpStatus.OK);
-        }
-        catch (SQLException sqlException) {
-            logger.error("Error while trying to load score types for server {}.", server, sqlException);
-            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @GetMapping("server/{server}/carry-type")
     public ResponseEntity<String> getCarryTypesForServer(@PathVariable long server,
                                                          @RequestParam(required = false) Optional<String> identifier) {
@@ -414,6 +392,57 @@ public class CarrylogsRestController {
         }
         catch (SQLException sqlException) {
             logger.error("Error while trying to load carry types of server {}.", server, sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("server/{server}/carry-type/{carry-type}")
+    public ResponseEntity<String> deleteCarryType(@PathVariable long server, @PathVariable(name = "carry-type") long carryTypeId) {
+        try {
+            Optional<CarryType> deletedCarryType = DatabaseService.getInstance().deleteCarryType(server, carryTypeId);
+
+            return deletedCarryType
+                    .map(carryType -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(carryType), HttpStatus.OK))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to delete carry type {} in server {}.", carryTypeId, server, sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("server/{server}/carry-type")
+    public ResponseEntity<String> createCarryType(@PathVariable long server, String identifier, String displayName) {
+        try {
+            Optional<CarryType> created = DatabaseService.getInstance().createCarryType(server, identifier, displayName);
+
+            return created
+                    .map(carryType -> new ResponseEntity<>(carryType.toJson(), HttpStatus.CREATED))
+                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to create new carry type {} for server {}.", identifier, server, sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("server/{server}/carry-type")
+    public ResponseEntity<String> updateCarryType(@PathVariable long server, String carryTypeJson) {
+        try {
+            CarryType carryType = CarryType.fromJson(carryTypeJson);
+
+            if(carryType.getServer() != server) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            return DatabaseService.getInstance().updateCarryType(carryType)
+                    .map(updated -> new ResponseEntity<>(updated.toJson(), HttpStatus.CREATED))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to update carry type {} for server {}.", carryTypeJson, server, sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -6,8 +6,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
 import me.taubsie.carrylogs.server.service.DatabaseService;
+import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,7 +76,7 @@ public class SecurityConfig {
 
     @Bean
     public DataSource dataSource() {
-        return DatabaseService.getInstance().getDataSource();
+        return DatabaseService.getInstance().getApiDataSource();
     }
 
     //when creating a new user, you need to add PasswordEncoder as a parameter and encode the password

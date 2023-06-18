@@ -80,7 +80,7 @@ create table carry_type
 (
     id                 BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier         varchar(50)           NOT NULL,
-    displayName        varchar(50),
+    displayName        varchar(50)           NOT NULL,
     server             BIGINT                NOT NULL,
     logChannel         BIGINT,
     leaderboardChannel BIGINT,
@@ -91,7 +91,7 @@ create table carry_tier
 (
     id               BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier       varchar(50),
-    displayName      varchar(50),
+    displayName      varchar(50)           NOT NULL,
     carry_type       BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
     thumbnailUrl     varchar(200),
     category         BIGINT,
@@ -103,7 +103,7 @@ create table carry_difficulty
 (
     id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier   varchar(50),
-    displayName  varchar(50),
+    displayName  varchar(50)           NOT NULL,
     carry_tier   BIGINT                NOT NULL REFERENCES carry_tier (id) on delete cascade on update cascade,
     thumbnailUrl varchar(200),
     score        BIGINT                NOT NULL,

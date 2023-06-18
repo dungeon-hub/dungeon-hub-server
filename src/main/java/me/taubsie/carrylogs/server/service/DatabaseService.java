@@ -89,9 +89,9 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
-                for(OldCarryRole oldCarryRole : OldCarryRole.values()) {
+                for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
                     roleMap.put(oldCarryRole, resultSet.getBoolean(oldCarryRole.name()));
                 }
 
@@ -129,6 +129,31 @@ public class DatabaseService {
         }
 
         return dataSource;
+    }
+
+    //TODO once the bot is updated, remove the autorities and users table from the carrylogs schema
+    public DataSource getApiDataSource() {
+        if (hasInvalidConfigValues()) {
+            return null;
+        }
+
+        MariaDbDataSource result = new MariaDbDataSource();
+
+        try {
+            String schema = ConfigProperty.DATABASE_SCHEMA.getValue() == null || ConfigProperty.DATABASE_API_SCHEMA.getValue().isBlank()
+                    ? ConfigProperty.DATABASE_SCHEMA.getValue()
+                    : ConfigProperty.DATABASE_API_SCHEMA.getValue();
+
+            result.setUrl("jdbc:mariadb://" + ConfigProperty.DATABASE_HOST + ":" + ConfigProperty.DATABASE_PORT + "/" + schema);
+
+            result.setUser(ConfigProperty.DATABASE_USER.getValue());
+            result.setPassword(ConfigProperty.DATABASE_PASSWORD.getValue());
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error during startup of database service.", sqlException);
+        }
+
+        return result;
     }
 
     public void logCarryInformation(CarryInformation carryInformation) throws SQLException {
@@ -215,7 +240,7 @@ public class DatabaseService {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 result.add(new CarryInformation(
@@ -241,7 +266,7 @@ public class DatabaseService {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 result.add(new CarryInformation(
@@ -266,7 +291,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 CarryInformation carryInformation = new CarryInformation(
@@ -300,7 +325,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 CarryDifficulty carryDifficulty = loadCarryDifficulty(resultSet.getLong(3)).orElse(null);
 
                 CarryInformation carryInformation = new CarryInformation(
@@ -364,8 +389,8 @@ public class DatabaseService {
     public Map<String, Long> countScoreForCarrier(long serverId, long carrierId) throws SQLException {
         Map<String, Long> scoreMap = new LinkedHashMap<>();
 
-        for(CarryType carryType : loadCarryTypesForServer(serverId)) {
-            for(LeaderboardType leaderboardType : LeaderboardType.values()) {
+        for (CarryType carryType : loadCarryTypesForServer(serverId)) {
+            for (LeaderboardType leaderboardType : LeaderboardType.values()) {
                 String name = switch (leaderboardType) {
                     case ALLTIME -> "Alltime-";
                     case EVENT -> "Event-";
@@ -433,7 +458,7 @@ public class DatabaseService {
             Map<Long, Long> result = new LinkedHashMap<>();
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 result.put(resultSet.getLong(1), resultSet.getLong(2));
             }
 
@@ -528,7 +553,7 @@ public class DatabaseService {
     public void addRoles(long id, List<OldCarryRole> roles) throws SQLException {
         Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
 
-        for(OldCarryRole oldCarryRole : OldCarryRole.values()) {
+        for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
             roleMap.put(oldCarryRole, roles.contains(oldCarryRole));
         }
 
@@ -561,10 +586,10 @@ public class DatabaseService {
                 "BASIC=?, HOT=?, BURNING=?, FIERY=?, INFERNAL=?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            for(Map.Entry<Long, List<OldCarryRole>> roleEntry : roleData.entrySet()) {
+            for (Map.Entry<Long, List<OldCarryRole>> roleEntry : roleData.entrySet()) {
                 preparedStatement.setLong(1, roleEntry.getKey());
 
-                for(int i = 0; i < OldCarryRole.values().length; i++) {
+                for (int i = 0; i < OldCarryRole.values().length; i++) {
                     preparedStatement.setBoolean(i + 2, roleEntry.getValue().contains(OldCarryRole.values()[i]));
                     preparedStatement.setBoolean(OldCarryRole.values().length + i + 2,
                             roleEntry.getValue().contains(OldCarryRole.values()[i]));
@@ -596,7 +621,7 @@ public class DatabaseService {
     public Map<OldCarryRole, Boolean> getEmptyRoleMap() {
         Map<OldCarryRole, Boolean> emptyRoleMap = new EnumMap<>(OldCarryRole.class);
 
-        for(OldCarryRole oldCarryRole : OldCarryRole.values()) {
+        for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
             emptyRoleMap.put(oldCarryRole, false);
         }
 
@@ -641,7 +666,7 @@ public class DatabaseService {
             preparedStatement.setLong(1, score);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 result.put(resultSet.getLong(1), resultSet.getLong(2));
             }
         }
@@ -708,7 +733,7 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 strikes.add(StrikeData.fromResultSet(resultSet));
             }
         }
@@ -782,7 +807,7 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 result.put(resultSet.getLong("id"), StrikeData.fromResultSet(resultSet));
             }
         }
@@ -798,7 +823,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 carryTypes.add(CarryType.fromResultSet(resultSet));
             }
         }
@@ -809,7 +834,7 @@ public class DatabaseService {
     public Map<Long, CarryType> loadCarryTypeMap() throws SQLException {
         Map<Long, CarryType> result = new HashMap<>();
 
-        for(CarryType carryType : loadCarryTypes()) {
+        for (CarryType carryType : loadCarryTypes()) {
             result.put(carryType.getId(), carryType);
         }
 
@@ -826,12 +851,81 @@ public class DatabaseService {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 carryTypes.add(CarryType.fromResultSet(resultSet));
             }
         }
 
         return carryTypes;
+    }
+
+    public Optional<CarryType> createCarryType(long serverId, String identifier, String displayName) throws SQLException {
+        String sql = "insert into carry_type(server, identifier, displayName) values (?, ?, ?);";
+
+        if (getCarryType(serverId, identifier).isPresent()) {
+            return Optional.empty();
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setLong(1, serverId);
+            preparedStatement.setString(2, identifier);
+            preparedStatement.setString(3, displayName);
+
+            preparedStatement.executeUpdate();
+
+            ResultSet keys = preparedStatement.getGeneratedKeys();
+
+            if (keys.next() && keys.getLong(1) > 0L) {
+                return getCarryType(keys.getLong(1));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CarryType> deleteCarryType(long serverId, long carryTypeId) throws SQLException {
+        String sql = "delete from carry_type where id = ? and server = ? returning *";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carryTypeId);
+            preparedStatement.setLong(2, serverId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return Optional.of(CarryType.fromResultSet(resultSet));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CarryType> updateCarryType(CarryType carryType) throws SQLException {
+        String sql = "update carry_type set displayName = ?, logChannel = ?, leaderboardChannel = ? where id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, carryType.getDisplayName());
+
+            Optional<Long> logChannel = carryType.getLogChannel();
+            if (logChannel.isPresent()) {
+                preparedStatement.setLong(2, logChannel.get());
+            } else {
+                preparedStatement.setNull(2, Types.BIGINT);
+            }
+
+            Optional<Long> leaderboardChannel = carryType.getLeaderboardChannel();
+            if (leaderboardChannel.isPresent()) {
+                preparedStatement.setLong(3, leaderboardChannel.get());
+            } else {
+                preparedStatement.setNull(3, Types.BIGINT);
+            }
+
+            preparedStatement.setLong(4, carryType.getId());
+
+            preparedStatement.executeUpdate();
+        }
+
+        return getCarryType(carryType.getId());
     }
 
     public Optional<CarryType> getCarryType(long id) throws SQLException {
@@ -876,7 +970,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 carryTiers.add(CarryTier.fromResultSet(resultSet, carryTypes));
             }
         }
@@ -893,7 +987,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 result.put(resultSet.getLong("id"), CarryTier.fromResultSet(resultSet, carryTypes));
             }
         }
@@ -932,7 +1026,7 @@ public class DatabaseService {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 carryDifficulties.add(CarryDifficulty.fromResultSet(resultSet, carryTiers));
             }
         }
