@@ -496,7 +496,7 @@ public class DatabaseService {
         }
     }
 
-    public long updateEventScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
+    public void updateEventScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
         String firstSql = "SELECT score from event_score where carry_type = ? and id = ?";
 
         String secondSql = "INSERT INTO event_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE " +
@@ -518,12 +518,10 @@ public class DatabaseService {
             secondStatement.setLong(3, newScore);
             secondStatement.setLong(4, newScore);
             secondStatement.executeUpdate();
-
-            return newScore;
         }
     }
 
-    public long updateLifetimeScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
+    public void updateLifetimeScore(long carrierId, long amount, @NotNull CarryType carryType) throws SQLException {
         String firstSql = "SELECT score from alltime_score where carry_type = ? and id = ?";
 
         String secondSql = "INSERT INTO alltime_score (id, carry_type, score) VALUES (?, ?, ?) ON DUPLICATE KEY " +
@@ -545,8 +543,6 @@ public class DatabaseService {
             secondStatement.setLong(3, newScore);
             secondStatement.setLong(4, newScore);
             secondStatement.executeUpdate();
-
-            return newScore;
         }
     }
 
@@ -860,7 +856,7 @@ public class DatabaseService {
     }
 
     public Optional<CarryType> createCarryType(long serverId, String identifier, String displayName) throws SQLException {
-        String sql = "insert into carry_type(server, identifier, displayName) values (?, ?, ?);";
+        String sql = "insert into carry_type(server, identifier, displayName) values (?, ?, ?)";
 
         if (getCarryType(serverId, identifier).isPresent()) {
             return Optional.empty();
@@ -955,6 +951,63 @@ public class DatabaseService {
 
             if (resultSet.next()) {
                 return Optional.of(CarryType.fromResultSet(resultSet));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CarryTier> createCarryTier(CarryType carryType, String identifier, String displayName) throws SQLException {
+        String sql = "insert into carry_tier(carry_type, identifier, displayName) values (?, ?, ?)";
+
+        if (getCarryTier(carryType, identifier).isPresent()) {
+            return Optional.empty();
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setLong(1, carryType.getId());
+            preparedStatement.setString(2, identifier);
+            preparedStatement.setString(3, displayName);
+
+            preparedStatement.executeUpdate();
+
+            ResultSet keys = preparedStatement.getGeneratedKeys();
+
+            if (keys.next() && keys.getLong(1) > 0L) {
+                return getCarryTier(keys.getLong(1));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CarryTier> getCarryTier(long id) throws SQLException {
+        String sql = "select * from carry_tier where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(CarryTier.fromResultSet(resultSet, loadCarryTypeMap()));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CarryTier> getCarryTier(CarryType carryType, String identifier) throws SQLException {
+        String sql = "select * from carry_tier where carry_type = ? and identifier = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, carryType.getId());
+            preparedStatement.setString(2, identifier);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next()) {
+                return Optional.of(CarryTier.fromResultSet(resultSet, loadCarryTypeMap()));
             }
         }
 

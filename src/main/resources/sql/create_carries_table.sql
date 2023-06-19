@@ -76,6 +76,8 @@ select old_score.id, score, ct.id
 from slayer_score as old_score
          left join carry_type ct on ct.id = 5;
 
+-- TODO rename fields in a singular naming schema (lower snake case?)
+
 create table carry_type
 (
     id                 BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -90,7 +92,7 @@ create table carry_type
 create table carry_tier
 (
     id               BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier       varchar(50),
+    identifier       varchar(50)           NOT NULL,
     displayName      varchar(50)           NOT NULL,
     carry_type       BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
     thumbnailUrl     varchar(200),
@@ -104,7 +106,7 @@ create table carry_tier
 create table carry_difficulty
 (
     id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier   varchar(50),
+    identifier   varchar(50)           NOT NULL,
     displayName  varchar(50)           NOT NULL,
     carry_tier   BIGINT                NOT NULL REFERENCES carry_tier (id) on delete cascade on update cascade,
     thumbnailUrl varchar(200),

@@ -433,7 +433,7 @@ public class DungeonHubRestController {
         try {
             CarryType carryType = CarryType.fromJson(carryTypeJson);
 
-            if(carryType.getServer() != server) {
+            if (carryType.getServer() != server) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
@@ -454,6 +454,54 @@ public class DungeonHubRestController {
         }
         catch (SQLException sqlException) {
             logger.error("Error while trying to load all carry types.", sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("carry-tiers")
+    public ResponseEntity<String> getAllCarryTiers() {
+        try {
+            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTiers()), HttpStatus.OK);
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to load all carry tiers.", sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("carry-difficulties")
+    public ResponseEntity<String> getAllCarryDifficulties() {
+        try {
+            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryDifficulties()), HttpStatus.OK);
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to load all carry difficulties.", sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("server/{server}/carry-type/{carry-type}/carry-tier")
+    public ResponseEntity<String> createCarryTier(@PathVariable long server, @PathVariable(name = "carry-type") long carryTypeId, String identifier, String displayName) {
+        try {
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(carryTypeId);
+
+            if (carryType.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            if (carryType.get().getServer() != server) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            Optional<CarryTier> created = DatabaseService.getInstance().createCarryTier(carryType.get(), identifier, displayName);
+
+            return created
+                    .map(carryTier -> new ResponseEntity<>(carryTier.toJson(), HttpStatus.CREATED))
+                    .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
+
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to create new carry tier {} for server {}.", identifier, server, sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
