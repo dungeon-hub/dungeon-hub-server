@@ -349,8 +349,8 @@ public class DatabaseService {
         return result;
     }
 
-    public long countScoreForCarrier(long carrierId, CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
-        return switch (leaderboardType) {
+    public long countScoreForCarrier(long carrierId, CarryType carryType, ScoreType scoreType) throws SQLException {
+        return switch (scoreType) {
             case DEFAULT -> countScoreForCarrier(carrierId, carryType);
             case ALLTIME -> countAlltimeScoreForCarrier(carrierId, carryType);
             case EVENT -> countEventScoreForCarrier(carrierId, carryType);
@@ -390,8 +390,8 @@ public class DatabaseService {
         Map<String, Long> scoreMap = new LinkedHashMap<>();
 
         for (CarryType carryType : loadCarryTypesForServer(serverId)) {
-            for (LeaderboardType leaderboardType : LeaderboardType.values()) {
-                String name = switch (leaderboardType) {
+            for (ScoreType scoreType : ScoreType.values()) {
+                String name = switch (scoreType) {
                     case ALLTIME -> "Alltime-";
                     case EVENT -> "Event-";
                     default -> "";
@@ -399,15 +399,15 @@ public class DatabaseService {
 
                 name += carryType.getDisplayName() + SCORE_SUFFIX;
 
-                scoreMap.put(name, countScoreForCarrier(carrierId, carryType, leaderboardType));
+                scoreMap.put(name, countScoreForCarrier(carrierId, carryType, scoreType));
             }
         }
 
         return scoreMap;
     }
 
-    public Map<Long, Long> getLeaderboard(int page, CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
-        String table = switch (leaderboardType) {
+    public Map<Long, Long> getLeaderboard(int page, CarryType carryType, ScoreType scoreType) throws SQLException {
+        String table = switch (scoreType) {
             case DEFAULT -> "score";
             case EVENT -> "event_score";
             case ALLTIME -> "alltime_score";
@@ -419,8 +419,8 @@ public class DatabaseService {
         return getLeaderboard(sql, carryType);
     }
 
-    public Long getLeaderboardEntries(CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
-        String table = switch (leaderboardType) {
+    public Long getLeaderboardEntries(CarryType carryType, ScoreType scoreType) throws SQLException {
+        String table = switch (scoreType) {
             case DEFAULT -> "score";
             case EVENT -> "event_score";
             case ALLTIME -> "alltime_score";
@@ -441,8 +441,8 @@ public class DatabaseService {
         return 0L;
     }
 
-    public Long getLeaderboardPages(CarryType carryType, LeaderboardType leaderboardType) throws SQLException {
-        Long entries = getLeaderboardEntries(carryType, leaderboardType);
+    public Long getLeaderboardPages(CarryType carryType, ScoreType scoreType) throws SQLException {
+        Long entries = getLeaderboardEntries(carryType, scoreType);
 
         if (entries == null || entries <= 0) {
             entries = 1L;

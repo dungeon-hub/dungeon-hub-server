@@ -211,9 +211,9 @@ public class DungeonHubRestController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            LeaderboardType leaderboardType = leaderboard.flatMap(LeaderboardType::fromName).orElse(LeaderboardType.DEFAULT);
+            ScoreType scoreType = leaderboard.flatMap(ScoreType::fromName).orElse(ScoreType.DEFAULT);
 
-            Long entries = DatabaseService.getInstance().getLeaderboardPages(carryType.get(), leaderboardType);
+            Long entries = DatabaseService.getInstance().getLeaderboardPages(carryType.get(), scoreType);
 
             return new ResponseEntity<>(String.valueOf(entries), HttpStatus.OK);
         }
@@ -238,9 +238,9 @@ public class DungeonHubRestController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            LeaderboardType leaderboardType = type.flatMap(LeaderboardType::fromName).orElse(LeaderboardType.DEFAULT);
+            ScoreType scoreType = type.flatMap(ScoreType::fromName).orElse(ScoreType.DEFAULT);
 
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLeaderboard(page, carryType.get(), leaderboardType)), HttpStatus.OK);
+            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLeaderboard(page, carryType.get(), scoreType)), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
             logger.error("Error when loading leaderboard.", sqlException);
