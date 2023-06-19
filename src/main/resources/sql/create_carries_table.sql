@@ -96,7 +96,9 @@ create table carry_tier
     thumbnailUrl     varchar(200),
     category         BIGINT,
     descriptive_name varchar(75),
-    UNIQUE (identifier, carry_type)
+    price_channel    BIGINT,
+    UNIQUE (identifier, carry_type),
+    UNIQUE (category)
 );
 
 create table carry_difficulty
