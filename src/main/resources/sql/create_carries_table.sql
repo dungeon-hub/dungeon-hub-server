@@ -105,5 +105,6 @@ create table carry_difficulty
     score         BIGINT                NOT NULL,
     price         BIGINT                NOT NULL,
     bulk_price    BIGINT,
-    bulk_amount   BIGINT
+    bulk_amount   BIGINT,
+    UNIQUE (identifier, carry_tier)
 );

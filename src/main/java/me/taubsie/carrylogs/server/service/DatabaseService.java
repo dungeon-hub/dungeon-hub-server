@@ -157,58 +157,52 @@ public class DatabaseService {
     }
 
     public void logCarryInformation(CarryInformation carryInformation) throws SQLException {
-        String sql = "INSERT INTO carries (carrier, player, amountOfCarries, carryDifficulty, carryType, " +
-                "attachmentLink, time, approver) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO carries (carrier, player, amount, carry_difficulty, attachment_link, time, approver) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        //TODO rework with new system
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carryInformation.getCarrier());
             preparedStatement.setLong(2, carryInformation.getPlayer());
             preparedStatement.setLong(3, carryInformation.getAmountOfCarries());
-            preparedStatement.setString(4, carryInformation.getCarryDifficulty().getIdentifier());
-            preparedStatement.setString(5, carryInformation.getCarryType().getIdentifier());
-            preparedStatement.setString(6, carryInformation.getAttachmentLink());
-            preparedStatement.setTimestamp(7, Timestamp.from(carryInformation.getTime()));
+            preparedStatement.setLong(4, carryInformation.getCarryDifficulty().getId());
+            preparedStatement.setString(5, carryInformation.getAttachmentLink());
+            preparedStatement.setTimestamp(6, Timestamp.from(carryInformation.getTime()));
             if (carryInformation.getApprover() != null) {
-                preparedStatement.setLong(8, carryInformation.getApprover());
+                preparedStatement.setLong(7, carryInformation.getApprover());
             } else {
-                preparedStatement.setNull(8, Types.BIGINT);
+                preparedStatement.setNull(7, Types.BIGINT);
             }
             preparedStatement.executeUpdate();
         }
     }
 
     public void addToLogQueue(Long id, CarryInformation carryInformation) throws SQLException {
-        String sql = "INSERT INTO log_queue (id, carrier, player, amountOfCarries, carryDifficulty, carryType, time) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO log_queue (id, carrier, player, amount, carry_difficulty, time) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
-        //TODO rework with new system
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setLong(2, carryInformation.getCarrier());
             preparedStatement.setLong(3, carryInformation.getPlayer());
             preparedStatement.setLong(4, carryInformation.getAmountOfCarries());
-            preparedStatement.setString(5, carryInformation.getCarryDifficulty().getIdentifier());
-            preparedStatement.setString(6, carryInformation.getCarryType().getIdentifier());
-            preparedStatement.setTimestamp(7, Timestamp.from(carryInformation.getTime()));
+            preparedStatement.setLong(5, carryInformation.getCarryDifficulty().getId());
+            preparedStatement.setTimestamp(6, Timestamp.from(carryInformation.getTime()));
             preparedStatement.executeUpdate();
         }
     }
 
     public void addToApprovingQueue(Long id, CarryInformation carryInformation) throws SQLException {
-        String sql = "INSERT INTO log_approving_queue (id, carrier, player, amountOfCarries, carryDifficulty, " +
-                "carryType, attachmentLink, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO log_approving_queue (id, carrier, player, amount, carry_difficulty, " +
+                "attachment_link, time) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        //TODO rework with new system
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setLong(2, carryInformation.getCarrier());
-            preparedStatement.setLong(4, carryInformation.getAmountOfCarries());
             preparedStatement.setLong(3, carryInformation.getPlayer());
-            preparedStatement.setString(5, carryInformation.getCarryDifficulty().getIdentifier());
-            preparedStatement.setString(6, carryInformation.getCarryType().getIdentifier());
-            preparedStatement.setString(7, carryInformation.getAttachmentLink());
-            preparedStatement.setTimestamp(8, Timestamp.from(carryInformation.getTime()));
+            preparedStatement.setLong(4, carryInformation.getAmountOfCarries());
+            preparedStatement.setLong(5, carryInformation.getCarryDifficulty().getId());
+            preparedStatement.setString(6, carryInformation.getAttachmentLink());
+            preparedStatement.setTimestamp(7, Timestamp.from(carryInformation.getTime()));
             preparedStatement.executeUpdate();
         }
     }
@@ -233,8 +227,8 @@ public class DatabaseService {
 
     public Set<CarryInformation> getFromApprovingQueue(Long id) throws SQLException {
         Set<CarryInformation> result = new HashSet<>();
-        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, attachmentLink from " +
-                "log_approving_queue where id = ?";
+        String sql = "select time, amount, carry_difficulty, player, carrier, attachment_link " +
+                "from log_approving_queue where id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
@@ -247,9 +241,9 @@ public class DatabaseService {
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
                         carryDifficulty,
+                        resultSet.getLong(4),
                         resultSet.getLong(5),
-                        resultSet.getLong(6),
-                        resultSet.getString(7)
+                        resultSet.getString(6)
                 ));
             }
         }
@@ -259,8 +253,7 @@ public class DatabaseService {
 
     public Set<CarryInformation> getFromLogQueue(Long id) throws SQLException {
         Set<CarryInformation> result = new HashSet<>();
-        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier from log_queue where " +
-                "id = ?";
+        String sql = "select time, amount, carry_difficulty, player, carrier from log_queue where id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
@@ -273,8 +266,8 @@ public class DatabaseService {
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
                         carryDifficulty,
-                        resultSet.getLong(5),
-                        resultSet.getLong(6)
+                        resultSet.getLong(4),
+                        resultSet.getLong(5)
                 ));
             }
         }
@@ -283,7 +276,7 @@ public class DatabaseService {
     }
 
     public Map<Long, List<CarryInformation>> getApprovingQueue() throws SQLException {
-        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, attachmentLink, id " +
+        String sql = "select time, amount, carry_difficulty, player, carrier, attachment_link, id " +
                 "from log_approving_queue";
 
         Map<Long, List<CarryInformation>> result = new HashMap<>();
@@ -298,12 +291,12 @@ public class DatabaseService {
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
                         carryDifficulty,
-                        resultSet.getLong(5),
-                        resultSet.getLong(6)
+                        resultSet.getLong(4),
+                        resultSet.getLong(5)
                 );
-                carryInformation.setAttachmentLink(resultSet.getString(7));
+                carryInformation.setAttachmentLink(resultSet.getString(6));
 
-                long id = resultSet.getLong(8);
+                long id = resultSet.getLong(7);
 
                 if (result.containsKey(id)) {
                     result.get(id).add(carryInformation);
@@ -317,7 +310,7 @@ public class DatabaseService {
     }
 
     public Map<Long, List<CarryInformation>> getLogQueue() throws SQLException {
-        String sql = "select time, amountOfCarries, carryDifficulty, carryType, player, carrier, id " +
+        String sql = "select time, amount, carry_difficulty, player, carrier, id " +
                 "from log_queue";
 
         Map<Long, List<CarryInformation>> result = new HashMap<>();
@@ -332,11 +325,11 @@ public class DatabaseService {
                         resultSet.getTimestamp(1).toInstant(),
                         resultSet.getLong(2),
                         carryDifficulty,
-                        resultSet.getLong(5),
-                        resultSet.getLong(6)
+                        resultSet.getLong(4),
+                        resultSet.getLong(5)
                 );
 
-                long id = resultSet.getLong(7);
+                long id = resultSet.getLong(6);
 
                 if (result.containsKey(id)) {
                     result.get(id).add(carryInformation);
@@ -964,7 +957,7 @@ public class DatabaseService {
             preparedStatement.setString(1, carryTier.getDisplayName());
 
             Optional<String> thumbnailUrl = carryTier.getThumbnailUrl();
-            if(thumbnailUrl.isPresent()) {
+            if (thumbnailUrl.isPresent()) {
                 preparedStatement.setString(2, thumbnailUrl.get());
             } else {
                 preparedStatement.setNull(2, Types.VARCHAR);
@@ -1026,12 +1019,12 @@ public class DatabaseService {
     public Optional<CarryTier> getCarryTier(long id) throws SQLException {
         String sql = "select * from carry_tier where id = ?";
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 return Optional.of(CarryTier.fromResultSet(resultSet, loadCarryTypeMap()));
             }
         }
@@ -1042,13 +1035,13 @@ public class DatabaseService {
     public Optional<CarryTier> getCarryTier(CarryType carryType, String identifier) throws SQLException {
         String sql = "select * from carry_tier where carry_type = ? and identifier = ?";
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, carryType.getId());
             preparedStatement.setString(2, identifier);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 return Optional.of(CarryTier.fromResultSet(resultSet, loadCarryTypeMap()));
             }
         }
