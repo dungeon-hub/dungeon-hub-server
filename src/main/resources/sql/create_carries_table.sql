@@ -70,6 +70,12 @@ select old_score.id, score, ct.id
 from slayer_score as old_score
          left join carry_type ct on ct.id = 5;
 
+insert into carries(id, carrier, player, approver, amount, carry_difficulty, attachment_link, time)
+    (
+        select id, carrier, player, approver, amountOfCarries as amount, 11, attachmentLink as attachment_link, time from old_carries
+        where carryDifficulty = 'KUUDRA' and carryType = 'Burning'
+    );
+
 create table carry_type
 (
     id                  BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
