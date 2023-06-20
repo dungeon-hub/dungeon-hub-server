@@ -1,50 +1,44 @@
 create table carries
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    serverId        BIGINT NOT NULL,
-    carrier         BIGINT REFERENCES carrier (id),
-    player          BIGINT,
-    approver        BIGINT,
-    amountOfCarries mediumint,
-    carryDifficulty varchar(50),
-    carryType       varchar(50),
-    attachmentLink  varchar(250),
-    time            TIMESTAMP
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    carrier          BIGINT REFERENCES carrier (id),
+    player           BIGINT,
+    approver         BIGINT,
+    amount           mediumint,
+    carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
+    attachment_link  varchar(250),
+    time             TIMESTAMP
 );
 
 create table log_queue
 (
-    id              BIGINT NOT NULL,
-    serverId        BIGINT NOT NULL,
-    carrier         BIGINT REFERENCES carrier (id),
-    player          BIGINT,
-    amountOfCarries mediumint,
-    carryDifficulty varchar(50),
-    carryType       varchar(50),
-    time            TIMESTAMP
+    id               BIGINT NOT NULL,
+    carrier          BIGINT REFERENCES carrier (id),
+    player           BIGINT,
+    amount           mediumint,
+    carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
+    time             TIMESTAMP
 );
 
 create table log_approving_queue
 (
-    id              BIGINT NOT NULL,
-    serverId        BIGINT NOT NULL,
-    carrier         BIGINT REFERENCES carrier (id),
-    player          BIGINT,
-    amountOfCarries mediumint,
-    carryDifficulty varchar(50),
-    carryType       varchar(50),
-    attachmentLink  varchar(250),
-    time            TIMESTAMP
+    id               BIGINT NOT NULL,
+    carrier          BIGINT REFERENCES carrier (id),
+    player           BIGINT,
+    amount           mediumint,
+    carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
+    attachment_link  varchar(250),
+    time             TIMESTAMP
 );
 
 create table strikes
 (
-    id       BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    serverId BIGINT                NOT NULL,
-    user     BIGINT                NOT NULL,
-    striker  BIGINT,
-    reason   varchar(250),
-    time     TIMESTAMP             NOT NULL
+    id        BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    server_id BIGINT                NOT NULL,
+    user      BIGINT                NOT NULL,
+    striker   BIGINT,
+    reason    varchar(250),
+    time      TIMESTAMP             NOT NULL
 );
 
 create table score
@@ -76,16 +70,14 @@ select old_score.id, score, ct.id
 from slayer_score as old_score
          left join carry_type ct on ct.id = 5;
 
--- TODO rename fields in a singular naming schema (lower snake case?)
-
 create table carry_type
 (
-    id                 BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier         varchar(50)           NOT NULL,
-    displayName        varchar(50)           NOT NULL,
-    server             BIGINT                NOT NULL,
-    logChannel         BIGINT,
-    leaderboardChannel BIGINT,
+    id                  BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier          varchar(50)           NOT NULL,
+    display_name        varchar(50)           NOT NULL,
+    server              BIGINT                NOT NULL,
+    log_channel         BIGINT,
+    leaderboard_channel BIGINT,
     UNIQUE (identifier, server)
 );
 
@@ -93,9 +85,9 @@ create table carry_tier
 (
     id               BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier       varchar(50)           NOT NULL,
-    displayName      varchar(50)           NOT NULL,
+    display_name     varchar(50)           NOT NULL,
     carry_type       BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
-    thumbnailUrl     varchar(200),
+    thumbnail_url    varchar(200),
     category         BIGINT,
     descriptive_name varchar(75),
     price_channel    BIGINT,
@@ -105,13 +97,13 @@ create table carry_tier
 
 create table carry_difficulty
 (
-    id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier   varchar(50)           NOT NULL,
-    displayName  varchar(50)           NOT NULL,
-    carry_tier   BIGINT                NOT NULL REFERENCES carry_tier (id) on delete cascade on update cascade,
-    thumbnailUrl varchar(200),
-    score        BIGINT                NOT NULL,
-    price        BIGINT                NOT NULL,
-    bulkPrice    BIGINT,
-    bulkAmount   BIGINT
+    id            BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier    varchar(50)           NOT NULL,
+    display_name  varchar(50)           NOT NULL,
+    carry_tier    BIGINT                NOT NULL REFERENCES carry_tier (id) on delete cascade on update cascade,
+    thumbnail_url varchar(200),
+    score         BIGINT                NOT NULL,
+    price         BIGINT                NOT NULL,
+    bulk_price    BIGINT,
+    bulk_amount   BIGINT
 );

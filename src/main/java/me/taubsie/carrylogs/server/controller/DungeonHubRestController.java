@@ -203,7 +203,8 @@ public class DungeonHubRestController {
     }
 
     @GetMapping(path = {"leaderboard/{type}/pages/{leaderboard}", "leaderboard/{type}/pages"})
-    public ResponseEntity<String> getLeaderboardPages(@PathVariable long type, @PathVariable(required = false) Optional<String> leaderboard) {
+    public ResponseEntity<String> getLeaderboardPages(@PathVariable long type,
+                                                      @PathVariable(required = false) Optional<String> leaderboard) {
         try {
             Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(type);
 
@@ -397,12 +398,14 @@ public class DungeonHubRestController {
     }
 
     @DeleteMapping("server/{server}/carry-type/{carry-type}")
-    public ResponseEntity<String> deleteCarryType(@PathVariable long server, @PathVariable(name = "carry-type") long carryTypeId) {
+    public ResponseEntity<String> deleteCarryType(@PathVariable long server,
+                                                  @PathVariable(name = "carry-type") long carryTypeId) {
         try {
             Optional<CarryType> deletedCarryType = DatabaseService.getInstance().deleteCarryType(server, carryTypeId);
 
             return deletedCarryType
-                    .map(carryType -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(carryType), HttpStatus.OK))
+                    .map(carryType -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(carryType),
+                            HttpStatus.OK))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
         }
@@ -415,7 +418,8 @@ public class DungeonHubRestController {
     @PostMapping("server/{server}/carry-type")
     public ResponseEntity<String> createCarryType(@PathVariable long server, String identifier, String displayName) {
         try {
-            Optional<CarryType> created = DatabaseService.getInstance().createCarryType(server, identifier, displayName);
+            Optional<CarryType> created = DatabaseService.getInstance().createCarryType(server, identifier,
+                    displayName);
 
             return created
                     .map(carryType -> new ResponseEntity<>(carryType.toJson(), HttpStatus.CREATED))
@@ -423,7 +427,8 @@ public class DungeonHubRestController {
 
         }
         catch (SQLException sqlException) {
-            logger.error("Error while trying to create new carry type {} for server {}.", identifier, server, sqlException);
+            logger.error("Error while trying to create new carry type {} for server {}.", identifier, server,
+                    sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -442,7 +447,38 @@ public class DungeonHubRestController {
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         }
         catch (SQLException sqlException) {
-            logger.error("Error while trying to update carry type {} for server {}.", carryTypeJson, server, sqlException);
+            logger.error("Error while trying to update carry type {} for server {}.", carryTypeJson, server,
+                    sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("server/{server}/carry-type/{carry-type}/carry-tier")
+    public ResponseEntity<String> updateCarryTier(@PathVariable long server,
+                                                  @PathVariable(name = "carry-type") long carryTypeId,
+                                                  String carryTierJson) {
+        try {
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(carryTypeId);
+
+            if (carryType.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            CarryTier carryTier = CarryTier.fromJson(carryTierJson);
+
+            if (carryTier.getCarryType().getId() != carryTypeId
+                    || carryTier.getCarryType().getId() != carryType.get().getId()
+                    || carryType.get().getServer() != server) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            return DatabaseService.getInstance().updateCarryTier(carryTier)
+                    .map(updated -> new ResponseEntity<>(updated.toJson(), HttpStatus.CREATED))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to update carry tier {} for carry type {}.", carryTierJson, carryTypeId,
+                    sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -481,7 +517,9 @@ public class DungeonHubRestController {
     }
 
     @PostMapping("server/{server}/carry-type/{carry-type}/carry-tier")
-    public ResponseEntity<String> createCarryTier(@PathVariable long server, @PathVariable(name = "carry-type") long carryTypeId, String identifier, String displayName) {
+    public ResponseEntity<String> createCarryTier(@PathVariable long server,
+                                                  @PathVariable(name = "carry-type") long carryTypeId,
+                                                  String identifier, String displayName) {
         try {
             Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(carryTypeId);
 
@@ -493,7 +531,8 @@ public class DungeonHubRestController {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
-            Optional<CarryTier> created = DatabaseService.getInstance().createCarryTier(carryType.get(), identifier, displayName);
+            Optional<CarryTier> created = DatabaseService.getInstance().createCarryTier(carryType.get(), identifier,
+                    displayName);
 
             return created
                     .map(carryTier -> new ResponseEntity<>(carryTier.toJson(), HttpStatus.CREATED))
@@ -501,7 +540,8 @@ public class DungeonHubRestController {
 
         }
         catch (SQLException sqlException) {
-            logger.error("Error while trying to create new carry tier {} for server {}.", identifier, server, sqlException);
+            logger.error("Error while trying to create new carry tier {} for server {}.", identifier, server,
+                    sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

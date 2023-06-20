@@ -67,7 +67,7 @@ public class DatabaseService {
             Connection activeConnection = null;
 
             try {
-                activeConnection = dataSource.getConnection();
+                activeConnection = getDataSource().getConnection();
             }
             catch (SQLException sqlException) {
                 sqlException.printStackTrace();
@@ -78,28 +78,6 @@ public class DatabaseService {
 
         if (connection != null) {
             reloadRoles();
-        }
-    }
-
-    private void reloadRoles() {
-        carrierMap.clear();
-
-        String sql = "SELECT * FROM carrier";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
-                for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
-                    roleMap.put(oldCarryRole, resultSet.getBoolean(oldCarryRole.name()));
-                }
-
-                carrierMap.put(resultSet.getLong(1), roleMap);
-            }
-        }
-        catch (SQLException sqlException) {
-            sqlException.printStackTrace();
         }
     }
 
@@ -154,6 +132,28 @@ public class DatabaseService {
         }
 
         return result;
+    }
+
+    private void reloadRoles() {
+        carrierMap.clear();
+
+        String sql = "SELECT * FROM carrier";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                Map<OldCarryRole, Boolean> roleMap = new EnumMap<>(OldCarryRole.class);
+                for (OldCarryRole oldCarryRole : OldCarryRole.values()) {
+                    roleMap.put(oldCarryRole, resultSet.getBoolean(oldCarryRole.name()));
+                }
+
+                carrierMap.put(resultSet.getLong(1), roleMap);
+            }
+        }
+        catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
     }
 
     public void logCarryInformation(CarryInformation carryInformation) throws SQLException {
@@ -856,7 +856,7 @@ public class DatabaseService {
     }
 
     public Optional<CarryType> createCarryType(long serverId, String identifier, String displayName) throws SQLException {
-        String sql = "insert into carry_type(server, identifier, displayName) values (?, ?, ?)";
+        String sql = "insert into carry_type(server, identifier, display_name) values (?, ?, ?)";
 
         if (getCarryType(serverId, identifier).isPresent()) {
             return Optional.empty();
@@ -897,7 +897,7 @@ public class DatabaseService {
     }
 
     public Optional<CarryType> updateCarryType(CarryType carryType) throws SQLException {
-        String sql = "update carry_type set displayName = ?, logChannel = ?, leaderboardChannel = ? where id = ?";
+        String sql = "update carry_type set display_name = ?, log_channel = ?, leaderboard_channel = ? where id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, carryType.getDisplayName());
@@ -957,8 +957,50 @@ public class DatabaseService {
         return Optional.empty();
     }
 
+    public Optional<CarryTier> updateCarryTier(CarryTier carryTier) throws SQLException {
+        String sql = "update carry_tier set display_name = ?, thumbnail_url = ?, category = ?, descriptive_name = ?, price_channel = ? where id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, carryTier.getDisplayName());
+
+            Optional<String> thumbnailUrl = carryTier.getThumbnailUrl();
+            if(thumbnailUrl.isPresent()) {
+                preparedStatement.setString(2, thumbnailUrl.get());
+            } else {
+                preparedStatement.setNull(2, Types.VARCHAR);
+            }
+
+            Optional<Long> category = carryTier.getCategory();
+            if (category.isPresent()) {
+                preparedStatement.setLong(3, category.get());
+            } else {
+                preparedStatement.setNull(3, Types.BIGINT);
+            }
+
+            Optional<String> descriptiveName = carryTier.getActualDescriptiveName();
+            if (descriptiveName.isPresent()) {
+                preparedStatement.setString(4, descriptiveName.get());
+            } else {
+                preparedStatement.setNull(4, Types.VARCHAR);
+            }
+
+            Optional<Long> priceChannel = carryTier.getPriceChannel();
+            if (priceChannel.isPresent()) {
+                preparedStatement.setLong(5, priceChannel.get());
+            } else {
+                preparedStatement.setNull(5, Types.BIGINT);
+            }
+
+            preparedStatement.setLong(6, carryTier.getId());
+
+            preparedStatement.executeUpdate();
+        }
+
+        return getCarryTier(carryTier.getId());
+    }
+
     public Optional<CarryTier> createCarryTier(CarryType carryType, String identifier, String displayName) throws SQLException {
-        String sql = "insert into carry_tier(carry_type, identifier, displayName) values (?, ?, ?)";
+        String sql = "insert into carry_tier(carry_type, identifier, display_name) values (?, ?, ?)";
 
         if (getCarryTier(carryType, identifier).isPresent()) {
             return Optional.empty();
