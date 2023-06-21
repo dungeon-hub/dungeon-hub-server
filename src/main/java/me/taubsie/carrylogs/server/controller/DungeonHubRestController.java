@@ -278,10 +278,16 @@ public class DungeonHubRestController {
     }
 
     @GetMapping("purge/{type}/{amount}")
-    public ResponseEntity<String> getScorelessUsers(@PathVariable String type, @PathVariable long amount) {
+    public ResponseEntity<String> getScorelessUsers(@PathVariable long type, @PathVariable long amount) {
         try {
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(type);
+
+            if(carryType.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
             return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
-                    DatabaseService.getInstance().getUsersWithLessScore(type, amount)), HttpStatus.OK);
+                    DatabaseService.getInstance().getUsersWithLessScore(carryType.get(), amount)), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
             logger.error("Error when loading purge data.", sqlException);
