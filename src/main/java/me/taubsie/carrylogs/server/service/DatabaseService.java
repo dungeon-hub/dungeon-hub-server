@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 
 public class DatabaseService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
-    private static final String SCORE_SUFFIX = "-Score";
     private static DatabaseService instance;
     private final MariaDbDataSource dataSource;
     private final Map<Long, Map<OldCarryRole, Boolean>> carrierMap = new HashMap<>();
@@ -381,24 +380,16 @@ public class DatabaseService {
         }
     }
 
-    public Map<String, Long> countScoreForCarrier(long serverId, long carrierId) throws SQLException {
-        Map<String, Long> scoreMap = new LinkedHashMap<>();
+    public List<ScoreValue> countScoreForCarrier(long serverId, long carrierId) throws SQLException {
+        List<ScoreValue> scoreValues = new ArrayList<>();
 
         for(CarryType carryType : loadCarryTypesForServer(serverId)) {
             for(ScoreType scoreType : ScoreType.values()) {
-                String name = switch (scoreType) {
-                    case ALLTIME -> "Alltime-";
-                    case EVENT -> "Event-";
-                    default -> "";
-                };
-
-                name += carryType.getDisplayName() + SCORE_SUFFIX;
-
-                scoreMap.put(name, countScoreForCarrier(carrierId, carryType, scoreType));
+                scoreValues.add(new ScoreValue(carryType, scoreType, countScoreForCarrier(carrierId, carryType, scoreType)));
             }
         }
 
-        return scoreMap;
+        return scoreValues;
     }
 
     public Map<Long, Long> getLeaderboard(int page, CarryType carryType, ScoreType scoreType) throws SQLException {

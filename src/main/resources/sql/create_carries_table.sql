@@ -84,6 +84,7 @@ create table carry_type
     server              BIGINT                NOT NULL,
     log_channel         BIGINT,
     leaderboard_channel BIGINT,
+    event_active        BOOLEAN,
     UNIQUE (identifier, server)
 );
 
