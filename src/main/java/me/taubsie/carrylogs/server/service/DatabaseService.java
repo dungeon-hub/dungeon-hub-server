@@ -628,7 +628,7 @@ public class DatabaseService {
         Map<Long, Long> result = new HashMap<>();
         String sql = "SELECT carrier.id, score FROM carrier LEFT JOIN score ON carrier.id = score.id WHERE 1 " +
                 "in (f4, f5, f6, f7, master_mode, eman_t3, eman_t4, blaze_t2, blaze_t3, blaze_t4, blaze_t3, hot, " +
-                "burning, fiery, infernal) and (score < ?) and carry_type = ?";
+                "burning, fiery, infernal) and (score < ? or score is null) and carry_type = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, score);
@@ -870,7 +870,7 @@ public class DatabaseService {
     }
 
     public Optional<CarryType> updateCarryType(CarryType carryType) throws SQLException {
-        String sql = "update carry_type set display_name = ?, log_channel = ?, leaderboard_channel = ? where id = ?";
+        String sql = "update carry_type set display_name = ?, log_channel = ?, leaderboard_channel = ?, event_active = ? where id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, carryType.getDisplayName());
@@ -889,7 +889,9 @@ public class DatabaseService {
                 preparedStatement.setNull(3, Types.BIGINT);
             }
 
-            preparedStatement.setLong(4, carryType.getId());
+            preparedStatement.setBoolean(4, carryType.isEventActive());
+
+            preparedStatement.setLong(5, carryType.getId());
 
             preparedStatement.executeUpdate();
         }

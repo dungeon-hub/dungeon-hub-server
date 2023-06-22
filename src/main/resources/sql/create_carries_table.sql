@@ -65,17 +65,6 @@ create table event_score
     primary key (id, carry_type)
 );
 
-insert into score(id, score, carry_type)
-select old_score.id, score, ct.id
-from slayer_score as old_score
-         left join carry_type ct on ct.id = 5;
-
-insert into carries(id, carrier, player, approver, amount, carry_difficulty, attachment_link, time)
-    (
-        select id, carrier, player, approver, amountOfCarries as amount, 11, attachmentLink as attachment_link, time from old_carries
-        where carryDifficulty = 'KUUDRA' and carryType = 'Burning'
-    );
-
 create table carry_type
 (
     id                  BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -98,6 +87,7 @@ create table carry_tier
     category         BIGINT,
     descriptive_name varchar(75),
     price_channel    BIGINT,
+    price_title      varchar(75),
     UNIQUE (identifier, carry_type),
     UNIQUE (category)
 );
@@ -113,5 +103,6 @@ create table carry_difficulty
     price         BIGINT                NOT NULL,
     bulk_price    BIGINT,
     bulk_amount   BIGINT,
+    price_name    varchar(75),
     UNIQUE (identifier, carry_tier)
 );
