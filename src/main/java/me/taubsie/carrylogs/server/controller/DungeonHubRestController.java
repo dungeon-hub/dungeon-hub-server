@@ -282,7 +282,7 @@ public class DungeonHubRestController {
         try {
             Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(type);
 
-            if(carryType.isEmpty()) {
+            if (carryType.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
@@ -423,6 +423,7 @@ public class DungeonHubRestController {
 
     @PostMapping("server/{server}/carry-type")
     public ResponseEntity<String> createCarryType(@PathVariable long server, String identifier, String displayName) {
+        //TODO implement optionals
         try {
             Optional<CarryType> created = DatabaseService.getInstance().createCarryType(server, identifier,
                     displayName);
@@ -522,11 +523,20 @@ public class DungeonHubRestController {
         }
     }
 
+    //TODO maybe implement this?
+    //@PreAuthorize("hasAuthority('SCOPE_' + #server)")
     @PostMapping("server/{server}/carry-type/{carry-type}/carry-tier")
     public ResponseEntity<String> createCarryTier(@PathVariable long server,
                                                   @PathVariable(name = "carry-type") long carryTypeId,
-                                                  String identifier, String displayName) {
+                                                  String identifier,
+                                                  String displayName,
+                                                  Optional<String> descriptiveName,
+                                                  Optional<Long> category,
+                                                  Optional<Long> priceChannel,
+                                                  Optional<String> thumbnailUrl,
+                                                  Optional<String> priceTitle) {
         try {
+            //TODO implement optionals
             Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(carryTypeId);
 
             if (carryType.isEmpty()) {
@@ -543,7 +553,6 @@ public class DungeonHubRestController {
             return created
                     .map(carryTier -> new ResponseEntity<>(carryTier.toJson(), HttpStatus.CREATED))
                     .orElse(new ResponseEntity<>(HttpStatus.CONFLICT));
-
         }
         catch (SQLException sqlException) {
             logger.error("Error while trying to create new carry tier {} for server {}.", identifier, server,
