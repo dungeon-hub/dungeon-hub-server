@@ -934,7 +934,7 @@ public class DatabaseService {
 
     public Optional<CarryTier> updateCarryTier(CarryTier carryTier) throws SQLException {
         String sql = "update carry_tier set display_name = ?, thumbnail_url = ?, category = ?, descriptive_name = ?, " +
-                "price_channel = ? where id = ?";
+                "price_channel = ?, price_description = ? where id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, carryTier.getDisplayName());
@@ -967,7 +967,14 @@ public class DatabaseService {
                 preparedStatement.setNull(5, Types.BIGINT);
             }
 
-            preparedStatement.setLong(6, carryTier.getId());
+            Optional<String> priceDescription = carryTier.getPriceDescription();
+            if(priceDescription.isPresent()) {
+                preparedStatement.setString(6, priceDescription.get());
+            } else {
+                preparedStatement.setNull(6, Types.VARCHAR);
+            }
+
+            preparedStatement.setLong(7, carryTier.getId());
 
             preparedStatement.executeUpdate();
         }

@@ -88,6 +88,7 @@ create table carry_tier
     descriptive_name varchar(75),
     price_channel    BIGINT,
     price_title      varchar(75),
+    price_description      varchar(200),
     UNIQUE (identifier, carry_type),
     UNIQUE (category)
 );
