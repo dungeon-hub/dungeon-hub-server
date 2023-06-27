@@ -79,16 +79,16 @@ create table carry_type
 
 create table carry_tier
 (
-    id               BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    identifier       varchar(50)           NOT NULL,
-    display_name     varchar(50)           NOT NULL,
-    carry_type       BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
-    thumbnail_url    varchar(200),
-    category         BIGINT,
-    descriptive_name varchar(75),
-    price_channel    BIGINT,
-    price_title      varchar(75),
-    price_description      varchar(200),
+    id                BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    identifier        varchar(50)           NOT NULL,
+    display_name      varchar(50)           NOT NULL,
+    carry_type        BIGINT                NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
+    thumbnail_url     varchar(200),
+    category          BIGINT,
+    descriptive_name  varchar(75),
+    price_channel     BIGINT,
+    price_title       varchar(75),
+    price_description varchar(200),
     UNIQUE (identifier, carry_type),
     UNIQUE (category)
 );
