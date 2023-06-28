@@ -385,7 +385,8 @@ public class DatabaseService {
 
         for(CarryType carryType : loadCarryTypesForServer(serverId)) {
             for(ScoreType scoreType : ScoreType.values()) {
-                scoreValues.add(new ScoreValue(carryType, scoreType, countScoreForCarrier(carrierId, carryType, scoreType)));
+                scoreValues.add(new ScoreValue(carryType, scoreType, countScoreForCarrier(carrierId, carryType,
+                        scoreType)));
             }
         }
 
@@ -870,7 +871,8 @@ public class DatabaseService {
     }
 
     public Optional<CarryType> updateCarryType(CarryType carryType) throws SQLException {
-        String sql = "update carry_type set display_name = ?, log_channel = ?, leaderboard_channel = ?, event_active = ? where id = ?";
+        String sql = "update carry_type set display_name = ?, log_channel = ?, leaderboard_channel = ?, event_active " +
+                "= ? where id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, carryType.getDisplayName());
@@ -968,7 +970,7 @@ public class DatabaseService {
             }
 
             Optional<String> priceDescription = carryTier.getPriceDescription();
-            if(priceDescription.isPresent()) {
+            if (priceDescription.isPresent()) {
                 preparedStatement.setString(6, priceDescription.get());
             } else {
                 preparedStatement.setNull(6, Types.VARCHAR);
@@ -1154,6 +1156,68 @@ public class DatabaseService {
 
             if (resultSet.next()) {
                 return Optional.of(CarryDifficulty.fromResultSet(resultSet, carryTiers));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CarryDifficulty> updateCarryDifficulty(CarryDifficulty carryDifficulty) throws SQLException {
+        String sql = "update carry_difficulty set display_name = ?, thumbnail_url = ?, score = ?, price = ?, " +
+                "bulk_price = ?, bulk_amount = ?, price_name = ? where id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, carryDifficulty.getDisplayName());
+
+            Optional<String> thumbnailUrl = carryDifficulty.getActualThumbnailUrl();
+            if(thumbnailUrl.isPresent()) {
+                preparedStatement.setString(2, thumbnailUrl.get());
+            } else {
+                preparedStatement.setNull(2, Types.VARCHAR);
+            }
+
+            preparedStatement.setInt(3, carryDifficulty.getScore());
+            preparedStatement.setInt(4, carryDifficulty.getPrice());
+
+            Optional<Integer> bulkPrice = carryDifficulty.getBulkPrice();
+            if(bulkPrice.isPresent()) {
+                preparedStatement.setInt(5, bulkPrice.get());
+            } else {
+                preparedStatement.setNull(5, Types.BIGINT);
+            }
+
+            Optional<Integer> bulkAmount = carryDifficulty.getBulkAmount();
+            if(bulkAmount.isPresent()) {
+                preparedStatement.setInt(6, bulkAmount.get());
+            } else {
+                preparedStatement.setNull(6, Types.BIGINT);
+            }
+
+            Optional<String> priceName = carryDifficulty.getActualPriceName();
+            if(priceName.isPresent()) {
+                preparedStatement.setString(7, priceName.get());
+            } else {
+                preparedStatement.setNull(7, Types.VARCHAR);
+            }
+
+            preparedStatement.setLong(8, carryDifficulty.getId());
+
+            preparedStatement.executeUpdate();
+        }
+
+        return getCarryDifficulty(carryDifficulty.getId());
+    }
+
+    public Optional<CarryDifficulty> getCarryDifficulty(long id) throws SQLException {
+        String sql = "select * from carry_difficulty where id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return Optional.of(CarryDifficulty.fromResultSet(resultSet, loadCarryTierMap()));
             }
         }
 

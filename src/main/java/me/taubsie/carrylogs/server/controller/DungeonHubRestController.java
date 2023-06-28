@@ -474,7 +474,6 @@ public class DungeonHubRestController {
             CarryTier carryTier = CarryTier.fromJson(carryTierJson);
 
             if (carryTier.getCarryType().getId() != carryTypeId
-                    || carryTier.getCarryType().getId() != carryType.get().getId()
                     || carryType.get().getServer() != server) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
@@ -557,6 +556,43 @@ public class DungeonHubRestController {
         catch (SQLException sqlException) {
             logger.error("Error while trying to create new carry tier {} for server {}.", identifier, server,
                     sqlException);
+            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("server/{server}/carry-type/{carry-type}/carry-tier/{carry-tier}/carry-difficulty")
+    public ResponseEntity<String> updateCarryDifficulty(@PathVariable long server,
+                                                        @PathVariable(name = "carry-type") long carryTypeId,
+                                                        @PathVariable(name = "carry-tier") long carryTierId,
+                                                        String carryDifficultyJson) {
+        try {
+            Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(carryTypeId);
+
+            if(carryType.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            Optional<CarryTier> carryTier = DatabaseService.getInstance().getCarryTier(carryTierId);
+
+            if(carryTier.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            CarryDifficulty carryDifficulty = CarryDifficulty.fromJson(carryDifficultyJson);
+
+            if(carryDifficulty.getCarryTier().getId() != carryTierId
+                    || carryDifficulty.getCarryType().getId() != carryTypeId
+                    || carryDifficulty.getCarryType().getServer() != server) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            return DatabaseService.getInstance().updateCarryDifficulty(carryDifficulty)
+                    .map(updated -> new ResponseEntity<>(updated.toJson(), HttpStatus.CREATED))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        }
+        catch (SQLException sqlException) {
+            logger.error("Error while trying to update carry difficulty {} for carry type {}.", carryDifficultyJson,
+                    carryTypeId, sqlException);
             return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
