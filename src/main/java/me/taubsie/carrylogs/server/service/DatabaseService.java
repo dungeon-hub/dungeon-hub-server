@@ -1122,7 +1122,7 @@ public class DatabaseService {
                         return loadCarryTiersOfCarryType(carryType).stream();
                     }
                     catch (SQLException sqlException) {
-                        logger.error(null, sqlException);
+                        logger.error("Error while loading carry difficulties for server {}.", serverId, sqlException);
                         return Stream.empty();
                     }
                 })
@@ -1131,7 +1131,7 @@ public class DatabaseService {
                         return loadCarryDifficultiesOfCarryTier(carryTier).stream();
                     }
                     catch (SQLException sqlException) {
-                        logger.error(null, sqlException);
+                        logger.error("Error while loading  carry tiers.", sqlException);
                         return Stream.empty();
                     }
                 })
