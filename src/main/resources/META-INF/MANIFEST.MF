@@ -1,3 +1,2 @@
 Manifest-Version: 1.0
-Main-Class: me.taubsie.carrylogs.server.CarrylogsServerApplication
-
+Main-Class: me.taubsie.dungeonhub.server.DungeonHubServerApplication

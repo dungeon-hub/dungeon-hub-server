@@ -12,7 +12,7 @@
     <artifactId>dungeon-hub-server</artifactId>
     <version>1.0.0</version>
     <name>dungeon-hub-server</name>
-    <description>Server for Carrylogs project</description>
+    <description>Server for the Dungeon Hub project</description>
     <properties>
         <java.version>17</java.version>
     </properties>

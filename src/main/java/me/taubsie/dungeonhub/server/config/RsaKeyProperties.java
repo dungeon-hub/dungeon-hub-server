@@ -1,4 +1,4 @@
-package me.taubsie.carrylogs.server.config;
+package me.taubsie.dungeonhub.server.config;
 
 
 import java.security.interfaces.RSAPrivateKey;

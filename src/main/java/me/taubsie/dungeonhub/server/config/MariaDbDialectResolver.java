@@ -1,4 +1,4 @@
-package me.taubsie.carrylogs.server.config;
+package me.taubsie.dungeonhub.server.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jdbc.repository.config.DialectResolver;

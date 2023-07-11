@@ -1,4 +1,4 @@
-package me.taubsie.carrylogs.server.service;
+package me.taubsie.dungeonhub.server.service;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

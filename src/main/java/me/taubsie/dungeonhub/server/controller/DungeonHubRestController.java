@@ -1,8 +1,8 @@
-package me.taubsie.carrylogs.server.controller;
+package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
-import me.taubsie.carrylogs.server.service.DatabaseService;
 import me.taubsie.dungeonhub.common.*;
+import me.taubsie.dungeonhub.server.exceptions.ForbiddenException;
+import me.taubsie.dungeonhub.server.service.DatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -81,10 +81,10 @@ public class DungeonHubRestController {
     public ResponseEntity<String> getApprovingQueue(@RequestParam(required = false) Optional<Long> id) {
         try {
             if (id.isEmpty()) {
-                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
+                return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().getApprovingQueue()), HttpStatus.OK);
             }
 
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(id.get()), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromApprovingQueue(id.get()), DungeonHubService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }
         catch (NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
@@ -99,11 +99,11 @@ public class DungeonHubRestController {
     public ResponseEntity<String> getLogQueue(@RequestParam(required = false) Optional<String> id) {
         try {
             if (id.isEmpty()) {
-                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
+                return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().getLogQueue()), HttpStatus.OK);
             }
 
             Long idLong = Long.parseLong(id.get());
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromLogQueue(idLong), CarryLogService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().getFromLogQueue(idLong), DungeonHubService.getInstance().getCarryInformationSetType()), HttpStatus.OK);
         }
         catch (NumberFormatException numberFormatException) {
             return new ResponseEntity<>("Id is not a number.", HttpStatus.BAD_REQUEST);
@@ -170,7 +170,7 @@ public class DungeonHubRestController {
             return new ResponseEntity<>(
                     carryType.isPresent()
                             ? String.valueOf(DatabaseService.getInstance().countScoreForCarrier(id, carryType.get())) :
-                            CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(server, id)),
+                            DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().countScoreForCarrier(server, id)),
                     HttpStatus.OK
             );
         }
@@ -241,7 +241,7 @@ public class DungeonHubRestController {
 
             ScoreType scoreType = type.flatMap(ScoreType::fromName).orElse(ScoreType.DEFAULT);
 
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().getLeaderboard(page, carryType.get(), scoreType)), HttpStatus.OK);
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().getLeaderboard(page, carryType.get(), scoreType)), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
             logger.error("Error when loading leaderboard.", sqlException);
@@ -252,8 +252,8 @@ public class DungeonHubRestController {
     @PutMapping("role")
     public ResponseEntity<String> addRoles(Long id, String roles) {
         try {
-            List<OldCarryRole> roleList = CarryLogService.getInstance().getGson()
-                    .fromJson(roles, CarryLogService.getInstance().getCarryRoleListType());
+            List<OldCarryRole> roleList = DungeonHubService.getInstance().getGson()
+                    .fromJson(roles, DungeonHubService.getInstance().getCarryRoleListType());
             DatabaseService.getInstance().addRoles(id, roleList);
             return new ResponseEntity<>(HttpStatus.OK);
         }
@@ -266,8 +266,8 @@ public class DungeonHubRestController {
     @PutMapping("roles")
     public ResponseEntity<String> addMultipleRoles(String roles) {
         try {
-            Map<Long, List<OldCarryRole>> roleData = CarryLogService.getInstance().getGson()
-                    .fromJson(roles, CarryLogService.getInstance().getLongCarryRoleListMapType());
+            Map<Long, List<OldCarryRole>> roleData = DungeonHubService.getInstance().getGson()
+                    .fromJson(roles, DungeonHubService.getInstance().getLongCarryRoleListMapType());
             DatabaseService.getInstance().addRoles(roleData);
             return new ResponseEntity<>(HttpStatus.OK);
         }
@@ -286,7 +286,7 @@ public class DungeonHubRestController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().getUsersWithLessScore(carryType.get(), amount)), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
@@ -298,7 +298,7 @@ public class DungeonHubRestController {
     @GetMapping("strike/{server}/all")
     public ResponseEntity<String> getAllStrikesForUser(@PathVariable long server, @RequestParam long user) {
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().getAllStrikeData(server, user)), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
@@ -313,19 +313,19 @@ public class DungeonHubRestController {
                                                 @RequestParam(required = false) Optional<Long> id) {
         try {
             if (user.isEmpty() && id.isEmpty()) {
-                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+                return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(
                         DatabaseService.getInstance().getStrikesInServer(server)), HttpStatus.OK);
             }
 
             if (user.isPresent() && id.isEmpty()) {
-                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+                return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(
                         DatabaseService.getInstance().getValidStrikeData(server, user.get())), HttpStatus.OK);
             }
 
             return DatabaseService.getInstance().getStrikeDataById(id.get())
                     .filter(data -> data.getServer() == server)
                     .filter(data -> user.isEmpty() || data.getUser() == user.get())
-                    .map(data -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(data),
+                    .map(data -> new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(data),
                             HttpStatus.OK))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         }
@@ -354,10 +354,10 @@ public class DungeonHubRestController {
 
     @PostMapping("strike")
     public ResponseEntity<String> insertNewStrike(String strikeData) {
-        StrikeData strikeDataObj = CarryLogService.getInstance().getGson().fromJson(strikeData, StrikeData.class);
+        StrikeData strikeDataObj = DungeonHubService.getInstance().getGson().fromJson(strikeData, StrikeData.class);
 
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(
                     DatabaseService.getInstance().insertStrikeData(strikeDataObj)), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
@@ -388,7 +388,7 @@ public class DungeonHubRestController {
                                                          @RequestParam(required = false) Optional<String> identifier) {
         try {
             if (identifier.isEmpty()) {
-                return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypesForServer(server)), HttpStatus.OK);
+                return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypesForServer(server)), HttpStatus.OK);
             }
 
             Optional<CarryType> carryType = DatabaseService.getInstance().getCarryType(server, identifier.get());
@@ -410,7 +410,7 @@ public class DungeonHubRestController {
             Optional<CarryType> deletedCarryType = DatabaseService.getInstance().deleteCarryType(server, carryTypeId);
 
             return deletedCarryType
-                    .map(carryType -> new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(carryType),
+                    .map(carryType -> new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(carryType),
                             HttpStatus.OK))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
@@ -492,7 +492,7 @@ public class DungeonHubRestController {
     @GetMapping("carry-types")
     public ResponseEntity<String> getAllCarryTypes() {
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypes()), HttpStatus.OK);
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTypes()), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
             logger.error("Error while trying to load all carry types.", sqlException);
@@ -503,7 +503,7 @@ public class DungeonHubRestController {
     @GetMapping("carry-tiers")
     public ResponseEntity<String> getAllCarryTiers() {
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTiers()), HttpStatus.OK);
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryTiers()), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
             logger.error("Error while trying to load all carry tiers.", sqlException);
@@ -514,7 +514,7 @@ public class DungeonHubRestController {
     @GetMapping("carry-difficulties")
     public ResponseEntity<String> getAllCarryDifficulties() {
         try {
-            return new ResponseEntity<>(CarryLogService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryDifficulties()), HttpStatus.OK);
+            return new ResponseEntity<>(DungeonHubService.getInstance().getGson().toJson(DatabaseService.getInstance().loadCarryDifficulties()), HttpStatus.OK);
         }
         catch (SQLException sqlException) {
             logger.error("Error while trying to load all carry difficulties.", sqlException);

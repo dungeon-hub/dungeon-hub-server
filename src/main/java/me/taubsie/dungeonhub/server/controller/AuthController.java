@@ -1,6 +1,6 @@
-package me.taubsie.carrylogs.server.controller;
+package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.carrylogs.server.service.TokenService;
+import me.taubsie.dungeonhub.server.service.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;

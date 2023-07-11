@@ -1,4 +1,4 @@
-package me.taubsie.carrylogs.server.config;
+package me.taubsie.dungeonhub.server.config;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -6,8 +6,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import me.taubsie.carrylogs.server.service.DatabaseService;
 import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
+import me.taubsie.dungeonhub.server.service.DatabaseService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,8 +1,8 @@
-package me.taubsie.carrylogs.server.service;
+package me.taubsie.dungeonhub.server.service;
 
-import me.taubsie.carrylogs.server.exceptions.ForbiddenException;
 import me.taubsie.dungeonhub.common.*;
 import me.taubsie.dungeonhub.common.config.ConfigProperty;
+import me.taubsie.dungeonhub.server.exceptions.ForbiddenException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 import org.mariadb.jdbc.MariaDbDataSource;
@@ -108,7 +108,6 @@ public class DatabaseService {
         return dataSource;
     }
 
-    //TODO once the bot is updated, remove the autorities and users table from the carrylogs schema
     public DataSource getApiDataSource() {
         if (hasInvalidConfigValues()) {
             return null;
@@ -401,7 +400,7 @@ public class DatabaseService {
         };
 
         String sql = "select id, score from " + table + " where score > 0 and carry_type = ? order by score DESC " +
-                "limit 10 offset " + CarryLogService.getInstance().getOffsetFromPageNumber(page);
+                "limit 10 offset " + DungeonHubService.getInstance().getOffsetFromPageNumber(page);
 
         return getLeaderboard(sql, carryType);
     }
