@@ -1,33 +1,23 @@
 package me.taubsie.dungeonhub.server.config;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
+import lombok.Getter;
 import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
-import me.taubsie.dungeonhub.server.service.DatabaseService;
+import me.taubsie.dungeonhub.server.security.encryption.JwtAuthorizationFilter;
+import me.taubsie.dungeonhub.server.security.user.UserService;
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyFactory;
@@ -42,12 +32,17 @@ import java.security.spec.X509EncodedKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+    @Getter
     private final RsaKeyProperties rsaKeys;
+    private final UserService userService;
 
-    public SecurityConfig() {
-        try(InputStream publicKeyStream = getClass().getClassLoader().getResourceAsStream("certs/public.pem");
-            InputStream privateKeyStream = getClass().getClassLoader().getResourceAsStream("certs/private.pem")) {
-            if(publicKeyStream == null || privateKeyStream == null) {
+    @Autowired
+    public SecurityConfig(UserService userService) {
+        this.userService = userService;
+
+        try (InputStream publicKeyStream = getClass().getClassLoader().getResourceAsStream("certs/public.pem");
+             InputStream privateKeyStream = getClass().getClassLoader().getResourceAsStream("certs/private.pem")) {
+            if (publicKeyStream == null || privateKeyStream == null) {
                 throw new ProgramStartException("Key files are missing!");
             }
 
@@ -69,53 +64,22 @@ public class SecurityConfig {
             this.rsaKeys = new RsaKeyProperties((RSAPublicKey) keyFactory.generatePublic(publicKeySpec),
                     (RSAPrivateKey) keyFactory.generatePrivate(spec));
         }
-        catch(IOException | NoSuchAlgorithmException | InvalidKeySpecException exception) {
+        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException exception) {
             throw new ProgramStartException(exception);
         }
-    }
-
-    @Bean
-    public DataSource dataSource() {
-        return DatabaseService.getInstance().getApiDataSource();
-    }
-
-    //when creating a new user, you need to add PasswordEncoder as a parameter and encode the password
-    @Bean
-    public JdbcUserDetailsManager users(DataSource datasource, PasswordEncoder passwordEncoder) {
-        //TODO write method (api ?) to add user to database
-        passwordEncoder.encode("1234");
-        return new JdbcUserDetailsManager(datasource);
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(new JwtAuthorizationFilter(userService), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/v1/user/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "cdn/**").permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
                 .build();
-    }
-
-    @Bean
-    JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withPublicKey(rsaKeys.publicKey()).build();
-    }
-
-    @Bean
-    JwtEncoder jwtEncoder() {
-        JWK jwk = new RSAKey
-                .Builder(rsaKeys.publicKey())
-                .privateKey(rsaKeys.privateKey())
-                .build();
-        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
-        return new NimbusJwtEncoder(jwkSource);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

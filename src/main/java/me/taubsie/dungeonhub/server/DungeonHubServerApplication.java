@@ -1,37 +1,29 @@
 package me.taubsie.dungeonhub.server;
 
-import me.taubsie.dungeonhub.common.ClassLoaderService;
-import me.taubsie.dungeonhub.common.OnStart;
-import me.taubsie.dungeonhub.common.ProgramOrigin;
-import me.taubsie.dungeonhub.common.config.ConfigService;
-import me.taubsie.dungeonhub.common.config.ConfigType;
-import me.taubsie.dungeonhub.server.service.DatabaseService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 //TODO maybe add some better logging (through discord?)
 @SpringBootApplication
-public class DungeonHubServerApplication implements ProgramOrigin {
-    private static final Logger logger = LoggerFactory.getLogger(DungeonHubServerApplication.class);
-
+@EntityScan("me.taubsie.dungeonhub.")
+@OpenAPIDefinition(info = @Info(title = "Dungeon Hub API", version = "v1", contact = @Contact(name = "Dungeon Hub",
+        url = "discord.dungeon-hub.net", email = "contact@dungeon-hub.net"), termsOfService = "https://dungeon-hub" +
+        ".net/terms-of-service", description = "", extensions = {@Extension(name = "x-logo",
+        properties = {@ExtensionProperty(name = "url", value = "favicon.gif"), @ExtensionProperty(name = "altText", value =
+                "Dungeon Hub Logo"), @ExtensionProperty(name = "href", value = "#")})}), servers = {@Server(url =
+        "api" +
+        ".dungeon-hub.net")})
+public class DungeonHubServerApplication {
     public static void main(String[] args) {
-        //TODO fix -> class name start with "BOOT_INF.classes." also
-        //ClassLoaderService.getInstance().loadStartupListeners();
-        ClassLoaderService.getInstance().addStartupListener(ConfigService.getInstance(), ConfigService.class.getAnnotation(OnStart.class));
-        ClassLoaderService.getInstance().executeStartup(new DungeonHubServerApplication());
-
-        if(DatabaseService.getInstance().hasInvalidConfigValues()) {
-            logger.error("Please enter correct values in the config-file.");
-            return;
-        }
+        ConfigService.ensureConfigFile();
 
         SpringApplication.run(DungeonHubServerApplication.class, args);
-    }
-
-    @Override
-    public ConfigType getConfigType() {
-        return ConfigType.SERVER;
     }
 }

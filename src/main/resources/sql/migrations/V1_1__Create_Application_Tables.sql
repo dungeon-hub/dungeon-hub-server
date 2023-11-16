@@ -1,3 +1,26 @@
+create schema if not exists `dungeon-hub`;
+use `dungeon-hub`;
+
+create table carrier
+(
+    id          BIGINT PRIMARY KEY,
+    f4          boolean,
+    f5          boolean,
+    f6          boolean,
+    f7          boolean,
+    master_mode boolean,
+    eman_t3     boolean,
+    eman_t4     boolean,
+    blaze_t2    boolean,
+    blaze_t3    boolean,
+    blaze_t4    boolean,
+    basic       boolean,
+    hot         boolean,
+    burning     boolean,
+    fiery       boolean,
+    infernal    boolean
+);
+
 create table carry_type
 (
     id                  BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -43,7 +66,9 @@ create table carry_difficulty
 
 create table carry_queue
 (
-    id               BIGINT NOT NULL,
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    queue_step       BIGINT NOT NULL,
+    relation_id      BIGINT,
     carrier          BIGINT REFERENCES carrier (id),
     player           BIGINT,
     amount           mediumint,
@@ -52,33 +77,12 @@ create table carry_queue
     time             TIMESTAMP
 );
 
-create table carries
+create table carry
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     carrier          BIGINT REFERENCES carrier (id),
     player           BIGINT,
     approver         BIGINT,
-    amount           mediumint,
-    carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
-    attachment_link  varchar(250),
-    time             TIMESTAMP
-);
-
-create table log_queue
-(
-    id               BIGINT NOT NULL,
-    carrier          BIGINT REFERENCES carrier (id),
-    player           BIGINT,
-    amount           mediumint,
-    carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
-    time             TIMESTAMP
-);
-
-create table log_approving_queue
-(
-    id               BIGINT NOT NULL,
-    carrier          BIGINT REFERENCES carrier (id),
-    player           BIGINT,
     amount           mediumint,
     carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
     attachment_link  varchar(250),
@@ -104,18 +108,4 @@ create table score
     primary key (id, carry_type, score_type)
 );
 
-create table alltime_score
-(
-    id         BIGINT NOT NULL REFERENCES carrier (id) on delete cascade on update cascade,
-    carry_type BIGINT NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
-    score      BIGINT,
-    primary key (id, carry_type)
-);
-
-create table event_score
-(
-    id         BIGINT NOT NULL REFERENCES carrier (id) on delete cascade on update cascade,
-    carry_type BIGINT NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
-    score      BIGINT,
-    primary key (id, carry_type)
-);
+commit;
