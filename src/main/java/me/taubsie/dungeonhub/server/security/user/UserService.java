@@ -6,7 +6,9 @@ import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
 import me.taubsie.dungeonhub.common.model.security.user.UserCreationModel;
 import me.taubsie.dungeonhub.common.model.security.user.UserLoginModel;
 import me.taubsie.dungeonhub.common.model.security.user.UserLoginVerificationModel;
+import me.taubsie.dungeonhub.common.model.security.user.UserTokenRefreshModel;
 import me.taubsie.dungeonhub.server.exception.CreationException;
+import me.taubsie.dungeonhub.server.repositories.RefreshTokenRepository;
 import me.taubsie.dungeonhub.server.security.encryption.EncryptionService;
 import me.taubsie.dungeonhub.server.security.exception.LoginNameOccupiedException;
 import me.taubsie.dungeonhub.server.security.user.model.UserInitializeModel;
@@ -31,6 +33,7 @@ import java.util.function.Function;
 public class UserService implements EntityService<UserEntity, UserModel, UserCreationModel, UserInitializeModel,
         UserUpdateModel>, UserDetailsService {
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final EncryptionService encryptionService;
     private final PasswordEncoder passwordEncoder;
 
@@ -105,11 +108,24 @@ public class UserService implements EntityService<UserEntity, UserModel, UserCre
             if (passwordEncoder.matches(userLoginModel.password(), user.getPassword())) {
                 return new UserLoginVerificationModel(user.getId(),
                         encryptionService.generateKey(String.valueOf(user.getId())),
-                        //encryptionService.generateRefreshKey(String.valueOf(user.getId())),
+                        encryptionService.generateRefreshToken(user),
                         Instant.now());
             }
             return null;
         });
+    }
+
+    @Transactional
+    public Optional<UserLoginVerificationModel> refresh(UserTokenRefreshModel userTokenRefreshModel) {
+        return refreshTokenRepository.findByToken(userTokenRefreshModel.refreshToken())
+                .map(refreshToken -> {
+                    refreshTokenRepository.delete(refreshToken);
+                    return refreshToken.getUser();
+                })
+                .map(userEntity -> new UserLoginVerificationModel(userEntity.getId(),
+                        encryptionService.generateKey(String.valueOf(userEntity.getId())),
+                        encryptionService.generateRefreshToken(userEntity),
+                        Instant.now()));
     }
 
     @Transactional

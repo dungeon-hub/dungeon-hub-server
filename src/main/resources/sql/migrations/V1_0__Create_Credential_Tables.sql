@@ -35,4 +35,11 @@ create table group_privileges
     UNIQUE (group_id, privilege_id)
 );
 
+create table refresh_token
+(
+    user BIGINT PRIMARY KEY NOT NULL REFERENCES user (id),
+    token UUID NOT NULL default UUID(),
+    valid_until TIMESTAMP NOT NULL
+);
+
 commit;

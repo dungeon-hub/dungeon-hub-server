@@ -5,7 +5,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
 import me.taubsie.dungeonhub.common.model.security.user.JwtTokenModel;
+import me.taubsie.dungeonhub.common.model.security.user.RefreshTokenModel;
 import me.taubsie.dungeonhub.server.config.RsaKeyProperties;
+import me.taubsie.dungeonhub.server.entities.RefreshToken;
+import me.taubsie.dungeonhub.server.repositories.RefreshTokenRepository;
+import me.taubsie.dungeonhub.server.security.user.UserEntity;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +37,11 @@ public class EncryptionService {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionService.class);
 
     private final RsaKeyProperties rsaKeys;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public EncryptionService() {
+    public EncryptionService(RefreshTokenRepository refreshTokenRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
+
         try (InputStream publicKeyStream = getClass().getClassLoader().getResourceAsStream("certs/public.pem");
              InputStream privateKeyStream = getClass().getClassLoader().getResourceAsStream("certs/private.pem")) {
             if (publicKeyStream == null || privateKeyStream == null) {
@@ -78,6 +85,13 @@ public class EncryptionService {
         return new JwtTokenModel(token, issued.minusSeconds(30));
     }
 
+    public RefreshTokenModel generateRefreshToken(UserEntity user) {
+        RefreshToken refreshToken = refreshTokenRepository.save(new RefreshToken(user,
+                Instant.now().plus(1, ChronoUnit.DAYS)));
+
+        return new RefreshTokenModel(refreshToken.getToken(), refreshToken.getValidUntil());
+    }
+
     public Optional<UsernamePasswordAuthenticationToken> validate(String token, AuthorityFactory authorityFactory) {
         try {
             String subject = Jwts.parserBuilder()
@@ -95,7 +109,7 @@ public class EncryptionService {
             throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
         }
         catch (SignatureException signatureException) {
-            logger.warn("Someone tried to authorize with a forget JWT.", signatureException);
+            logger.warn("Someone tried to authorize with a forged JWT.", signatureException);
             throw new HttpClientErrorException(HttpStatus.I_AM_A_TEAPOT);
         }
     }
