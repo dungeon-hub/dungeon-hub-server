@@ -7,6 +7,15 @@ create table discord_user
     minecraft_id UUID
 );
 
+create table discord_role
+(
+    id BIGINT PRIMARY KEY,
+    name_schema varchar(100),
+    role_group BIGINT REFERENCES discord_role(id) ON DELETE SET NULL,
+    server BIGINT NOT NULL REFERENCES server (id),
+    UNIQUE (server, id)
+);
+
 create table carrier
 (
     id          BIGINT PRIMARY KEY REFERENCES discord_user (id),
