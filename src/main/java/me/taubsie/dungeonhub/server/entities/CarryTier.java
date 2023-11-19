@@ -3,6 +3,7 @@ package me.taubsie.dungeonhub.server.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
@@ -17,6 +18,7 @@ import java.util.Set;
 
 @Entity(name = "carry_tier")
 @Table(name = "carry_tier", schema = "dungeon-hub")
+@NoArgsConstructor
 public class CarryTier implements EntityModelRelation<CarryTierModel> {
     @Getter
     @OneToMany(mappedBy = "carryTier")
@@ -81,10 +83,6 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
         this.identifier = identifier;
         this.displayName = displayName;
         this.carryType = carryType;
-    }
-
-    public CarryTier() {
-
     }
 
     @SuppressWarnings("java:S107")

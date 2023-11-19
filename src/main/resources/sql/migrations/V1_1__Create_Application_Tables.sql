@@ -1,9 +1,15 @@
 create schema if not exists `dungeon-hub`;
 use `dungeon-hub`;
 
+create table discord_user
+(
+    id BIGINT PRIMARY KEY,
+    minecraft_id UUID
+);
+
 create table carrier
 (
-    id          BIGINT PRIMARY KEY,
+    id          BIGINT PRIMARY KEY REFERENCES discord_user (id),
     f4          boolean,
     f5          boolean,
     f6          boolean,

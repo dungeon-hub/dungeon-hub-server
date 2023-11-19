@@ -4,20 +4,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.DungeonHubService;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
 import org.hibernate.annotations.OnDelete;
-import org.jetbrains.annotations.NotNull;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @Entity(name = "carry_type")
 @Table(name = "carry_type", schema = "dungeon-hub")
 @NoArgsConstructor
 public class CarryType implements EntityModelRelation<CarryTypeModel> {
+    @Getter
+    @OneToMany(mappedBy = "carryType")
+    @JsonIgnore
+    private final Set<CarryTier> carryTiers = new LinkedHashSet<>();
+
     @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +38,7 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
 
     @Getter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "server", nullable = false)
     //final
     private Server server;
@@ -45,11 +48,6 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
     private Long leaderboardChannel;
     @Column(name = "event_active")
     private Boolean eventActive;
-
-    @Getter
-    @OneToMany(mappedBy = "carryType")
-    @JsonIgnore
-    private final Set<CarryTier> carryTiers = new LinkedHashSet<>();
 
     public CarryType(long id, String identifier, String displayName, Server server) {
         this.id = id;
@@ -79,26 +77,6 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
         this.eventActive = eventActive;
     }
 
-    public static CarryType fromJson(String json) {
-        return DungeonHubService.getInstance().getGson().fromJson(json, CarryType.class);
-    }
-
-    public String toJson() {
-        return DungeonHubService.getInstance().getGson().toJson(this);
-    }
-
-    public Optional<Long> getLogChannel() {
-        return Optional.ofNullable(logChannel > 0 ? logChannel : null);
-    }
-
-    public Optional<Long> getLeaderboardChannel() {
-        return Optional.ofNullable(leaderboardChannel > 0 ? leaderboardChannel : null);
-    }
-
-    public boolean isEventActive() {
-        return Boolean.TRUE.equals(eventActive);
-    }
-
     @Override
     public boolean equals(Object object) {
         if (object instanceof CarryType carryType) {
@@ -116,7 +94,9 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
 
     @Override
     public CarryType fromModel(CarryTypeModel model) {
-        return new CarryType(model.getId(), model.getIdentifier(), model.getDisplayName(), server.fromModel(model.getServer()), model.getActualLogChannel(), model.getActualLeaderboardChannel(), model.getEventActive());
+        return new CarryType(model.getId(), model.getIdentifier(), model.getDisplayName(),
+                server.fromModel(model.getServer()), model.getActualLogChannel(), model.getActualLeaderboardChannel(),
+                model.getEventActive());
     }
 
     @Override
