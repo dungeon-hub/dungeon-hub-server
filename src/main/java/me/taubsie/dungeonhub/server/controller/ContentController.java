@@ -70,7 +70,11 @@ public class ContentController {
             fileExtension = ".mp4";
         }
 
-        String fileName = name.orElseGet(() -> String.valueOf(UUID.randomUUID())) + fileExtension;
+        UUID uuid = UUID.randomUUID();
+        String fileName = name
+                .orElseGet(() -> String.valueOf(uuid))
+                .replace("{uuid}", String.valueOf(uuid))
+                + fileExtension;
 
         Path folder = Paths.get(getContentFolder());
         Files.write(folder.resolve(fileName), image.getContentAsByteArray());
