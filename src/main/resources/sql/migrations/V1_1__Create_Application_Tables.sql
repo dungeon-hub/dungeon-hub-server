@@ -3,16 +3,17 @@ use `dungeon-hub`;
 
 create table discord_user
 (
-    id BIGINT PRIMARY KEY,
+    id           BIGINT PRIMARY KEY,
     minecraft_id UUID
 );
 
 create table discord_role
 (
-    id BIGINT PRIMARY KEY,
-    name_schema varchar(100),
-    role_group BIGINT REFERENCES discord_role(id) ON DELETE SET NULL,
-    server BIGINT NOT NULL REFERENCES server (id),
+    id            BIGINT PRIMARY KEY,
+    name_schema   varchar(100),
+    role_group    BIGINT  REFERENCES discord_role (id) ON DELETE SET NULL,
+    server        BIGINT  NOT NULL REFERENCES server (id),
+    verified_role BOOLEAN NOT NULL DEFAULT 0,
     UNIQUE (server, id)
 );
 
