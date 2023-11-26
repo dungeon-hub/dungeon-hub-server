@@ -8,9 +8,6 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
 
 @Entity(name = "carry_difficulty")
 @Table(name = "carry_difficulty", schema = "dungeon-hub")
@@ -89,53 +86,12 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
         this.score = score;
     }
 
-
-    public void setDisplayName(@NotNull String displayName) {
-        if (!displayName.isBlank()) {
-            this.displayName = displayName;
-        }
-    }
-
-    public Optional<Integer> getBulkAmount() {
-        return Optional.ofNullable(bulkAmount > 0 ? bulkAmount : null);
-    }
-
-    public void setBulkAmount(int bulkAmount) {
-        this.bulkAmount = bulkAmount;
-    }
-
-    public Optional<Integer> getBulkPrice() {
-        return Optional.ofNullable(bulkPrice > 0 ? bulkPrice : null);
-    }
-
-    public void setBulkPrice(int bulkPrice) {
-        this.bulkPrice = bulkPrice;
-    }
-
     public CarryType getCarryType() {
         return getCarryTier().getCarryType();
     }
 
     public int getScore() {
         return Math.max(score, 0);
-    }
-
-    public Optional<String> getThumbnailUrl() {
-        return getActualThumbnailUrl()
-                .or(carryTier::getThumbnailUrl);
-    }
-
-    public Optional<String> getActualThumbnailUrl() {
-        return Optional.ofNullable(thumbnailUrl == null || thumbnailUrl.isBlank() ? null : thumbnailUrl);
-    }
-
-    public String getPriceName() {
-        return getActualPriceName()
-                .orElse(getDisplayName());
-    }
-
-    public Optional<String> getActualPriceName() {
-        return Optional.ofNullable(priceName == null || priceName.isBlank() ? null : priceName);
     }
 
     @Override

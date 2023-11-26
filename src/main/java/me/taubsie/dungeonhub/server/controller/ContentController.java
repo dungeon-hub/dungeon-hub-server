@@ -12,7 +12,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -49,7 +48,8 @@ public class ContentController {
 
     @PreAuthorize("hasAuthority('CDN') || hasAnyRole('bot', 'admin')")
     @PostMapping(value = {"", "{name}"})
-    public ResponseEntity<String> addFile(@RequestBody Resource image, @PathVariable(required = false) Optional<String> name) throws IOException {
+    public ResponseEntity<String> addFile(@RequestBody Resource image,
+                                          @PathVariable(required = false) Optional<String> name) throws IOException {
         if (image == null) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         }
@@ -62,11 +62,11 @@ public class ContentController {
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        if(fileExtension == null || fileExtension.isBlank()) {
+        if (fileExtension == null || fileExtension.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
         }
 
-        if(fileExtension.equalsIgnoreCase(".qt")) {
+        if (fileExtension.equalsIgnoreCase(".qt")) {
             fileExtension = ".mp4";
         }
 
@@ -85,12 +85,41 @@ public class ContentController {
                 .body(fileName);
     }
 
-    @GetMapping("/{file}")
-    public ResponseEntity<Resource> getFile(@PathVariable String file, Authentication authentication) throws IOException {
-        if(authentication == null || !authentication.isAuthenticated()) {
-            //TODO if file is only for admins
-        }
+    @GetMapping("/static/{file}")
+    public ResponseEntity<Resource> getStaticFile(@PathVariable String file) throws IOException {
+        //get resource as stream from class loader
 
+        try {
+            InputStream content = getClass().getClassLoader().getResourceAsStream("cdn-static/" + file);
+
+            if (content == null) {
+                throw new NoSuchFileException(file);
+            }
+
+            Tika tika = new Tika();
+            String mimeType = tika.detect(content);
+
+            ContentDisposition contentDisposition = ContentDisposition.builder("inline").filename(file).build();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDisposition(contentDisposition);
+
+            ByteArrayResource image = new ByteArrayResource(content.readAllBytes());
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .headers(headers)
+                    .contentLength(image.contentLength())
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .body(image);
+        }
+        catch (NoSuchFileException noSuchFileException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/{file}")
+    public ResponseEntity<Resource> getFile(@PathVariable String file) throws IOException {
         Path folder = Paths.get(getContentFolder());
 
         try {
@@ -99,8 +128,7 @@ public class ContentController {
             Tika tika = new Tika();
             String mimeType = tika.detect(content);
 
-            ContentDisposition contentDisposition = ContentDisposition.builder("inline")
-                    .filename(file).build();
+            ContentDisposition contentDisposition = ContentDisposition.builder("inline").filename(file).build();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDisposition(contentDisposition);
@@ -113,7 +141,8 @@ public class ContentController {
                     .contentLength(image.contentLength())
                     .contentType(MediaType.parseMediaType(mimeType))
                     .body(image);
-        } catch (NoSuchFileException noSuchFileException) {
+        }
+        catch (NoSuchFileException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }

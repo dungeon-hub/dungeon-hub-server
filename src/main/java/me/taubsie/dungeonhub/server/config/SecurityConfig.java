@@ -74,12 +74,17 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtAuthorizationFilter(userService), UsernamePasswordAuthenticationFilter.class)
-                //TODO fix errors getting throwed correctly
                 .addFilterAfter(new StatusCodeFilter(), JwtAuthorizationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        //Login
                         .requestMatchers(HttpMethod.POST, "/api/v1/user/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/user/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "cdn/**").permitAll()
+                        //CDN
+                        .requestMatchers(HttpMethod.GET, "/cdn/**").permitAll()
+                        //API-Docs
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/index.html").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api-src").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
