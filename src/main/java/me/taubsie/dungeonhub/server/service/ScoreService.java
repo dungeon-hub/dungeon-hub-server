@@ -3,10 +3,7 @@ package me.taubsie.dungeonhub.server.service;
 import com.google.common.collect.Iterables;
 import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.Score;
-import me.taubsie.dungeonhub.server.entities.ScoreId;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.ScoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -35,8 +32,8 @@ public class ScoreService {
         return scoreRepository.findAll();
     }
 
-    public Optional<Score> countScoreForCarrier(long carrierId, CarryType carryType, ScoreType scoreType) {
-        return scoreRepository.findScoreById_IdAndCarryTypeAndId_ScoreType(carrierId, carryType, scoreType);
+    public Optional<Score> countScoreForCarrier(DiscordUser carrier, CarryType carryType, ScoreType scoreType) {
+        return scoreRepository.findScoreByCarrierAndCarryTypeAndId_ScoreType(carrier, carryType, scoreType);
     }
 
     public Page<Score> getFullLeaderboard(CarryType carryType, ScoreType scoreType) {
@@ -54,33 +51,34 @@ public class ScoreService {
                 PageRequest.of(page, PAGE_SIZE));
     }
 
-    public int getPosition(CarryType carryType, ScoreType scoreType, long carrierId) {
+    public int getPosition(CarryType carryType, ScoreType scoreType, DiscordUser carrier) {
         return Iterables.indexOf(
                 scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
                         Pageable.unpaged()),
-                score -> carrierId == score.getId().getId()
+                score -> carrier.getId() == score.getId().getId()
         );
     }
 
-    public List<Score> getAllScores(long carrierId, CarryType carryType) {
-        return scoreRepository.findScoresById_IdAndCarryType(carrierId, carryType);
+    public List<Score> getAllScores(DiscordUser carrier, CarryType carryType) {
+        return scoreRepository.findScoresByCarrierAndCarryType(carrier, carryType);
     }
 
-    public List<Score> getAllScores(long carrierId, Server server) {
-        return scoreRepository.findScoresById_IdAndCarryType_Server(carrierId, server);
+    public List<Score> getAllScores(DiscordUser carrier, Server server) {
+        return scoreRepository.findScoresByCarrierAndCarryType_Server(carrier, server);
     }
 
-    public List<Score> updateAllScores(long carrierId, CarryType carryType, long amount) {
+    public List<Score> updateAllScores(DiscordUser carrier, CarryType carryType, long amount) {
         return Arrays.stream(ScoreType.values())
-                .map(scoreType -> updateScore(carrierId, carryType, scoreType, amount))
+                .map(scoreType -> updateScore(carrier, carryType, scoreType, amount))
                 .toList();
     }
 
-    public Score updateScore(long carrierId, CarryType carryType, ScoreType scoreType, long amount) {
-        Score score = scoreRepository.findScoreById_IdAndCarryTypeAndId_ScoreType(carrierId, carryType, scoreType)
+    public Score updateScore(DiscordUser carrier, CarryType carryType, ScoreType scoreType, long amount) {
+        Score score = scoreRepository.findScoreByCarrierAndCarryTypeAndId_ScoreType(carrier, carryType, scoreType)
                 .orElseGet(() -> new Score(
-                        new ScoreId(carrierId, carryType.getId(), scoreType),
+                        new ScoreId(carrier.getId(), carryType.getId(), scoreType),
                         carryType,
+                        carrier,
                         0L
                 ));
 

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-//TODO throw more HttpClientErrorException exceptions
 @RestController
 @EnableMethodSecurity
 @RequestMapping("/api/v1/")

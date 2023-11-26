@@ -30,6 +30,10 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
         return discordUserRepository.findById(id);
     }
 
+    public DiscordUser loadEntityOrCreate(long id) {
+        return loadEntityById(id).orElseGet(() -> createEntity(new DiscordUserInitializeModel(id, null)));
+    }
+
     @Override
     public Optional<DiscordUser> loadEntityByName(String name) {
         return Optional.empty();

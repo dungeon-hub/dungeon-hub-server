@@ -2,8 +2,8 @@ package me.taubsie.dungeonhub.server.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.DungeonHubService;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @Entity(name = "carry_difficulty")
 @Table(name = "carry_difficulty", schema = "dungeon-hub")
+@NoArgsConstructor
 public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel> {
     @Getter
     @Id
@@ -88,13 +89,6 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
         this.score = score;
     }
 
-    public CarryDifficulty() {
-
-    }
-
-    public static CarryDifficulty fromJson(String json) {
-        return DungeonHubService.getInstance().getGson().fromJson(json, CarryDifficulty.class);
-    }
 
     public void setDisplayName(@NotNull String displayName) {
         if (!displayName.isBlank()) {
@@ -142,10 +136,6 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
 
     public Optional<String> getActualPriceName() {
         return Optional.ofNullable(priceName == null || priceName.isBlank() ? null : priceName);
-    }
-
-    public String toJson() {
-        return DungeonHubService.getInstance().getGson().toJson(this);
     }
 
     @Override

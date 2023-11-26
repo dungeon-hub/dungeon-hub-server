@@ -1,20 +1,15 @@
 create schema if not exists `dungeon-hub`;
 use `dungeon-hub`;
 
+create table server
+(
+    id BIGINT PRIMARY KEY
+);
+
 create table discord_user
 (
     id           BIGINT PRIMARY KEY,
     minecraft_id UUID
-);
-
-create table discord_role
-(
-    id            BIGINT PRIMARY KEY,
-    name_schema   varchar(100),
-    role_group    BIGINT  REFERENCES discord_role (id) ON DELETE SET NULL,
-    server        BIGINT  NOT NULL REFERENCES server (id),
-    verified_role BOOLEAN NOT NULL DEFAULT 0,
-    UNIQUE (server, id)
 );
 
 create table carrier
@@ -37,12 +32,22 @@ create table carrier
     infernal    boolean
 );
 
+create table discord_role
+(
+    id            BIGINT PRIMARY KEY,
+    name_schema   varchar(100),
+    role_group    BIGINT  REFERENCES discord_role (id) ON DELETE SET NULL,
+    server        BIGINT  NOT NULL REFERENCES server (id),
+    verified_role BOOLEAN NOT NULL DEFAULT 0,
+    UNIQUE (server, id)
+);
+
 create table carry_type
 (
     id                  BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     identifier          varchar(50)           NOT NULL,
     display_name        varchar(50)           NOT NULL,
-    server              BIGINT                NOT NULL,
+    server              BIGINT                NOT NULL REFERENCES server (id),
     log_channel         BIGINT,
     leaderboard_channel BIGINT,
     event_active        BOOLEAN,
@@ -85,8 +90,8 @@ create table carry_queue
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     queue_step       BIGINT NOT NULL,
     relation_id      BIGINT,
-    carrier          BIGINT REFERENCES carrier (id),
-    player           BIGINT,
+    carrier          BIGINT REFERENCES discord_user (id),
+    player           BIGINT REFERENCES discord_user (id),
     amount           mediumint,
     carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
     attachment_link  varchar(250),
@@ -96,8 +101,8 @@ create table carry_queue
 create table carry
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    carrier          BIGINT REFERENCES carrier (id),
-    player           BIGINT,
+    carrier          BIGINT REFERENCES discord_user (id),
+    player           BIGINT REFERENCES discord_user (id),
     approver         BIGINT,
     amount           mediumint,
     carry_difficulty BIGINT REFERENCES carry_difficulty (id) on delete cascade on update cascade,
@@ -117,7 +122,7 @@ create table strikes
 
 create table score
 (
-    id         BIGINT   NOT NULL REFERENCES carrier (id) on delete cascade on update cascade,
+    id         BIGINT   NOT NULL REFERENCES discord_user (id) on delete cascade on update cascade,
     carry_type BIGINT   NOT NULL REFERENCES carry_type (id) on delete cascade on update cascade,
     score_type SMALLINT NOT NULL,
     score      BIGINT,

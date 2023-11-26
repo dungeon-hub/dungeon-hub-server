@@ -35,15 +35,15 @@ public class ScoreId implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        if(this == object) {
+        if (this == object) {
             return true;
         }
 
-        if(object == null || Hibernate.getClass(this) != Hibernate.getClass(object)) {
+        if (object == null || Hibernate.getClass(this) != Hibernate.getClass(object)) {
             return false;
         }
 
-        if(object instanceof ScoreId scoreId) {
+        if (object instanceof ScoreId scoreId) {
             return Objects.equals(this.id, scoreId.id) &&
                     Objects.equals(this.carryType, scoreId.carryType) &&
                     Objects.equals(this.scoreType, scoreId.scoreType);

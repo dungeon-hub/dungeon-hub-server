@@ -95,7 +95,7 @@ public class EncryptionService {
     public Optional<UsernamePasswordAuthenticationToken> validate(String token, AuthorityFactory authorityFactory) {
         try {
             String subject = Jwts.parserBuilder()
-                    .setSigningKey(rsaKeys.privateKey())
+                    .setSigningKey(rsaKeys.publicKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody()

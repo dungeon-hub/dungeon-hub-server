@@ -35,11 +35,15 @@ public class Carry implements EntityModelRelation<CarryModel> {
     @JoinColumn(name = "carry_difficulty")
     private CarryDifficulty carryDifficulty;
 
-    @Column(name = "player")
-    private Long player;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "player")
+    private DiscordUser player;
 
-    @Column(name = "carrier", nullable = false)
-    private long carrier;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "carrier", nullable = false)
+    private DiscordUser carrier;
 
     @Nullable
     @Setter
@@ -51,7 +55,7 @@ public class Carry implements EntityModelRelation<CarryModel> {
     @Column(name = "attachment_link")
     private String attachmentLink;
 
-    public Carry(long carrier, Long player, long amount, CarryDifficulty carryDifficulty,
+    public Carry(DiscordUser carrier, DiscordUser player, long amount, CarryDifficulty carryDifficulty,
                  @Nullable String attachmentLink, Instant time) {
         this.carrier = carrier;
         this.player = player;
@@ -71,14 +75,15 @@ public class Carry implements EntityModelRelation<CarryModel> {
 
     @Override
     public Carry fromModel(CarryModel model) {
-        return new Carry(model.id(), model.time(), model.amount(),
-                carryDifficulty.fromModel(model.carryDifficulty()), model.player(), model.carrier(),
-                model.approver(), model.attachmentLink());
+        return new Carry(model.id(), model.time(), model.amount(), carryDifficulty.fromModel(model.carryDifficulty())
+                , player.fromModel(model.player()), carrier.fromModel(model.carrier()), model.approver(),
+                model.attachmentLink());
     }
 
     @Override
     public CarryModel toModel() {
-        return new CarryModel(id, time, amount, carryDifficulty.toModel(), player, carrier, approver, attachmentLink);
+        return new CarryModel(id, time, amount, carryDifficulty.toModel(), player.toModel(), carrier.toModel(),
+                approver, attachmentLink);
     }
 
     public long calculateScore() {

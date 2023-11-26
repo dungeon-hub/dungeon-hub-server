@@ -6,9 +6,11 @@ import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
+import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Score;
 import me.taubsie.dungeonhub.server.entities.Server;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
+import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import me.taubsie.dungeonhub.server.service.ScoreService;
 import me.taubsie.dungeonhub.server.service.ServerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +33,14 @@ public class ScoreController {
     private final ServerService serverService;
     private final CarryTypeService carryTypeService;
     private final ScoreService scoreService;
+    private final DiscordUserService discordUserService;
 
     @Autowired
-    public ScoreController(ServerService serverService, CarryTypeService carryTypeService, ScoreService scoreService) {
+    public ScoreController(ServerService serverService, CarryTypeService carryTypeService, ScoreService scoreService, DiscordUserService discordUserService) {
         this.serverService = serverService;
         this.carryTypeService = carryTypeService;
         this.scoreService = scoreService;
+        this.discordUserService = discordUserService;
     }
 
     @GetMapping("{id}")
@@ -48,7 +52,9 @@ public class ScoreController {
         CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        return scoreService.countScoreForCarrier(id, carryType, scoreType)
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+
+        return scoreService.countScoreForCarrier(carrier, carryType, scoreType)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND))
                 .toModel();
     }
@@ -62,7 +68,9 @@ public class ScoreController {
         CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        return scoreService.getAllScores(id, carryType)
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+
+        return scoreService.getAllScores(carrier, carryType)
                 .stream().map(Score::toModel)
                 .toList();
     }
@@ -76,7 +84,9 @@ public class ScoreController {
         CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        return scoreService.updateAllScores(scoreUpdateModel.getId(), carryType, scoreUpdateModel.getAmount())
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(scoreUpdateModel.getId());
+
+        return scoreService.updateAllScores(carrier, carryType, scoreUpdateModel.getAmount())
                 .stream().map(Score::toModel)
                 .toList();
     }
@@ -104,7 +114,9 @@ public class ScoreController {
                 scores.getContent()
         );
 
-        userId.ifPresent(user -> {
+        userId.ifPresent(id -> {
+            DiscordUser user = discordUserService.loadEntityOrCreate(id);
+
             leaderboardModel.setPlayerPosition(scoreService.getPosition(carryType, scoreType, user));
             scoreService.countScoreForCarrier(user, carryType, scoreType).ifPresent(score ->
                     leaderboardModel.setPlayerScore(score.toModel()));

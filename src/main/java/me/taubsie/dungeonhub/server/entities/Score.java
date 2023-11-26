@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Setter
@@ -23,6 +25,12 @@ public class Score implements EntityModelRelation<ScoreModel> {
     @JoinColumn(name = "carry_type")
     private CarryType carryType;
 
+    @MapsId("id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "id", nullable = false)
+    private DiscordUser carrier;
+
     @Column(name = "score")
     private Long scoreAmount;
 
@@ -37,7 +45,7 @@ public class Score implements EntityModelRelation<ScoreModel> {
     @Override
     public Score fromModel(ScoreModel model) {
         ScoreId scoreId = new ScoreId();
-        scoreId.setId(model.getId());
+        scoreId.setId(model.getCarrier().getId());
         scoreId.setScoreType(model.getScoreType());
         scoreId.setCarryType(model.getCarryType().getId());
 
@@ -45,12 +53,13 @@ public class Score implements EntityModelRelation<ScoreModel> {
         score.setId(scoreId);
         score.setScoreAmount(model.getScoreAmount());
         score.setCarryType(carryType.fromModel(model.getCarryType()));
+        score.setCarrier(carrier.fromModel(model.getCarrier()));
 
         return score;
     }
 
     @Override
     public ScoreModel toModel() {
-        return new ScoreModel(id.getId(), carryType.toModel(), id.getScoreType(), scoreAmount);
+        return new ScoreModel(carrier.toModel(), carryType.toModel(), id.getScoreType(), scoreAmount);
     }
 }

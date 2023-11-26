@@ -5,10 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.DungeonHubService;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.enums.QueueStep;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
 
@@ -28,19 +29,21 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     @Enumerated
     private QueueStep queueStep;
 
-    //TODO make this into carrier table
-    @Column(name = "carrier", nullable = false)
-    private long carrier;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "carrier", nullable = false)
+    private DiscordUser carrier;
 
-    //TODO make this into user table?
-    @Column(name = "player")
-    private Long player;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "player")
+    private DiscordUser player;
 
     @Column(name = "amount", nullable = false)
     private long amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
+    @OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     @JoinColumn(name = "carry_difficulty")
     private CarryDifficulty carryDifficulty;
 
@@ -57,8 +60,8 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     private Instant time;
 
     @SuppressWarnings("java:S107")
-    public CarryQueue(QueueStep queueStep, long carrier, Long player, long amount, CarryDifficulty carryDifficulty,
-                      Long relationId, String attachmentLink, Instant time) {
+    public CarryQueue(QueueStep queueStep, DiscordUser carrier, DiscordUser player, long amount,
+                      CarryDifficulty carryDifficulty, Long relationId, String attachmentLink, Instant time) {
         this.queueStep = queueStep;
         this.carrier = carrier;
         this.player = player;
@@ -67,10 +70,6 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
         this.relationId = relationId;
         this.attachmentLink = attachmentLink;
         this.time = time;
-    }
-
-    public static CarryQueue fromJson(String json) {
-        return DungeonHubService.getInstance().getGson().fromJson(json, CarryQueue.class);
     }
 
     public CarryType getCarryType() {
@@ -83,14 +82,16 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
 
     @Override
     public CarryQueue fromModel(CarryQueueModel model) {
-        return new CarryQueue(model.getId(), model.getQueueStep(), model.getCarrier(), model.getPlayer(),
-                model.getAmount(), carryDifficulty.fromModel(model.getCarryDifficulty()), model.getRelationId(),
+        return new CarryQueue(model.getId(), model.getQueueStep(), carrier.fromModel(model.getCarrier()),
+                player.fromModel(model.getPlayer()), model.getAmount(),
+                carryDifficulty.fromModel(model.getCarryDifficulty()), model.getRelationId(),
                 model.getAttachmentLink(), model.getTime());
     }
 
     @Override
     public CarryQueueModel toModel() {
-        return new CarryQueueModel(id, queueStep, carrier, player, amount, carryDifficulty.toModel(), relationId,
+        return new CarryQueueModel(id, queueStep, carrier.toModel(), player.toModel(), amount,
+                carryDifficulty.toModel(), relationId,
                 attachmentLink, time);
     }
 

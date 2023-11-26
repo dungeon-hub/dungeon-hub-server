@@ -60,10 +60,6 @@ public class UserService implements EntityService<UserEntity, UserModel, UserCre
                 });
 
         String password = model.getPassword();
-        //TODO edit password matcher
-        /*if (!password.matches("^(?=(.*[a-z])+)(?=(.*[A-Z])+)(?=(.*[0-9])+)(?=(.*[!@#$%^&*()\\-_+.])+).{6,}$")) {
-            throw new InsecurePasswordException();
-        }*/
 
         String hashedPassword = passwordEncoder.encode(password);
         return saveEntity(model.toEntity((entity ->

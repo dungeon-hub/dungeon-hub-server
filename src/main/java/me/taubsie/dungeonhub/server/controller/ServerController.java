@@ -5,14 +5,8 @@ import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
 import me.taubsie.dungeonhub.common.model.server.ServerModel;
-import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
-import me.taubsie.dungeonhub.server.entities.CarryTier;
-import me.taubsie.dungeonhub.server.entities.Score;
-import me.taubsie.dungeonhub.server.entities.Server;
-import me.taubsie.dungeonhub.server.service.CarryDifficultyService;
-import me.taubsie.dungeonhub.server.service.CarryTierService;
-import me.taubsie.dungeonhub.server.service.ScoreService;
-import me.taubsie.dungeonhub.server.service.ServerService;
+import me.taubsie.dungeonhub.server.entities.*;
+import me.taubsie.dungeonhub.server.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -35,6 +29,7 @@ public class ServerController {
     private final ScoreService scoreService;
     private final CarryTierService carryTierService;
     private final CarryDifficultyService carryDifficultyService;
+    private final DiscordUserService discordUserService;
 
     @GetMapping("{server}")
     public ServerModel getServerById(@PathVariable("server") long id) {
@@ -45,7 +40,9 @@ public class ServerController {
     public List<ScoreModel> getScores(@PathVariable("server") long serverId, @PathVariable long id) {
         Server server = serverService.getOrCreate(serverId);
 
-        return scoreService.getAllScores(id, server)
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+
+        return scoreService.getAllScores(carrier, server)
                 .stream().map(Score::toModel)
                 .toList();
     }

@@ -9,13 +9,18 @@ import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserModel;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.UUID;
 
 @Getter
 @Entity(name = "discord_user")
 @Table(name = "discord_user", schema = "dungeon-hub")
 @NoArgsConstructor
-public class DiscordUser implements EntityModelRelation<DiscordUserModel> {
+public class DiscordUser implements EntityModelRelation<DiscordUserModel>, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1674869422651134221L;
+
     @Id
     @Column(name = "id", nullable = false)
     private long id;

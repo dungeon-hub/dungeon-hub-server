@@ -1,29 +1,31 @@
 package me.taubsie.dungeonhub.server.model;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.DungeonHubService;
 import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
 import me.taubsie.dungeonhub.common.enums.QueueStep;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueCreationModel;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryQueue;
-import me.taubsie.dungeonhub.server.service.CarryDifficultyService;
+import me.taubsie.dungeonhub.server.entities.DiscordUser;
 
 import java.time.Instant;
 
 @AllArgsConstructor
 public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, CarryQueueCreationModel> {
     private QueueStep queueStep;
-    private Long carrier;
-    private Long player;
+    private DiscordUser carrier;
+    private DiscordUser player;
+
     private Long amount;
     private CarryDifficulty carryDifficulty;
     private Long relationId;
     private String attachmentLink;
     private Instant time;
 
-    public CarryQueueInitializeModel(CarryDifficulty carryDifficulty) {
+    public CarryQueueInitializeModel(CarryDifficulty carryDifficulty, DiscordUser player, DiscordUser carrier) {
         this.carryDifficulty = carryDifficulty;
+        this.player = player;
+        this.carrier = carrier;
     }
 
     @Override
@@ -34,15 +36,8 @@ public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, Ca
 
     @Override
     public CarryQueueInitializeModel fromCreationModel(CarryQueueCreationModel creationModel) {
-        return new CarryQueueInitializeModel(creationModel.getQueueStep(), creationModel.getCarrier(),
-                creationModel.getPlayer(), creationModel.getAmount(),
-                carryDifficulty, creationModel.getRelationId(),
-                creationModel.getAttachmentLink(), creationModel.getTime());
-    }
-
-    public String toJson() {
-        return DungeonHubService.getInstance()
-                .getGson()
-                .toJson(this);
+        return new CarryQueueInitializeModel(creationModel.getQueueStep(), carrier, player, creationModel.getAmount(),
+                carryDifficulty, creationModel.getRelationId(), creationModel.getAttachmentLink(),
+                creationModel.getTime());
     }
 }

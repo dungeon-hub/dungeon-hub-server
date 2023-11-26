@@ -6,15 +6,9 @@ import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueCreationModel;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueUpdateModel;
 import me.taubsie.dungeonhub.common.model.score.LoggedCarryModel;
-import me.taubsie.dungeonhub.server.entities.Carry;
-import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
-import me.taubsie.dungeonhub.server.entities.CarryQueue;
-import me.taubsie.dungeonhub.server.entities.Score;
+import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.model.CarryQueueInitializeModel;
-import me.taubsie.dungeonhub.server.service.CarryDifficultyService;
-import me.taubsie.dungeonhub.server.service.CarryQueueService;
-import me.taubsie.dungeonhub.server.service.CarryService;
-import me.taubsie.dungeonhub.server.service.ScoreService;
+import me.taubsie.dungeonhub.server.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +31,17 @@ public class QueueController {
     private final CarryQueueService carryQueueService;
     private final CarryService carryService;
     private final ScoreService scoreService;
+    private final DiscordUserService discordUserService;
 
     @Autowired
-    public QueueController(CarryDifficultyService carryDifficultyService, CarryQueueService carryQueueService, CarryService carryService, ScoreService scoreService) {
+    public QueueController(CarryDifficultyService carryDifficultyService, CarryQueueService carryQueueService,
+                           CarryService carryService, ScoreService scoreService,
+                           DiscordUserService discordUserService) {
         this.carryDifficultyService = carryDifficultyService;
         this.carryQueueService = carryQueueService;
         this.carryService = carryService;
         this.scoreService = scoreService;
+        this.discordUserService = discordUserService;
     }
 
     @PostMapping(value = {"carry-difficulty/{carry-difficulty}"})
@@ -53,7 +51,10 @@ public class QueueController {
         CarryDifficulty carryDifficulty = carryDifficultyService.loadEntityById(carryDifficultyId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        return carryQueueService.createEntity(new CarryQueueInitializeModel(carryDifficulty)
+        DiscordUser player = discordUserService.loadEntityOrCreate(creationModel.getPlayer());
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(creationModel.getCarrier());
+
+        return carryQueueService.createEntity(new CarryQueueInitializeModel(carryDifficulty, player, carrier)
                         .fromCreationModel(creationModel))
                 .toModel();
     }
@@ -62,7 +63,7 @@ public class QueueController {
     @GetMapping("all")
     public Set<CarryQueueModel> getCarryQueues(@RequestParam(required = false, value = "related-id") Optional<Long> relatedId, @RequestParam(required = false, value = "queue-step") Optional<QueueStep> queueStep) {
         return carryQueueService.findAllEntities()
-                .parallelStream()
+                .stream()
                 .filter(carryQueue -> relatedId.isEmpty() || carryQueue.getRelationId().equals(relatedId.get()))
                 .filter(carryQueue -> queueStep.isEmpty() || carryQueue.getQueueStep().equals(queueStep.get()))
                 .map(CarryQueue::toModel)
