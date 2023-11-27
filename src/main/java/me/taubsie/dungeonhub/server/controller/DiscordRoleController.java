@@ -4,10 +4,10 @@ import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleCreationModel;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleInitializeModel;
 import me.taubsie.dungeonhub.server.service.DiscordRoleService;
-import me.taubsie.dungeonhub.server.service.ServerService;
+import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,36 +23,36 @@ import java.util.Optional;
 @RequestMapping("/api/v1/server/{server}/roles/")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class DiscordRoleController {
-    private final ServerService serverService;
+    private final DiscordServerService discordServerService;
     private final DiscordRoleService discordRoleService;
 
     @Autowired
-    public DiscordRoleController(ServerService serverService, DiscordRoleService discordRoleService) {
-        this.serverService = serverService;
+    public DiscordRoleController(DiscordServerService discordServerService, DiscordRoleService discordRoleService) {
+        this.discordServerService = discordServerService;
         this.discordRoleService = discordRoleService;
     }
 
     @GetMapping("all")
     public List<DiscordRoleModel> getAllRoles(@PathVariable("server") long serverId) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        return discordRoleService.loadEntitiesByServer(server).stream().map(DiscordRole::toModel).toList();
+        return discordRoleService.loadEntitiesByDiscordServer(discordServer).stream().map(DiscordRole::toModel).toList();
     }
 
     @GetMapping("{id}")
     public DiscordRoleModel getById(@PathVariable("server") long serverId, @PathVariable long id) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        return discordRoleService.loadEntityById(server, id)
+        return discordRoleService.loadEntityById(discordServer, id)
                 .map(DiscordRole::toModel)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("{id}")
     public DiscordRoleModel deleteById(@PathVariable("server") long serverId, @PathVariable long id) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        Optional<DiscordRole> discordRole = discordRoleService.loadEntityById(server, id);
+        Optional<DiscordRole> discordRole = discordRoleService.loadEntityById(discordServer, id);
 
         discordRole.ifPresent(discordRoleService::delete);
 
@@ -63,18 +63,18 @@ public class DiscordRoleController {
     @PostMapping
     public DiscordRoleModel createNewRole(@PathVariable("server") long serverId,
                                           @RequestBody DiscordRoleCreationModel creationModel) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        return discordRoleService.createEntity(new DiscordRoleInitializeModel(server)
+        return discordRoleService.createEntity(new DiscordRoleInitializeModel(discordServer)
                 .fromCreationModel(creationModel)).toModel();
     }
 
     @PutMapping("{id}")
     public DiscordRoleModel updateRole(@PathVariable("server") long serverId, @PathVariable long id,
                                        @RequestBody DiscordRoleUpdateModel updateModel) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        DiscordRole discordRole = discordRoleService.loadEntityById(server, id)
+        DiscordRole discordRole = discordRoleService.loadEntityById(discordServer, id)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         return discordRoleService.update(discordRole, updateModel).toModel();

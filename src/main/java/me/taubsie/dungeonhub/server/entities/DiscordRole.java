@@ -31,24 +31,24 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "server", nullable = false)
-    private Server server;
+    private DiscordServer discordServer;
 
-    public DiscordRole(long id, String nameSchema, @Nullable Long roleGroup, boolean verifiedRole, Server server) {
+    public DiscordRole(long id, String nameSchema, @Nullable Long roleGroup, boolean verifiedRole, DiscordServer discordServer) {
         this.id = id;
         this.nameSchema = nameSchema;
         this.roleGroup = roleGroup;
         this.verifiedRole = verifiedRole;
-        this.server = server;
+        this.discordServer = discordServer;
     }
 
     @Override
     public DiscordRole fromModel(DiscordRoleModel model) {
         return new DiscordRole(model.getId(), model.getNameSchema(), model.getRoleGroup(), model.isVerifiedRole(),
-                server.fromModel(model.getServerModel()));
+                discordServer.fromModel(model.getDiscordServerModel()));
     }
 
     @Override
     public DiscordRoleModel toModel() {
-        return new DiscordRoleModel(id, nameSchema, roleGroup, verifiedRole, server.toModel());
+        return new DiscordRoleModel(id, nameSchema, roleGroup, verifiedRole, discordServer.toModel());
     }
 }

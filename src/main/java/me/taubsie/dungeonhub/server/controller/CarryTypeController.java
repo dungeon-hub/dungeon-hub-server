@@ -4,10 +4,10 @@ import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeCreationModel;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTypeInitializeModel;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
-import me.taubsie.dungeonhub.server.service.ServerService;
+import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,36 +23,36 @@ import java.util.Optional;
 @RequestMapping("/api/v1/server/{server}/carry-type/")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class CarryTypeController {
-    private final ServerService serverService;
+    private final DiscordServerService discordServerService;
     private final CarryTypeService carryTypeService;
 
     @Autowired
-    public CarryTypeController(ServerService serverService, CarryTypeService carryTypeService) {
-        this.serverService = serverService;
+    public CarryTypeController(DiscordServerService discordServerService, CarryTypeService carryTypeService) {
+        this.discordServerService = discordServerService;
         this.carryTypeService = carryTypeService;
     }
 
     @GetMapping("all")
     public List<CarryTypeModel> getAllCarryTypes(@PathVariable("server") long serverId) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        return carryTypeService.loadEntitiesByServer(server).stream().map(CarryType::toModel).toList();
+        return carryTypeService.loadEntitiesByDiscordServer(discordServer).stream().map(CarryType::toModel).toList();
     }
 
     @GetMapping("{id}")
     public CarryTypeModel getById(@PathVariable("server") long serverId, @PathVariable long id) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        return carryTypeService.loadEntityById(server, id)
+        return carryTypeService.loadEntityById(discordServer, id)
                 .map(CarryType::toModel)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("{id}")
     public CarryTypeModel deleteById(@PathVariable("server") long serverId, @PathVariable long id) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        Optional<CarryType> carryType = carryTypeService.loadEntityById(server, id);
+        Optional<CarryType> carryType = carryTypeService.loadEntityById(discordServer, id);
 
         carryType.ifPresent(carryTypeService::delete);
 
@@ -63,18 +63,18 @@ public class CarryTypeController {
     @PostMapping
     public CarryTypeModel createNewCarryType(@PathVariable("server") long serverId,
                                              @RequestBody CarryTypeCreationModel creationModel) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        return carryTypeService.createEntity(new CarryTypeInitializeModel(server)
+        return carryTypeService.createEntity(new CarryTypeInitializeModel(discordServer)
                 .fromCreationModel(creationModel)).toModel();
     }
 
     @PutMapping("{id}")
     public CarryTypeModel updateCarryType(@PathVariable("server") long serverId, @PathVariable long id,
                                           @RequestBody CarryTypeUpdateModel updateModel) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        CarryType carryType = carryTypeService.loadEntityById(server, id)
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, id)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         return carryTypeService.update(carryType, updateModel).toModel();

@@ -63,8 +63,8 @@ public class ScoreService {
         return scoreRepository.findScoresByCarrierAndCarryType(carrier, carryType);
     }
 
-    public List<Score> getAllScores(DiscordUser carrier, Server server) {
-        return scoreRepository.findScoresByCarrierAndCarryType_Server(carrier, server);
+    public List<Score> getAllScores(DiscordUser carrier, DiscordServer discordServer) {
+        return scoreRepository.findScoresByCarrierAndCarryType_DiscordServer(carrier, discordServer);
     }
 
     public List<Score> updateAllScores(DiscordUser carrier, CarryType carryType, long amount) {

@@ -6,13 +6,13 @@ import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Score;
-import me.taubsie.dungeonhub.server.entities.Server;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import me.taubsie.dungeonhub.server.service.ScoreService;
-import me.taubsie.dungeonhub.server.service.ServerService;
+import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -30,14 +30,14 @@ import java.util.Optional;
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 @Tag(name = "Score")
 public class ScoreController {
-    private final ServerService serverService;
+    private final DiscordServerService discordServerService;
     private final CarryTypeService carryTypeService;
     private final ScoreService scoreService;
     private final DiscordUserService discordUserService;
 
     @Autowired
-    public ScoreController(ServerService serverService, CarryTypeService carryTypeService, ScoreService scoreService, DiscordUserService discordUserService) {
-        this.serverService = serverService;
+    public ScoreController(DiscordServerService discordServerService, CarryTypeService carryTypeService, ScoreService scoreService, DiscordUserService discordUserService) {
+        this.discordServerService = discordServerService;
         this.carryTypeService = carryTypeService;
         this.scoreService = scoreService;
         this.discordUserService = discordUserService;
@@ -47,9 +47,9 @@ public class ScoreController {
     public ScoreModel getScore(@PathVariable("server") long serverId, @PathVariable("carry-type") long carryTypeId,
                                @PathVariable long id, @RequestParam(required = false, defaultValue = "DEFAULT",
             value = "score-type") ScoreType scoreType) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
@@ -63,9 +63,9 @@ public class ScoreController {
     public List<ScoreModel> getScores(@PathVariable("server") long serverId,
                                       @PathVariable("carry-type") long carryTypeId,
                                       @RequestParam long id) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
@@ -79,9 +79,9 @@ public class ScoreController {
     public List<ScoreModel> updateScore(@PathVariable("server") long serverId,
                                         @PathVariable("carry-type") long carryTypeId,
                                         @RequestBody ScoreUpdateModel scoreUpdateModel) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(scoreUpdateModel.getId());
@@ -101,9 +101,9 @@ public class ScoreController {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         }
 
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         Page<ScoreModel> scores = scoreService.getLeaderboard(carryType, scoreType, page).map(Score::toModel);

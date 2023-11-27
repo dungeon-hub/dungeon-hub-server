@@ -5,11 +5,11 @@ import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyUpdate
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.service.CarryDifficultyService;
 import me.taubsie.dungeonhub.server.service.CarryTierService;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
-import me.taubsie.dungeonhub.server.service.ServerService;
+import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,24 +24,24 @@ import java.util.List;
 @RequestMapping("/api/v1/server/{server}/carry-type/{carry-type}/carry-tier/{carry-tier}/carry-difficulty")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class CarryDifficultyController {
-    private final ServerService serverService;
+    private final DiscordServerService discordServerService;
     private final CarryTypeService carryTypeService;
     private final CarryTierService carryTierService;
     private final CarryDifficultyService carryDifficultyService;
 
     @Autowired
-    public CarryDifficultyController(ServerService serverService, CarryTypeService carryTypeService,
+    public CarryDifficultyController(DiscordServerService discordServerService, CarryTypeService carryTypeService,
                                      CarryTierService carryTierService, CarryDifficultyService carryDifficultyService) {
-        this.serverService = serverService;
+        this.discordServerService = discordServerService;
         this.carryTypeService = carryTypeService;
         this.carryTierService = carryTierService;
         this.carryDifficultyService = carryDifficultyService;
     }
 
     private CarryTier getFromArguments(long serverId, long carryTypeId, long id) {
-        Server server = serverService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        CarryType carryType = carryTypeService.loadEntityById(server, carryTypeId)
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         return carryTierService.loadEntityById(carryType, id)

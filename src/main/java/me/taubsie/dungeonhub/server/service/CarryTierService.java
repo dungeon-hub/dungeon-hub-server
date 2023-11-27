@@ -7,7 +7,7 @@ import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTierInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +80,7 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
         return CarryTier::toModel;
     }
 
-    public Optional<CarryTier> findByCategory(Server server, long categoryId) {
-        return carryTierRepository.findFirstByCarryType_ServerAndCategory(server, categoryId);
+    public Optional<CarryTier> findByCategory(DiscordServer discordServer, long categoryId) {
+        return carryTierRepository.findFirstByCarryType_DiscordServerAndCategory(discordServer, categoryId);
     }
 }

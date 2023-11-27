@@ -4,7 +4,7 @@ import me.taubsie.dungeonhub.common.enums.ScoreType;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Score;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +20,7 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
 
     List<Score> findScoresByCarrierAndCarryType(DiscordUser carrier, CarryType carryType);
 
-    List<Score> findScoresByCarrierAndCarryType_Server(DiscordUser carrier, Server server);
+    List<Score> findScoresByCarrierAndCarryType_DiscordServer(DiscordUser carrier, DiscordServer discordServer);
 
     @NotNull Page<Score> findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(CarryType carryType, ScoreType scoreType, @NotNull Pageable pageable);
 }

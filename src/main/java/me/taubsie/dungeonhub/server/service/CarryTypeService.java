@@ -8,7 +8,7 @@ import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeCreationModel;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeUpdateModel;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTypeInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +34,13 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
         return carryTypeRepository.findById(id);
     }
 
-    public Optional<CarryType> loadEntityById(Server server, long id) {
+    public Optional<CarryType> loadEntityById(DiscordServer discordServer, long id) {
         return carryTypeRepository.findById(id)
-                .filter(carryType -> carryType.getServer().getId() == server.getId());
+                .filter(carryType -> carryType.getDiscordServer().getId() == discordServer.getId());
     }
 
-    public List<CarryType> loadEntitiesByServer(Server server) {
-        return carryTypeRepository.findCarryTypesByServer(server);
+    public List<CarryType> loadEntitiesByDiscordServer(DiscordServer discordServer) {
+        return carryTypeRepository.findCarryTypesByDiscordServer(discordServer);
     }
 
     public Map<Long, CarryType> getCarryTypeMap() {

@@ -1,7 +1,7 @@
 package me.taubsie.dungeonhub.server.repositories;
 
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Repository
 public interface CarryTypeRepository extends JpaRepository<CarryType, Long> {
-    List<CarryType> findCarryTypesByServer(Server server);
+    List<CarryType> findCarryTypesByDiscordServer(DiscordServer discordServer);
 
     default Map<Long, CarryType> getCarryTypeMap() {
         return findAll().stream()

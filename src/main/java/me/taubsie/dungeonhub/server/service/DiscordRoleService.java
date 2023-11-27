@@ -7,7 +7,7 @@ import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleCreationModel;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
-import me.taubsie.dungeonhub.server.entities.Server;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordRoleRepository;
 import org.springframework.stereotype.Service;
@@ -27,9 +27,9 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
         return discordRoleRepository.findById(id);
     }
 
-    public Optional<DiscordRole> loadEntityById(Server server, long id) {
+    public Optional<DiscordRole> loadEntityById(DiscordServer discordServer, long id) {
         return discordRoleRepository.findById(id)
-                .filter(discordRole -> discordRole.getServer().getId() == server.getId());
+                .filter(discordRole -> discordRole.getDiscordServer().getId() == discordServer.getId());
     }
 
     @Override
@@ -76,7 +76,7 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
         return DiscordRole::toModel;
     }
 
-    public List<DiscordRole> loadEntitiesByServer(Server server) {
-        return discordRoleRepository.findDiscordRolesByServer(server);
+    public List<DiscordRole> loadEntitiesByDiscordServer(DiscordServer discordServer) {
+        return discordRoleRepository.findDiscordRolesByDiscordServer(discordServer);
     }
 }
