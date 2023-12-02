@@ -10,13 +10,13 @@ id,identifier,display_name,carry_tier,thumbnail_url,score,price,bulk_price,bulk_
 9,completion,Completion,4,,2,5000000,,,
 10,s,S,4,,3,8000000,,,
 11,splus,S+,4,,3,11000000,,,
-12,mm1,Master 1: Bonzo,5,https://cdn.discordapp.com/attachments/842827272733982730/1081302674244391023/SkyBlock_npcs_bonzo_undead.png,5,1500000,,,<:Bonzo:1121073726818111569>  Master 1: Bonzo
-13,mm2,Master 2: Scarf,5,https://cdn.discordapp.com/attachments/842827272733982730/1081302768633000006/SkyBlock_entities_scarf.png,5,2500000,,,<:Scarf:1121074111960055952> Master 2: Scarf
+12,mm1,Master 1: Bonzo,5,https://cdn.discordapp.com/attachments/842827272733982730/1081302674244391023/SkyBlock_npcs_bonzo_undead.png,3,1500000,,,<:Bonzo:1121073726818111569>  Master 1: Bonzo
+13,mm2,Master 2: Scarf,5,https://cdn.discordapp.com/attachments/842827272733982730/1081302768633000006/SkyBlock_entities_scarf.png,4,2500000,,,<:Scarf:1121074111960055952> Master 2: Scarf
 14,mm3,Master 3: The Professor,5,https://cdn.discordapp.com/attachments/842827272733982730/1081302836857557022/latest.png,5,3500000,,,<:Professor:1121073679338578041> Master 3: The Professor
-15,mm4,Master 4: Thorn,5,https://cdn.discordapp.com/emojis/759298333608378388.png?v=1,5,12000000,,,<:thorn:792055545204310046> Master 4: Thorn
-16,mm5,Master 5: Livid,5,https://cdn.discordapp.com/emojis/759298251068801044.png?v=1,5,5000000,,,<:livid:792055575877386271> Master 5: Livid
-17,mm6,Master 6: Sadan,5,https://cdn.discordapp.com/emojis/761951536829825035.png?v=1,5,7000000,,,<:sadan:792055602674663474>Master 6: Sadan
-18,mm7,Master 7: The Wither Lords,5,https://cdn.discordapp.com/emojis/792055627248566312.webp?size=80&quality=lossless,5,30000000,,,<:necron:792055627248566312> Master 7: The Wither Lords
+15,mm4,Master 4: Thorn,5,https://cdn.discordapp.com/emojis/759298333608378388.png?v=1,9,12000000,,,<:thorn:792055545204310046> Master 4: Thorn
+16,mm5,Master 5: Livid,5,https://cdn.discordapp.com/emojis/759298251068801044.png?v=1,7,5000000,,,<:livid:792055575877386271> Master 5: Livid
+17,mm6,Master 6: Sadan,5,https://cdn.discordapp.com/emojis/761951536829825035.png?v=1,10,7000000,,,<:sadan:792055602674663474> Master 6: Sadan
+18,mm7,Master 7: The Wither Lords,5,https://cdn.discordapp.com/emojis/792055627248566312.webp?size=80&quality=lossless,14,30000000,,,<:necron:792055627248566312> Master 7: The Wither Lords
 19,t3,Tier 3,6,,2,800000,,,
 20,t4,Tier 4,6,,3,2500000,2000000,10,
 21,t2,Tier 2,7,,1,1000000,850000,10,
