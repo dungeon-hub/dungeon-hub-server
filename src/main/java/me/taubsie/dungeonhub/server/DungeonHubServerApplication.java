@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication
-@EntityScan("me.taubsie.dungeonhub.")
+@EntityScan("me.taubsie.dungeonhub.*")
 @OpenAPIDefinition(info = @Info(title = "Dungeon Hub API", version = "v1", contact = @Contact(name = "Dungeon Hub",
         url = "discord.dungeon-hub.net", email = "contact@dungeon-hub.net"), termsOfService = "https://dungeon-hub" +
         ".net/terms-of-service", extensions = {@Extension(name = "x-logo", properties = {@ExtensionProperty(name =

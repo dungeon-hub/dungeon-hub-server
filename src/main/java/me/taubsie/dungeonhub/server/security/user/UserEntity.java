@@ -41,8 +41,7 @@ public class UserEntity implements UserDetails, EntityModelRelation<UserModel> {
     @Setter(AccessLevel.PRIVATE)
     @JoinTable(name = "user_groups", schema = "api", catalog = "api", joinColumns = @JoinColumn(name = "user_id",
             referencedColumnName = "id", table = "user_groups"), inverseJoinColumns = @JoinColumn(name = "group_id",
-            referencedColumnName =
-                    "id", table = "user_groups"))
+            referencedColumnName = "id", table = "user_groups"))
     private Set<GroupEntity> groups = new HashSet<>();
 
     public UserEntity(String loginName, String password, boolean enabled) {
