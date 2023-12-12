@@ -72,7 +72,7 @@ public class UserEntity implements UserDetails, EntityModelRelation<UserModel> {
 
     @Override
     @Transactional
-    public Set<? extends GrantedAuthority> getAuthorities() {
+    public Set<GrantedAuthority> getAuthorities() {
         return groups.stream()
                 .flatMap(groupEntity -> Stream.concat(
                         groupEntity.getPrivileges().stream()
