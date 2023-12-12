@@ -73,13 +73,12 @@ public class UserEntity implements UserDetails, EntityModelRelation<UserModel> {
     @Override
     @Transactional
     public Set<? extends GrantedAuthority> getAuthorities() {
-        return Stream.concat(groups.stream()
-                        .flatMap(groupEntity -> groupEntity.getPrivileges()
-                                .stream()
-                                .map(privilege -> new SimpleGrantedAuthority(privilege.getName()))),
-                groups.stream()
-                        .map(GroupEntity::getName)
-                        .map(s -> new SimpleGrantedAuthority("ROLE_" + s)))
+        return groups.stream()
+                .flatMap(groupEntity -> Stream.concat(
+                        groupEntity.getPrivileges().stream()
+                                .map(privilege -> new SimpleGrantedAuthority(privilege.getName())),
+                        Stream.of(new SimpleGrantedAuthority("ROLE_" + groupEntity.getName()))
+                ))
                 .collect(Collectors.toSet());
     }
 

@@ -8,22 +8,24 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,7 +49,7 @@ public class ContentController {
     }
 
     @PreAuthorize("hasAuthority('CDN') || hasAnyRole('bot', 'admin')")
-    @PostMapping(value = {"", "{name}"})
+    @PostMapping(value = {"", "/", "{name}"})
     public ResponseEntity<String> addFile(@RequestBody Resource image,
                                           @PathVariable(required = false) Optional<String> name) throws IOException {
         if (image == null) {
@@ -77,6 +79,7 @@ public class ContentController {
                 + fileExtension;
 
         Path folder = Paths.get(getContentFolder());
+        Files.createDirectories(folder);
         Files.write(folder.resolve(fileName), image.getContentAsByteArray());
 
         return ResponseEntity
@@ -85,26 +88,40 @@ public class ContentController {
                 .body(fileName);
     }
 
-    @GetMapping("/static/{file}")
-    public ResponseEntity<Resource> getStaticFile(@PathVariable String file) throws IOException {
-        //get resource as stream from class loader
-
+    @GetMapping({"/static", "/static/", "/static/{file}"})
+    public ResponseEntity<Resource> getStaticFile(@PathVariable(required = false) Optional<String> file) throws IOException {
         try {
-            InputStream content = getClass().getClassLoader().getResourceAsStream("cdn-static/" + file);
+            if (file.isEmpty()) {
+                List<String> allFiles = Arrays.stream(new PathMatchingResourcePatternResolver()
+                        .getResources("classpath:cdn-static/*"))
+                        .map(Resource::getFilename)
+                        .toList();
 
-            if (content == null) {
-                throw new NoSuchFileException(file);
+                return ResponseEntity
+                        .status(HttpStatus.FOUND)
+                        .body(new InMemoryResource(
+                                DungeonHubService.getInstance()
+                                        .getGson()
+                                        .toJson(allFiles)
+                        ));
+            }
+
+            Resource contentResource = new ClassPathResource("cdn-static/" + file.get());
+
+            if (!contentResource.exists()) {
+                throw new NoSuchFileException(file.get());
             }
 
             Tika tika = new Tika();
-            String mimeType = tika.detect(content);
+            String mimeType = tika.detect(contentResource.getInputStream());
 
-            ContentDisposition contentDisposition = ContentDisposition.builder("inline").filename(file).build();
+            ContentDisposition contentDisposition = ContentDisposition.builder("inline").filename(file.get()).build();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDisposition(contentDisposition);
+            headers.setLastModified(contentResource.lastModified());
 
-            ByteArrayResource image = new ByteArrayResource(content.readAllBytes());
+            ByteArrayResource image = new ByteArrayResource(contentResource.getContentAsByteArray());
 
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -113,7 +130,7 @@ public class ContentController {
                     .contentType(MediaType.parseMediaType(mimeType))
                     .body(image);
         }
-        catch (NoSuchFileException noSuchFileException) {
+        catch (NoSuchFileException | FileNotFoundException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -132,6 +149,12 @@ public class ContentController {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDisposition(contentDisposition);
+            try {
+                headers.setLastModified(Files.getLastModifiedTime(content).toInstant());
+            }
+            catch (NullPointerException ignored) {
+                //ignored since that just means this isn't set
+            }
 
             ByteArrayResource image = new ByteArrayResource(Files.readAllBytes(content));
 
