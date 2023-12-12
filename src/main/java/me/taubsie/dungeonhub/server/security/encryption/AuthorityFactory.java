@@ -7,5 +7,5 @@ import java.util.Set;
 
 @FunctionalInterface
 public interface AuthorityFactory {
-    @Unmodifiable Set<? extends GrantedAuthority> get(long id);
+    @Unmodifiable Set<GrantedAuthority> get(long id);
 }
