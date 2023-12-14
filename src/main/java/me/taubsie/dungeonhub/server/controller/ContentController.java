@@ -115,6 +115,11 @@ public class ContentController {
             Tika tika = new Tika();
             String mimeType = tika.detect(contentResource.getInputStream());
 
+            //this is needed because otherwise some browsers download the video instead of simply displaying it
+            if(mimeType.equalsIgnoreCase("video/quicktime")) {
+                mimeType = "video/mp4";
+            }
+
             ContentDisposition contentDisposition = ContentDisposition.builder("inline").filename(file.get()).build();
 
             HttpHeaders headers = new HttpHeaders();
