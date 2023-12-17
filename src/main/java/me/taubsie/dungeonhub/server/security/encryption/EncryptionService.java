@@ -14,7 +14,6 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -30,7 +29,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Optional;
 
 @Service
 public class EncryptionService {
@@ -92,7 +90,7 @@ public class EncryptionService {
         return new RefreshTokenModel(refreshToken.getToken(), refreshToken.getValidUntil());
     }
 
-    public Optional<UsernamePasswordAuthenticationToken> validate(String token, AuthorityFactory authorityFactory) {
+    public long validate(String token) {
         try {
             String subject = Jwts.parserBuilder()
                     .setSigningKey(rsaKeys.publicKey())
@@ -101,9 +99,7 @@ public class EncryptionService {
                     .getBody()
                     .getSubject();
 
-            long userId = Long.parseLong(subject);
-
-            return Optional.of(new UsernamePasswordAuthenticationToken(userId, null, authorityFactory.get(userId)));
+            return Long.parseLong(subject);
         }
         catch (ExpiredJwtException expiredJwtException) {
             throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);

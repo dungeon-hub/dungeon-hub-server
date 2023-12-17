@@ -2,11 +2,15 @@ package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import me.taubsie.dungeonhub.common.DungeonHubService;
+import me.taubsie.dungeonhub.server.security.user.UserEntity;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -14,16 +18,20 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +42,8 @@ import java.util.UUID;
 @EnableMethodSecurity
 @RequestMapping("/cdn")
 public class ContentController {
+    private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
+
     private static String getContentFolder() {
         return DungeonHubService.getInstance()
                 .getMainFolder() + File.separator + "cdn";
@@ -50,10 +60,15 @@ public class ContentController {
 
     @PreAuthorize("hasAuthority('CDN') || hasAnyRole('bot', 'admin')")
     @PostMapping(value = {"", "/", "{name}"})
-    public ResponseEntity<String> addFile(@RequestBody Resource image,
-                                          @PathVariable(required = false) Optional<String> name) throws IOException {
+    public ResponseEntity<String> addFile(@RequestBody Resource image, @PathVariable(required = false) Optional<String> name, Authentication authentication) throws IOException {
         if (image == null) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        }
+
+        String username = null;
+
+        if (authentication != null && authentication.getDetails() != null && authentication.getDetails() instanceof UserEntity userEntity) {
+            username = userEntity.getUsername();
         }
 
         String fileExtension;
@@ -81,6 +96,9 @@ public class ContentController {
         Path folder = Paths.get(getContentFolder());
         Files.createDirectories(folder);
         Files.write(folder.resolve(fileName), image.getContentAsByteArray());
+        if (username != null) {
+            setUploader(folder.resolve(fileName), username);
+        }
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -93,7 +111,7 @@ public class ContentController {
         try {
             if (file.isEmpty()) {
                 List<String> allFiles = Arrays.stream(new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:cdn-static/*"))
+                                .getResources("classpath:cdn-static/*"))
                         .map(Resource::getFilename)
                         .toList();
 
@@ -116,7 +134,7 @@ public class ContentController {
             String mimeType = tika.detect(contentResource.getInputStream());
 
             //this is needed because otherwise some browsers download the video instead of simply displaying it
-            if(mimeType.equalsIgnoreCase("video/quicktime")) {
+            if (mimeType.equalsIgnoreCase("video/quicktime")) {
                 mimeType = "video/mp4";
             }
 
@@ -125,6 +143,7 @@ public class ContentController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDisposition(contentDisposition);
             headers.setLastModified(contentResource.lastModified());
+            headers.set("X-Content-Owner", "admin");
 
             ByteArrayResource image = new ByteArrayResource(contentResource.getContentAsByteArray());
 
@@ -161,6 +180,8 @@ public class ContentController {
                 //ignored since that just means this isn't set
             }
 
+            getUploader(content).ifPresent(s -> headers.set("X-Content-Owner", s));
+
             ByteArrayResource image = new ByteArrayResource(Files.readAllBytes(content));
 
             return ResponseEntity
@@ -172,6 +193,40 @@ public class ContentController {
         }
         catch (NoSuchFileException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    public Optional<String> getUploader(@NotNull Path path) {
+        try {
+            if (!Files.isRegularFile(path)) {
+                return Optional.empty();
+            }
+
+            UserDefinedFileAttributeView view = Files.getFileAttributeView(path, UserDefinedFileAttributeView.class);
+
+            ByteBuffer buf = ByteBuffer.allocate(view.size("cdn-uploaded"));
+            view.read("cdn-uploaded", buf);
+            buf.flip();
+            return Optional.of(Charset.defaultCharset().decode(buf).toString());
+        }
+        catch (UnsupportedOperationException unsupportedOperationException) {
+            logger.warn("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
+            return Optional.empty();
+        }
+        catch (IOException | NullPointerException exception) {
+            return Optional.empty();
+        }
+    }
+
+    public void setUploader(@NotNull Path path, @NotNull String uploader) {
+        try {
+            Files.setAttribute(path, "user:cdn-uploaded", Charset.defaultCharset().encode(uploader));
+        }
+        catch (UnsupportedOperationException unsupportedOperationException) {
+            logger.warn("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
+        }
+        catch (IOException ioException) {
+            //ignore since this is just an optional feature
         }
     }
 }

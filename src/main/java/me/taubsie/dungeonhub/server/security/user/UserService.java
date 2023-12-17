@@ -126,7 +126,14 @@ public class UserService implements EntityService<UserEntity, UserModel, UserCre
 
     @Transactional
     public Optional<UsernamePasswordAuthenticationToken> validate(String token) {
-        return encryptionService.validate(token,
-                id -> loadEntityById(id).map(UserEntity::getAuthorities).orElse(new HashSet<>()));
+        long userId = encryptionService.validate(token);
+
+        Optional<UserEntity> user = loadEntityById(userId);
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, null, user.map(UserEntity::getAuthorities).orElse(new HashSet<>()));
+
+        authenticationToken.setDetails(user.orElse(null));
+
+        return Optional.of(authenticationToken);
     }
 }
