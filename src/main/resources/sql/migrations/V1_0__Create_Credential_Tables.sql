@@ -37,9 +37,9 @@ create table group_privileges
 
 create table refresh_token
 (
-    user        BIGINT PRIMARY KEY NOT NULL REFERENCES user (id),
-    token       UUID               NOT NULL default UUID(),
-    valid_until TIMESTAMP          NOT NULL
+    user        BIGINT    NOT NULL REFERENCES user (id),
+    token       UUID      NOT NULL default UUID(),
+    valid_until TIMESTAMP NOT NULL
 );
 
 commit;

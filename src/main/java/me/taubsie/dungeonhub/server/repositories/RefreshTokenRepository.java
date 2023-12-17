@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
-    Optional<RefreshToken> findByToken(UUID token);
+    Optional<RefreshToken> findRefreshTokenByRefreshTokenIdToken(UUID token);
 }

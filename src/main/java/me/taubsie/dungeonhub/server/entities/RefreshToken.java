@@ -23,17 +23,16 @@ public class RefreshToken {
     @JoinColumn(name = "user", nullable = false)
     private UserEntity user;
 
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "token", nullable = false)
-    private UUID token;
-
     @Column(name = "valid_until", nullable = false)
     private Instant validUntil;
 
+    public UUID getToken() {
+        return refreshTokenId.getToken();
+    }
+
     public RefreshToken(UserEntity user, Instant validUntil) {
-        this.refreshTokenId = new RefreshTokenId(user.getId());
+        this.refreshTokenId = new RefreshTokenId(user.getId(), UUID.randomUUID());
         this.user = user;
         this.validUntil = validUntil;
-        this.token = UUID.randomUUID();
     }
 }

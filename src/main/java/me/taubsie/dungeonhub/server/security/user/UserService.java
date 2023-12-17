@@ -113,7 +113,7 @@ public class UserService implements EntityService<UserEntity, UserModel, UserCre
 
     @Transactional
     public Optional<UserLoginVerificationModel> refresh(UserTokenRefreshModel userTokenRefreshModel) {
-        return refreshTokenRepository.findByToken(userTokenRefreshModel.refreshToken())
+        return refreshTokenRepository.findRefreshTokenByRefreshTokenIdToken(userTokenRefreshModel.refreshToken())
                 .map(refreshToken -> {
                     refreshTokenRepository.delete(refreshToken);
                     return refreshToken.getUser();
