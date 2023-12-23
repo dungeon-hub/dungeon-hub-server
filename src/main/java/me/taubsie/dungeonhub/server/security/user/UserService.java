@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -128,12 +127,7 @@ public class UserService implements EntityService<UserEntity, UserModel, UserCre
     public Optional<UsernamePasswordAuthenticationToken> validate(String token) {
         long userId = encryptionService.validate(token);
 
-        Optional<UserEntity> user = loadEntityById(userId);
-
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, null, user.map(UserEntity::getAuthorities).orElse(new HashSet<>()));
-
-        authenticationToken.setDetails(user.orElse(null));
-
-        return Optional.of(authenticationToken);
+        return loadEntityById(userId)
+                .map(userEntity -> new UsernamePasswordAuthenticationToken(userEntity, null, userEntity.getAuthorities()));
     }
 }

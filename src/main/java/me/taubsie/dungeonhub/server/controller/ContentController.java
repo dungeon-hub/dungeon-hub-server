@@ -67,7 +67,7 @@ public class ContentController {
 
         String username = null;
 
-        if (authentication != null && authentication.getDetails() != null && authentication.getDetails() instanceof UserEntity userEntity) {
+        if (authentication != null && authentication.getPrincipal() != null && authentication.getPrincipal() instanceof UserEntity userEntity) {
             username = userEntity.getUsername();
         }
 
