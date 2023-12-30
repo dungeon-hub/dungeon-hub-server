@@ -87,6 +87,11 @@ public class ContentController {
             fileExtension = ".mp4";
         }
 
+        if(name.isPresent() && name.get().endsWith(".html")) {
+            fileExtension = ".html";
+            name = Optional.of(name.get().substring(0, name.get().length() - 5));
+        }
+
         UUID uuid = UUID.randomUUID();
         String fileName = name
                 .orElseGet(() -> String.valueOf(uuid))
