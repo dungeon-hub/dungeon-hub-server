@@ -7,7 +7,6 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.jetbrains.annotations.Nullable;
 
 @Entity(name = "discord_role")
 @Table(name = "discord_role", schema = "dungeon-hub")
@@ -19,11 +18,6 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
     @Column(name = "name_schema")
     private String nameSchema;
 
-    @Nullable
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "role_group")
-    private Long roleGroup;
-
     @Column(name = "verified_role")
     private boolean verifiedRole;
 
@@ -33,22 +27,21 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
     @JoinColumn(name = "server", nullable = false)
     private DiscordServer discordServer;
 
-    public DiscordRole(long id, String nameSchema, @Nullable Long roleGroup, boolean verifiedRole, DiscordServer discordServer) {
+    public DiscordRole(long id, String nameSchema, boolean verifiedRole, DiscordServer discordServer) {
         this.id = id;
         this.nameSchema = nameSchema;
-        this.roleGroup = roleGroup;
         this.verifiedRole = verifiedRole;
         this.discordServer = discordServer;
     }
 
     @Override
     public DiscordRole fromModel(DiscordRoleModel model) {
-        return new DiscordRole(model.getId(), model.getNameSchema(), model.getRoleGroup(), model.isVerifiedRole(),
+        return new DiscordRole(model.getId(), model.getNameSchema(), model.isVerifiedRole(),
                 discordServer.fromModel(model.getDiscordServerModel()));
     }
 
     @Override
     public DiscordRoleModel toModel() {
-        return new DiscordRoleModel(id, nameSchema, roleGroup, verifiedRole, discordServer.toModel());
+        return new DiscordRoleModel(id, nameSchema, verifiedRole, discordServer.toModel());
     }
 }

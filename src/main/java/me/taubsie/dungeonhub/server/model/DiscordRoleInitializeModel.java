@@ -15,7 +15,6 @@ public class DiscordRoleInitializeModel implements InitializeModel<DiscordRole, 
     private final DiscordServer discordServer;
     private long id;
     private String nameSchema;
-    private Long roleGroup;
     private boolean verifiedRole;
 
     public DiscordRoleInitializeModel(DiscordServer discordServer) {
@@ -24,12 +23,12 @@ public class DiscordRoleInitializeModel implements InitializeModel<DiscordRole, 
 
     @Override
     public DiscordRole toEntity() {
-        return new DiscordRole(id, nameSchema, roleGroup, verifiedRole, discordServer);
+        return new DiscordRole(id, nameSchema, verifiedRole, discordServer);
     }
 
     @Override
     public DiscordRoleInitializeModel fromCreationModel(DiscordRoleCreationModel creationModel) {
         return new DiscordRoleInitializeModel(discordServer, creationModel.getId(), creationModel.getNameSchema(),
-                creationModel.getRoleGroup(), creationModel.isVerifiedRole());
+                creationModel.isVerifiedRole());
     }
 }

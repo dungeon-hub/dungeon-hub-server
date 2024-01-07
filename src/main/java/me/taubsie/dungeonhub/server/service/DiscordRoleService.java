@@ -32,6 +32,12 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
                 .filter(discordRole -> discordRole.getDiscordServer().getId() == discordServer.getId());
     }
 
+    public DiscordRole loadOrCreate(DiscordServer discordServer, long id) {
+        return loadEntityById(discordServer, id)
+                .orElseGet(() -> createEntity(new DiscordRoleInitializeModel(discordServer)
+                        .fromCreationModel(new DiscordRoleCreationModel(id, null, false))));
+    }
+
     @Override
     public Optional<DiscordRole> loadEntityByName(String name) {
         return Optional.empty();
