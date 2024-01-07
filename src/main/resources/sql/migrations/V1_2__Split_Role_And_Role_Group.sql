@@ -8,7 +8,7 @@ create table discord_role_group
     UNIQUE (discord_role, role_group)
 );
 
-insert into discord_role_group(discord_role, role_group) (select id, role_group from discord_role);
+insert into discord_role_group(discord_role, role_group) (select id, role_group from discord_role where role_group is not null);
 
 alter table discord_role
     drop foreign key discord_role_ibfk_1;
