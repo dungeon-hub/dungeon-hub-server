@@ -1,7 +1,8 @@
-package me.taubsie.dungeonhub.server;
+package me.taubsie.dungeonhub.server.config;
 
 import lombok.Getter;
 import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
+import me.taubsie.dungeonhub.server.DungeonHubServerApplication;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -23,9 +24,6 @@ public class ConfigService {
 
     @Value("${db.schema}")
     private String databaseSchema;
-
-    @Value("${db.api-schema}")
-    private String databaseApiSchema;
 
     @Value("${db.user}")
     private String databaseUser;
