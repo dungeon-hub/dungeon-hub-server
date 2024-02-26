@@ -82,17 +82,22 @@ public class QueueController {
 
     @PostMapping("log/{id}")
     public LoggedCarryModel logCarry(@PathVariable Long id, @RequestBody CarryQueueUpdateModel updateModel) {
-        CarryQueue carryQueue = carryQueueService.getCarryQueue(id)
-                .fromModel(updateModel.apply(carryQueueService.getCarryQueue(id).toModel()));
+        try {
+            CarryQueue carryQueue = carryQueueService.getCarryQueue(id)
+                    .fromModel(updateModel.apply(carryQueueService.getCarryQueue(id).toModel()));
 
-        Carry carry = carryQueue.toCarry();
+            Carry carry = carryQueue.toCarry();
 
-        carryQueueService.deleteCarryQueue(carryQueue.getId());
+            carryQueueService.deleteCarryQueue(carryQueue.getId());
 
-        return new LoggedCarryModel(
-                carryService.saveCarry(carry).toModel(),
-                scoreService.updateAllScores(carry.getCarrier(), carry.getCarryType(), carry.calculateScore())
-                        .stream().map(Score::toModel).toList()
-        );
+            return new LoggedCarryModel(
+                    carryService.saveCarry(carry).toModel(),
+                    scoreService.updateAllScores(carry.getCarrier(), carry.getCarryType(), carry.calculateScore())
+                            .stream().map(Score::toModel).toList()
+            );
+        }
+        catch (NumberFormatException | UnsupportedOperationException exception) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        }
     }
 }
