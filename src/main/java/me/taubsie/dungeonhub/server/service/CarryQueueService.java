@@ -1,17 +1,17 @@
 package me.taubsie.dungeonhub.server.service;
 
 import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.server.entities.CarryQueue;
+import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueCreationModel;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueUpdateModel;
+import me.taubsie.dungeonhub.server.entities.CarryQueue;
 import me.taubsie.dungeonhub.server.model.CarryQueueInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryQueueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +27,7 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
     }
 
     public CarryQueue getCarryQueue(Long id) {
-        return carryQueueRepository.findById(id).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        return carryQueueRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     public void deleteCarryQueue(Long id) {

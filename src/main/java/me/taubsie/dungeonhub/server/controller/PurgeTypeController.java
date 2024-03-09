@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ public class PurgeTypeController {
 
         return carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .flatMap(carryType -> purgeTypeService.loadEntityById(carryType, id))
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
                 .toModel();
     }
 
@@ -50,7 +50,7 @@ public class PurgeTypeController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return purgeTypeService.loadEntitiesByCarryType(carryType)
                 .stream().map(PurgeType::toModel)

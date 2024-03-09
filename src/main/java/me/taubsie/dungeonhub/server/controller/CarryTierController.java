@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class CarryTierController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return carryTierService.loadEntitiesByCarryType(carryType)
                 .stream().map(CarryTier::toModel)
@@ -56,7 +56,7 @@ public class CarryTierController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return carryTierService.create(new CarryTierInitializeModel(carryType).fromCreationModel(creationModel));
     }
@@ -69,10 +69,10 @@ public class CarryTierController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         CarryTier carryTier = carryTierService.loadEntityById(carryType, id)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return carryTierService.update(carryTier, updateModel).toModel();
     }

@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -224,7 +224,7 @@ public class DatabaseConfig {
 
             if (resultSet.next()) {
                 if (resultSet.getLong(1) != serverId) {
-                    throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN);
                 }
             } else {
                 return;

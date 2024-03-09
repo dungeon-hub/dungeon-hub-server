@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Set;
@@ -75,7 +75,7 @@ public class DiscordServerController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         return carryTierService.findByCategory(discordServer, categoryId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
                 .toModel();
     }
 

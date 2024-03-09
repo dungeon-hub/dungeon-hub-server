@@ -20,8 +20,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -61,7 +61,7 @@ public class ContentController {
     @PostMapping(value = {"", "/", "{name}"})
     public ResponseEntity<String> addFile(@RequestBody Resource image, @PathVariable(required = false) Optional<String> name, Authentication authentication) throws IOException {
         if (image == null) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         String username = authentication.getName();
@@ -82,7 +82,7 @@ public class ContentController {
             fileExtension = ".mp4";
         }
 
-        if(name.isPresent() && name.get().endsWith(".html")) {
+        if (name.isPresent() && name.get().endsWith(".html")) {
             fileExtension = ".html";
             name = Optional.of(name.get().substring(0, name.get().length() - 5));
         }

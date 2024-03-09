@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 import java.util.Set;
@@ -49,7 +49,7 @@ public class QueueController {
     public CarryQueueModel addNewQueue(@PathVariable("carry-difficulty") long carryDifficultyId,
                                        @RequestBody CarryQueueCreationModel creationModel) {
         CarryDifficulty carryDifficulty = carryDifficultyService.loadEntityById(carryDifficultyId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         DiscordUser player = discordUserService.loadEntityOrCreate(creationModel.getPlayer());
         DiscordUser carrier = discordUserService.loadEntityOrCreate(creationModel.getCarrier());
@@ -99,7 +99,7 @@ public class QueueController {
             );
         }
         catch (NumberFormatException | UnsupportedOperationException exception) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +48,7 @@ public class DiscordRoleGroupController {
 
         return discordRoleGroupService.loadEntityById(discordServer, id)
                 .map(DiscordRoleGroup::toModel)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("{id}")
@@ -60,19 +60,19 @@ public class DiscordRoleGroupController {
         discordRoleGroup.ifPresent(discordRoleGroupService::delete);
 
         return discordRoleGroup.map(DiscordRoleGroup::toModel)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
     public DiscordRoleGroupModel createNewRoleGroup(@PathVariable("server") long serverId,
-                                               @RequestBody DiscordRoleGroupCreationModel creationModel) {
+                                                    @RequestBody DiscordRoleGroupCreationModel creationModel) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         DiscordRole discordRole = discordRoleService.loadOrCreate(discordServer, creationModel.getDiscordRole().getId());
         DiscordRole roleModel = discordRoleService.loadOrCreate(discordServer, creationModel.getRoleGroup().getId());
 
         if (!discordRole.getDiscordServer().equals(discordServer) || !roleModel.getDiscordServer().equals(discordServer)) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         return discordRoleGroupService.createEntity(new DiscordRoleGroupInitializeModel(discordRole, roleModel)

@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +45,7 @@ public class CarryTypeController {
 
         return carryTypeService.loadEntityById(discordServer, id)
                 .map(CarryType::toModel)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("{id}")
@@ -57,7 +57,7 @@ public class CarryTypeController {
         carryType.ifPresent(carryTypeService::delete);
 
         return carryType.map(CarryType::toModel)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
@@ -75,7 +75,7 @@ public class CarryTypeController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, id)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return carryTypeService.update(carryType, updateModel).toModel();
     }

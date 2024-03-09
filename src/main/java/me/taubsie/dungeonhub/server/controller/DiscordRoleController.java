@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +45,7 @@ public class DiscordRoleController {
 
         return discordRoleService.loadEntityById(discordServer, id)
                 .map(DiscordRole::toModel)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("{id}")
@@ -57,7 +57,7 @@ public class DiscordRoleController {
         discordRole.ifPresent(discordRoleService::delete);
 
         return discordRole.map(DiscordRole::toModel)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
@@ -75,7 +75,7 @@ public class DiscordRoleController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         DiscordRole discordRole = discordRoleService.loadEntityById(discordServer, id)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return discordRoleService.update(discordRole, updateModel).toModel();
     }
