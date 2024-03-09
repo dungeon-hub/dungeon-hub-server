@@ -1,7 +1,6 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import me.taubsie.dungeonhub.common.DungeonHubService;
-import me.taubsie.dungeonhub.common.OldCarryRole;
 import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.server.config.DatabaseConfig;
 import org.slf4j.Logger;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -45,34 +42,6 @@ public class DungeonHubRestController {
     }
 
     //TODO replace everything below with its own controller
-
-    @PutMapping("role")
-    public ResponseEntity<String> addRoles(Long id, String roles) {
-        try {
-            List<OldCarryRole> roleList = DungeonHubService.getInstance().getGson()
-                    .fromJson(roles, DungeonHubService.getInstance().getCarryRoleListType());
-            databaseService.addRoles(id, roleList);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        catch (SQLException sqlException) {
-            logger.error("Error when adding a role to user.", sqlException);
-            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PutMapping("roles")
-    public ResponseEntity<String> addMultipleRoles(String roles) {
-        try {
-            Map<Long, List<OldCarryRole>> roleData = DungeonHubService.getInstance().getGson()
-                    .fromJson(roles, DungeonHubService.getInstance().getLongCarryRoleListMapType());
-            databaseService.addRoles(roleData);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        catch (SQLException sqlException) {
-            logger.error("Error when adding multiple roles to user.", sqlException);
-            return new ResponseEntity<>(sqlException.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     @GetMapping("strike/{server}/all")
     public ResponseEntity<String> getAllStrikesForUser(@PathVariable long server, @RequestParam long user) {
