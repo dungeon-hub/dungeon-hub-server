@@ -59,6 +59,10 @@ public class ScoreService {
         );
     }
 
+    public List<Score> getAllScores(CarryType carryType) {
+        return scoreRepository.findScoresByCarryType(carryType);
+    }
+
     public List<Score> getAllScores(DiscordUser carrier, CarryType carryType) {
         return scoreRepository.findScoresByCarrierAndCarryType(carrier, carryType);
     }
