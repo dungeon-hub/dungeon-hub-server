@@ -2,7 +2,7 @@ package me.taubsie.dungeonhub.server.config;
 
 import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
-import me.taubsie.dungeonhub.server.ConfigService;
+import me.taubsie.dungeonhub.server.entities.CarryType;
 import org.flywaydb.core.Flyway;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -114,34 +114,6 @@ public class DatabaseConfig {
         }
 
         return dataSource;
-    }
-
-    @Bean(name = "apiDataSource")
-    public DataSource getApiDataSource() {
-        if (hasInvalidConfigValues()) {
-            return null;
-        }
-
-        MariaDbDataSource result = new MariaDbDataSource();
-
-        try {
-            String schema = configService.getDatabaseApiSchema().isBlank()
-                    ? configService.getDatabaseSchema()
-                    : configService.getDatabaseApiSchema();
-
-            result.setUrl("jdbc:mariadb://" + configService.getDatabaseHost() + ":" + configService.getDatabasePort() + "/" + schema);
-
-            result.setUser(configService.getDatabaseUser());
-            result.setPassword(configService.getDatabasePassword());
-        }
-        catch (NullPointerException ignored) {
-            return null;
-        }
-        catch (SQLException sqlException) {
-            logger.error("Error during startup of database service.", sqlException);
-        }
-
-        return result;
     }
 
     // TODO move everything below to its own service

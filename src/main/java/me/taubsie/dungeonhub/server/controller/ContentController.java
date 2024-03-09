@@ -2,7 +2,6 @@ package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import me.taubsie.dungeonhub.common.DungeonHubService;
-import me.taubsie.dungeonhub.server.security.user.UserEntity;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.metadata.Metadata;
@@ -65,11 +64,7 @@ public class ContentController {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
         }
 
-        String username = null;
-
-        if (authentication != null && authentication.getPrincipal() != null && authentication.getPrincipal() instanceof UserEntity userEntity) {
-            username = userEntity.getUsername();
-        }
+        String username = authentication.getName();
 
         String fileExtension;
         try {

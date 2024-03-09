@@ -34,7 +34,7 @@ public class DungeonHubRestController {
         return new ResponseEntity<>(String.format("Hello, %s!", principal.getName()), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_Admin')")
     @GetMapping("admin")
     public ResponseEntity<String> admin(Principal principal) {
         return new ResponseEntity<>(String.format("Hello, %s! Welcome to the secret endpoint.", principal.getName()),
