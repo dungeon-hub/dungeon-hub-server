@@ -2,7 +2,6 @@ package me.taubsie.dungeonhub.server.config;
 
 import me.taubsie.dungeonhub.common.StrikeData;
 import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
-import me.taubsie.dungeonhub.server.entities.CarryType;
 import org.flywaydb.core.Flyway;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -44,7 +43,7 @@ public class DatabaseConfig {
         //Ensure that Flyway configures the database BEFORE the actual connection to the database opens
         Flyway.configure()
                 .dataSource(url, user, password)
-                .locations("classpath:sql/migrations")
+                .locations("classpath:migrations")
                 .defaultSchema("flyway")
                 .load().migrate();
 
