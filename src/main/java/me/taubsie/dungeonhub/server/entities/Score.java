@@ -35,7 +35,7 @@ public class Score implements EntityModelRelation<ScoreModel> {
     private Long scoreAmount;
 
     public void setScoreAmount(Long scoreAmount) {
-        if(scoreAmount < 0L) {
+        if (scoreAmount < 0L) {
             scoreAmount = 0L;
         }
 

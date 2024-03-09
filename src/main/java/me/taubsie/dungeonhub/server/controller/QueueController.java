@@ -88,6 +88,8 @@ public class QueueController {
 
             Carry carry = carryQueue.toCarry();
 
+            carry.setApprover(updateModel.getApprover());
+
             carryQueueService.deleteCarryQueue(carryQueue.getId());
 
             return new LoggedCarryModel(
