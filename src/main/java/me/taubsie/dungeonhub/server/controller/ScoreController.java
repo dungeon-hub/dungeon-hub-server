@@ -10,9 +10,9 @@ import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Score;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
+import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import me.taubsie.dungeonhub.server.service.ScoreService;
-import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -62,16 +62,22 @@ public class ScoreController {
     @GetMapping("all")
     public List<ScoreModel> getScores(@PathVariable("server") long serverId,
                                       @PathVariable("carry-type") long carryTypeId,
-                                      @RequestParam long id) {
+                                      @RequestParam(required = false) Optional<Long> id) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+        if (id.isEmpty()) {
+            return scoreService.getAllScores(carryType).stream()
+                    .map(Score::toModel)
+                    .toList();
+        }
 
-        return scoreService.getAllScores(carrier, carryType)
-                .stream().map(Score::toModel)
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id.get());
+
+        return scoreService.getAllScores(carrier, carryType).stream()
+                .map(Score::toModel)
                 .toList();
     }
 
