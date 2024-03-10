@@ -8,6 +8,7 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -93,14 +94,14 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
     }
 
     @Override
-    public CarryType fromModel(CarryTypeModel model) {
+    public @NotNull CarryType fromModel(@NotNull CarryTypeModel model) {
         return new CarryType(model.getId(), model.getIdentifier(), model.getDisplayName(),
                 discordServer.fromModel(model.getServer()), model.getActualLogChannel(), model.getActualLeaderboardChannel(),
                 model.getEventActive());
     }
 
     @Override
-    public CarryTypeModel toModel() {
+    public @NotNull CarryTypeModel toModel() {
         return new CarryTypeModel(id, identifier, displayName, discordServer.toModel(), logChannel, leaderboardChannel,
                 eventActive);
     }

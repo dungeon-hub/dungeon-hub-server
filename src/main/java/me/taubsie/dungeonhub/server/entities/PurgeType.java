@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeModel;
 import org.hibernate.annotations.OnDelete;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -50,12 +51,12 @@ public class PurgeType implements EntityModelRelation<PurgeTypeModel> {
     }
 
     @Override
-    public PurgeType fromModel(PurgeTypeModel model) {
+    public @NotNull PurgeType fromModel(@NotNull PurgeTypeModel model) {
         return new PurgeType(model.getId(), model.getIdentifier(), model.getDisplayName(), carryType.fromModel(model.getCarryType()));
     }
 
     @Override
-    public PurgeTypeModel toModel() {
+    public @NotNull PurgeTypeModel toModel() {
         return new PurgeTypeModel(id, identifier, displayName, carryType.toModel(), purgeTypeRoles.stream().map(PurgeTypeRole::toModel).toList());
     }
 }

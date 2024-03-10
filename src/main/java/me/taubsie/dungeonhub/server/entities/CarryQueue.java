@@ -10,6 +10,7 @@ import me.taubsie.dungeonhub.common.enums.QueueStep;
 import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 
@@ -81,7 +82,7 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     }
 
     @Override
-    public CarryQueue fromModel(CarryQueueModel model) {
+    public @NotNull CarryQueue fromModel(@NotNull CarryQueueModel model) {
         return new CarryQueue(model.getId(), model.getQueueStep(), carrier.fromModel(model.getCarrier()),
                 player.fromModel(model.getPlayer()), model.getAmount(),
                 carryDifficulty.fromModel(model.getCarryDifficulty()), model.getRelationId(),
@@ -89,7 +90,7 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     }
 
     @Override
-    public CarryQueueModel toModel() {
+    public @NotNull CarryQueueModel toModel() {
         return new CarryQueueModel(id, queueStep, carrier.toModel(), player.toModel(), amount,
                 carryDifficulty.toModel(), relationId,
                 attachmentLink, time);

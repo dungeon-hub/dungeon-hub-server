@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
+import org.jetbrains.annotations.NotNull;
 
 @Setter
 @Getter
@@ -24,12 +25,12 @@ public class DiscordServer implements EntityModelRelation<DiscordServerModel> {
     private long id;
 
     @Override
-    public DiscordServer fromModel(DiscordServerModel model) {
+    public @NotNull DiscordServer fromModel(@NotNull DiscordServerModel model) {
         return new DiscordServer(model.getId());
     }
 
     @Override
-    public DiscordServerModel toModel() {
+    public @NotNull DiscordServerModel toModel() {
         return new DiscordServerModel(id);
     }
 }

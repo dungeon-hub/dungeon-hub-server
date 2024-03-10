@@ -9,6 +9,7 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Setter
@@ -43,7 +44,7 @@ public class Score implements EntityModelRelation<ScoreModel> {
     }
 
     @Override
-    public Score fromModel(ScoreModel model) {
+    public @NotNull Score fromModel(@NotNull ScoreModel model) {
         ScoreId scoreId = new ScoreId();
         scoreId.setId(model.getCarrier().getId());
         scoreId.setScoreType(model.getScoreType());
@@ -59,7 +60,7 @@ public class Score implements EntityModelRelation<ScoreModel> {
     }
 
     @Override
-    public ScoreModel toModel() {
+    public @NotNull ScoreModel toModel() {
         return new ScoreModel(carrier.toModel(), carryType.toModel(), id.getScoreType(), scoreAmount);
     }
 }

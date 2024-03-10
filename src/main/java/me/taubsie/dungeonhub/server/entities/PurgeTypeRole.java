@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.PurgeTypeRoleModel;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Entity(name = "purge_type_role")
@@ -29,7 +30,7 @@ public class PurgeTypeRole implements EntityModelRelation<PurgeTypeRoleModel> {
     private PurgeType purgeType;
 
     @Override
-    public PurgeTypeRole fromModel(PurgeTypeRoleModel model) {
+    public @NotNull PurgeTypeRole fromModel(@NotNull PurgeTypeRoleModel model) {
         PurgeTypeRoleId purgeTypeRoleId = new PurgeTypeRoleId();
         purgeTypeRoleId.setPurgeType(model.getPurgeTypeModel().getId());
         purgeTypeRoleId.setDiscordRole(model.getDiscordRoleModel().getId());
@@ -38,7 +39,7 @@ public class PurgeTypeRole implements EntityModelRelation<PurgeTypeRoleModel> {
     }
 
     @Override
-    public PurgeTypeRoleModel toModel() {
+    public @NotNull PurgeTypeRoleModel toModel() {
         return new PurgeTypeRoleModel(null, discordRole.toModel());
     }
 }

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -38,12 +39,12 @@ public class DiscordUser implements EntityModelRelation<DiscordUserModel>, Seria
     }
 
     @Override
-    public DiscordUser fromModel(DiscordUserModel model) {
+    public @NotNull DiscordUser fromModel(@NotNull DiscordUserModel model) {
         return new DiscordUser(model.getId(), model.getMinecraftId());
     }
 
     @Override
-    public DiscordUserModel toModel() {
+    public @NotNull DiscordUserModel toModel() {
         return new DiscordUserModel(id, minecraftId);
     }
 }

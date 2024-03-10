@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupModel;
+import org.jetbrains.annotations.NotNull;
 
 @Entity(name = "discord_role_group")
 @Table(name = "discord_role_group", schema = "dungeon-hub")
@@ -32,12 +33,12 @@ public class DiscordRoleGroup implements EntityModelRelation<DiscordRoleGroupMod
     }
 
     @Override
-    public DiscordRoleGroup fromModel(DiscordRoleGroupModel model) {
+    public @NotNull DiscordRoleGroup fromModel(@NotNull DiscordRoleGroupModel model) {
         return new DiscordRoleGroup(model.getId(), discordRole.fromModel(model.getDiscordRole()), roleGroup.fromModel(model.getRoleGroup()));
     }
 
     @Override
-    public DiscordRoleGroupModel toModel() {
+    public @NotNull DiscordRoleGroupModel toModel() {
         return new DiscordRoleGroupModel(id, discordRole.toModel(), roleGroup.toModel());
     }
 }

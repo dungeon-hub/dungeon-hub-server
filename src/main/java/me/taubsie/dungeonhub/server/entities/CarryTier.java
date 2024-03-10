@@ -190,7 +190,7 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
     }
 
     @Override
-    public CarryTier fromModel(CarryTierModel model) {
+    public @NotNull CarryTier fromModel(@NotNull CarryTierModel model) {
         return new CarryTier(model.getId(), model.getIdentifier(), model.getDisplayName(),
                 carryType.fromModel(model.getCarryType()), model.getActualCategory(), model.getActualPriceChannel(),
                 model.getActualDescriptiveName().orElse(null), model.getActualThumbnailUrl(),
@@ -198,7 +198,7 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
     }
 
     @Override
-    public CarryTierModel toModel() {
+    public @NotNull CarryTierModel toModel() {
         return new CarryTierModel(category, priceChannel, descriptiveName, thumbnailUrl, priceTitle, priceDescription,
                 id, identifier, displayName, carryType.toModel());
     }

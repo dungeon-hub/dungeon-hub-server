@@ -8,6 +8,7 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 @Entity(name = "carry_difficulty")
 @Table(name = "carry_difficulty", schema = "dungeon-hub")
@@ -110,7 +111,7 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     }
 
     @Override
-    public CarryDifficulty fromModel(CarryDifficultyModel model) {
+    public @NotNull CarryDifficulty fromModel(@NotNull CarryDifficultyModel model) {
         return new CarryDifficulty(model.getId(), model.getIdentifier(), model.getDisplayName(),
                 carryTier.fromModel(model.getCarryTier()), model.getActualThumbnailUrl().orElse(null),
                 model.getActualBulkPrice(), model.getActualBulkAmount(), model.getActualPriceName().orElse(null),
@@ -118,7 +119,7 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     }
 
     @Override
-    public CarryDifficultyModel toModel() {
+    public @NotNull CarryDifficultyModel toModel() {
         return new CarryDifficultyModel(id, identifier, displayName, carryTier.toModel(), thumbnailUrl, bulkPrice,
                 bulkAmount, priceName, price, score);
     }

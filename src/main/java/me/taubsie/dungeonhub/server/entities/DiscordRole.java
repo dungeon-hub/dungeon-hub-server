@@ -7,6 +7,7 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 @Entity(name = "discord_role")
 @Table(name = "discord_role", schema = "dungeon-hub")
@@ -35,13 +36,13 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
     }
 
     @Override
-    public DiscordRole fromModel(DiscordRoleModel model) {
+    public @NotNull DiscordRole fromModel(@NotNull DiscordRoleModel model) {
         return new DiscordRole(model.getId(), model.getNameSchema(), model.isVerifiedRole(),
                 discordServer.fromModel(model.getDiscordServerModel()));
     }
 
     @Override
-    public DiscordRoleModel toModel() {
+    public @NotNull DiscordRoleModel toModel() {
         return new DiscordRoleModel(id, nameSchema, verifiedRole, discordServer.toModel());
     }
 }

@@ -9,6 +9,7 @@ import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry.CarryModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -74,14 +75,14 @@ public class Carry implements EntityModelRelation<CarryModel> {
     }
 
     @Override
-    public Carry fromModel(CarryModel model) {
+    public @NotNull Carry fromModel(@NotNull CarryModel model) {
         return new Carry(model.id(), model.time(), model.amount(), carryDifficulty.fromModel(model.carryDifficulty())
                 , player.fromModel(model.player()), carrier.fromModel(model.carrier()), model.approver(),
                 model.attachmentLink());
     }
 
     @Override
-    public CarryModel toModel() {
+    public @NotNull CarryModel toModel() {
         return new CarryModel(id, time, amount, carryDifficulty.toModel(), player.toModel(), carrier.toModel(),
                 approver, attachmentLink);
     }
