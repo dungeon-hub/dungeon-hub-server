@@ -49,6 +49,7 @@ public class ConfigService {
                             + "Please contact the developer for more information.");
                 }
 
+                Files.createDirectories(configFile.getParent());
                 try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                      BufferedWriter bufferedWriter = Files.newBufferedWriter(configFile)) {
                     bufferedReader.transferTo(bufferedWriter);

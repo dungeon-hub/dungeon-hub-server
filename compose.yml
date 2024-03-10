@@ -1,0 +1,9 @@
+version: "3"
+services:
+  dungeon-hub-dev:
+    image: 'mariadb:latest'
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dungeon-hub
+    ports:
+      - '3306:3306'
