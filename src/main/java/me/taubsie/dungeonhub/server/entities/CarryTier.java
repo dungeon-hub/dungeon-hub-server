@@ -99,43 +99,6 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
         this.priceDescription = priceDescription;
     }
 
-    public static CarryTier fromResultSet(ResultSet resultSet, Map<Long, CarryType> carryTypes) throws SQLException {
-        long carryType = resultSet.getLong("carry_type");
-
-        CarryTier carryTier = new CarryTier(
-                resultSet.getLong("id"),
-                resultSet.getString("identifier"),
-                resultSet.getString("display_name"),
-                carryTypes.getOrDefault(carryType, null)
-        );
-
-        if (resultSet.getLong("price_channel") > 0) {
-            carryTier.setPriceChannel(resultSet.getLong("price_channel"));
-        }
-
-        if (resultSet.getLong("category") > 0) {
-            carryTier.setCategory(resultSet.getLong("category"));
-        }
-
-        if (resultSet.getString("descriptive_name") != null) {
-            carryTier.setDescriptiveName(resultSet.getString("descriptive_name"));
-        }
-
-        if (resultSet.getString("thumbnail_url") != null) {
-            carryTier.setThumbnailUrl(resultSet.getString("thumbnail_url"));
-        }
-
-        if (resultSet.getString("price_title") != null) {
-            carryTier.setPriceTitle(resultSet.getString("price_title"));
-        }
-
-        if (resultSet.getString("price_description") != null) {
-            carryTier.setPriceDescription(resultSet.getString("price_description"));
-        }
-
-        return carryTier;
-    }
-
     public void setDisplayName(@NotNull String displayName) {
         if (!displayName.isBlank()) {
             this.displayName = displayName;
