@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carryrole.CarryRoleModel;
+import me.taubsie.dungeonhub.common.model.carryrolerequirement.CarryRoleRequirementModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -41,6 +42,7 @@ public class CarryRole implements EntityModelRelation<CarryRoleModel> {
 
     @Override
     public @NotNull CarryRoleModel toModel() {
-        return new CarryRoleModel(id, getDiscordRole().toModel(), getDisplayName(), isManual(), isEnabled());
+        CarryRoleRequirementModel[] requirements = getRequirements().stream().map(CarryRoleRequirement::toModel).toArray(CarryRoleRequirementModel[]::new);
+        return new CarryRoleModel(id, getDiscordRole().toModel(), getDisplayName(), requirements, isManual(), isEnabled());
     }
 }
