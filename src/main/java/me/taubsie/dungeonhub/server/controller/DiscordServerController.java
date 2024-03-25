@@ -1,6 +1,7 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.common.enums.ScoreType;
 import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +29,7 @@ import java.util.Set;
 public class DiscordServerController {
     private final DiscordServerService discordServerService;
     private final ScoreService scoreService;
+    private final CarryTypeService carryTypeService;
     private final CarryTierService carryTierService;
     private final CarryDifficultyService carryDifficultyService;
     private final DiscordUserService discordUserService;
@@ -42,9 +45,24 @@ public class DiscordServerController {
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
-        return scoreService.getAllScores(carrier, discordServer)
+        //TODO maybe move the following code to service? service should return the models afterall imo
+        List<ScoreModel> scores = new ArrayList<>(scoreService.getAllScores(carrier, discordServer)
                 .stream().map(Score::toModel)
-                .toList();
+                .toList());
+
+        for (CarryType carryType : carryTypeService.loadEntitiesByDiscordServer(discordServer)) {
+            for (ScoreType scoreType : ScoreType.values()) {
+                if (scores.stream()
+                        .filter(scoreModel -> scoreModel.getScoreType() == scoreType)
+                        .filter(scoreModel -> scoreModel.getCarryType().getId() == carryType.getId())
+                        .findAny().isEmpty()) {
+                    scores.add(new ScoreModel(carrier.toModel(), carryType.toModel(), scoreType, 0L));
+                }
+            }
+        }
+
+
+        return scores;
     }
 
     @GetMapping("{server}/carry-tiers")
