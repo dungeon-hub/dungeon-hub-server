@@ -24,5 +24,18 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
 
     List<Score> findScoresByCarrierAndCarryType_DiscordServer(DiscordUser carrier, DiscordServer discordServer);
 
-    @NotNull Page<Score> findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(CarryType carryType, ScoreType scoreType, @NotNull Pageable pageable);
+    default @NotNull Page<Score> findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(CarryType carryType, ScoreType scoreType, @NotNull Pageable pageable) {
+        return findAllByCarryTypeAndId_ScoreTypeAndScoreAmountGreaterThanOrderByScoreAmountDesc(carryType, scoreType, 0L, pageable);
+    }
+
+    /**
+     * This returns all score values that are over a given threshold. This is needed to make it possible to hide 0 score values. Other than that, it isn't really needed.
+     *
+     * @param carryType The carry type that belongs to the score values.
+     * @param scoreType The score type that belongs to the score values.
+     * @param greaterThan The threshold which the score value should at least be.
+     * @param pageable The object that defines how the page should be rendered.
+     * @return A page of the scores that were selected.sud
+     */
+    @NotNull Page<Score> findAllByCarryTypeAndId_ScoreTypeAndScoreAmountGreaterThanOrderByScoreAmountDesc(CarryType carryType, ScoreType scoreType, Long greaterThan, @NotNull Pageable pageable);
 }
