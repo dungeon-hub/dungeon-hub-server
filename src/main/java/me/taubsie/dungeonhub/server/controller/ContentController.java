@@ -16,7 +16,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +37,6 @@ import java.util.UUID;
 
 @Hidden
 @RestController
-@EnableMethodSecurity
 @RequestMapping("/cdn")
 public class ContentController {
     private static final Logger logger = LoggerFactory.getLogger(ContentController.class);

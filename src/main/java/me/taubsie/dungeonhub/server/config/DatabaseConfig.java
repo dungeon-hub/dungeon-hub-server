@@ -1,118 +1,25 @@
 package me.taubsie.dungeonhub.server.config;
 
 import me.taubsie.dungeonhub.common.StrikeData;
-import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
-import org.flywaydb.core.Flyway;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
-import org.mariadb.jdbc.MariaDbDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.sql.DataSource;
-import java.io.File;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class DatabaseConfig {
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
-    private final MariaDbDataSource dataSource;
-    private final ConfigService configService;
-    private Connection connection;
+    private final DataSource dataSource;
 
     @Autowired
-    @Lazy
-    public DatabaseConfig(ConfigService configService) {
-        this.configService = configService;
-
-        this.dataSource = new MariaDbDataSource();
-
-        String url = "jdbc:mariadb://" + configService.getDatabaseHost() + ":" + configService.getDatabasePort() + "/";
-        String user = configService.getDatabaseUser();
-        String password = configService.getDatabasePassword();
-
-        //Ensure that Flyway configures the database BEFORE the actual connection to the database opens
-        Flyway.configure()
-                .dataSource(url, user, password)
-                .locations("classpath:migrations")
-                .defaultSchema("flyway")
-                .load().migrate();
-
-        try {
-            dataSource.setUrl(url + configService.getDatabaseSchema());
-
-            dataSource.setUser(user);
-            dataSource.setPassword(password);
-
-            reloadConnection();
-
-            new Timer().scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        reloadConnection();
-                    }
-                    catch (SQLException sqlException) {
-                        logger.error("Error during connection establishment.", sqlException);
-                    }
-                }
-            }, 1000L * 60, 1000L * 60 * 5);
-        }
-        catch (SQLException sqlException) {
-            logger.error("Error during startup of database service. Please make sure that the correct values are set " +
-                            "in \"{}{}dungeon-hub{}config{}server_config.properties\".", System.getProperty("user" +
-                            ".home"),
-                    File.separator, File.separator, File.separator);
-
-            throw new ProgramStartException(sqlException);
-        }
-    }
-
-    private void reloadConnection() throws SQLException {
-        if (connection == null || !connection.isValid(5)) {
-            if (connection != null) {
-                connection.close();
-            }
-
-            if (hasInvalidConfigValues()) {
-                return;
-            }
-
-            connection = dataSource.getConnection();
-        }
-    }
-
-    public boolean hasInvalidConfigValues() {
-        try {
-            return configService.getDatabaseHost().isBlank()
-                    || configService.getDatabasePassword().isBlank()
-                    || configService.getDatabaseUser().isBlank()
-                    || configService.getDatabasePort() <= 0
-                    || configService.getDatabaseSchema().isBlank();
-        }
-        catch (NullPointerException ignored) {
-            return true;
-        }
-    }
-
-    @Bean
-    @Primary
-    public DataSource getDataSource() {
-        if (dataSource == null) {
-            throw new ProgramStartException("Couldn't connect to the database. Please ensure that all values are set " +
-                    "up correctly.");
-        }
-
-        return dataSource;
+    public DatabaseConfig(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     // TODO move everything below to its own service
@@ -120,7 +27,8 @@ public class DatabaseConfig {
     public Optional<StrikeData> getStrikeDataById(long id) throws SQLException {
         String sql = "select * from strikes where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -170,7 +78,8 @@ public class DatabaseConfig {
 
         List<StrikeData> strikes = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, serverId);
             preparedStatement.setLong(2, userId);
 
@@ -191,7 +100,8 @@ public class DatabaseConfig {
 
         String sql = "insert into strikes(server_id, user, striker, reason, time) VALUES (?, ?, ?, ?, ?)";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setLong(1, strikeData.getServer());
             preparedStatement.setLong(2, strikeData.getUser());
             if (strikeData.getStriker() != null) {
@@ -217,7 +127,8 @@ public class DatabaseConfig {
     public void removeStrike(long serverId, long id) throws SQLException {
         String firstSql = "select serverId from strikes where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(firstSql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(firstSql)) {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -233,7 +144,8 @@ public class DatabaseConfig {
 
         String secondSql = "delete from strikes where id = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(secondSql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(secondSql)) {
             preparedStatement.setLong(1, id);
 
             preparedStatement.executeUpdate();
@@ -245,7 +157,8 @@ public class DatabaseConfig {
 
         Map<Long, StrikeData> result = new HashMap<>();
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, serverId);
 
             ResultSet resultSet = preparedStatement.executeQuery();

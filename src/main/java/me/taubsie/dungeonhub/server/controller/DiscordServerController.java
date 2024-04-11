@@ -10,7 +10,6 @@ import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@EnableMethodSecurity
 @RequestMapping("api/v1/server")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 @AllArgsConstructor
