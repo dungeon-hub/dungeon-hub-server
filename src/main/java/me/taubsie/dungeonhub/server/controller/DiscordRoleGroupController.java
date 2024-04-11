@@ -12,7 +12,6 @@ import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@EnableMethodSecurity
 @RequestMapping("/api/v1/server/{server}/role-group/")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class DiscordRoleGroupController {

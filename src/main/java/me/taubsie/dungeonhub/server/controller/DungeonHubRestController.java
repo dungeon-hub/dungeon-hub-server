@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -17,7 +16,6 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 @RestController
-@EnableMethodSecurity
 @RequestMapping("/api/v1/")
 public class DungeonHubRestController {
     private static final Logger logger = LoggerFactory.getLogger(DungeonHubRestController.class);
