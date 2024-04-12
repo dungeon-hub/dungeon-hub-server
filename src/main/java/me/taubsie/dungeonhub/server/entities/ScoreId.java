@@ -54,6 +54,6 @@ public class ScoreId implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, carryType);
+        return Objects.hash(id, carryType, scoreType);
     }
 }
