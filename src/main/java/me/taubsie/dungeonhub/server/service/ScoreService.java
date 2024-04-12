@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import me.taubsie.dungeonhub.common.enums.ScoreType;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.ScoreRepository;
-import me.taubsie.dungeonhub.server.repositories.ScoreSumRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -22,13 +21,11 @@ import java.util.Optional;
 public class ScoreService {
     private static final int PAGE_SIZE = 10;
     private ScoreRepository scoreRepository;
-    private ScoreSumRepository scoreSumRepository;
 
     @Autowired
     @Lazy
-    public ScoreService(ScoreRepository scoreRepository, ScoreSumRepository scoreSumRepository) {
+    public ScoreService(ScoreRepository scoreRepository) {
         this.scoreRepository = scoreRepository;
-        this.scoreSumRepository = scoreSumRepository;
     }
 
     public List<Score> getAll() {
@@ -39,17 +36,8 @@ public class ScoreService {
         return scoreRepository.findScoreByCarrierAndCarryTypeAndId_ScoreType(carrier, carryType, scoreType);
     }
 
-    public Optional<ScoreSum> countTotalScoreForCarrier(DiscordUser carrier, DiscordServer discordServer, ScoreType scoreType) {
-        return scoreSumRepository.findScoreByCarrierAndServerAndId_ScoreType(carrier, discordServer, scoreType);
-    }
-
     public Page<Score> getFullLeaderboard(CarryType carryType, ScoreType scoreType) {
         return scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
-                Pageable.unpaged());
-    }
-
-    public Page<ScoreSum> getFullTotalLeaderboard(DiscordServer discordServer, ScoreType scoreType) {
-        return scoreSumRepository.findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(discordServer, scoreType,
                 Pageable.unpaged());
     }
 
@@ -58,30 +46,15 @@ public class ScoreService {
                 PageRequest.ofSize(PAGE_SIZE));
     }
 
-    public Page<ScoreSum> getTotalLeaderboard(DiscordServer discordServer, ScoreType scoreType) {
-        return scoreSumRepository.findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(discordServer, scoreType, PageRequest.ofSize(PAGE_SIZE));
-    }
-
     public Page<Score> getLeaderboard(CarryType carryType, ScoreType scoreType, int page) {
         return scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
                 PageRequest.of(page, PAGE_SIZE));
     }
 
-    public Page<ScoreSum> getTotalLeaderboard(DiscordServer discordServer, ScoreType scoreType, int page) {
-        return scoreSumRepository.findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(discordServer, scoreType,
-                PageRequest.of(page, PAGE_SIZE));
-    }
-
     public int getPosition(CarryType carryType, ScoreType scoreType, DiscordUser carrier) {
         return Iterables.indexOf(
-                getFullLeaderboard(carryType, scoreType),
-                score -> carrier.getId() == score.getId().getId()
-        );
-    }
-
-    public int getTotalPosition(DiscordServer discordServer, ScoreType scoreType, DiscordUser carrier) {
-        return Iterables.indexOf(
-                getFullTotalLeaderboard(discordServer, scoreType),
+                scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
+                        Pageable.unpaged()),
                 score -> carrier.getId() == score.getId().getId()
         );
     }
