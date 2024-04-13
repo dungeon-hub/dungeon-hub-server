@@ -1,7 +1,9 @@
 package me.taubsie.dungeonhub.server.repositories;
 
 import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.server.entities.*;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import me.taubsie.dungeonhub.server.entities.DiscordUser;
+import me.taubsie.dungeonhub.server.entities.ScoreSum;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,5 +15,9 @@ public interface ScoreSumRepository extends JpaRepository<ScoreSum, Long> {
     Optional<ScoreSum> findScoreByCarrierAndServerAndId_ScoreType(DiscordUser carrier, DiscordServer discordServer, ScoreType scoreType);
 
     @NotNull
-    Page<ScoreSum> findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(DiscordServer discordServer, ScoreType scoreType, @NotNull Pageable pageable);
+    Page<ScoreSum> findAllByServerAndId_ScoreTypeAndTotalScoreGreaterThanOrderByTotalScoreDesc(DiscordServer discordServer, ScoreType scoreType, Long greaterThan, @NotNull Pageable pageable);
+
+    default @NotNull Page<ScoreSum> findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(DiscordServer discordServer, ScoreType scoreType, @NotNull Pageable pageable) {
+        return findAllByServerAndId_ScoreTypeAndTotalScoreGreaterThanOrderByTotalScoreDesc(discordServer, scoreType, 0L, pageable);
+    }
 }
