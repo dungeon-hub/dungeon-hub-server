@@ -62,8 +62,6 @@ public class ContentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        String username = authentication.getName();
-
         String fileExtension;
         try {
             fileExtension = getMimeType(new ByteArrayInputStream(image.getContentAsByteArray())).getExtension();
@@ -94,8 +92,8 @@ public class ContentController {
         Path folder = Paths.get(getContentFolder());
         Files.createDirectories(folder);
         Files.write(folder.resolve(fileName), image.getContentAsByteArray());
-        if (username != null) {
-            setUploader(folder.resolve(fileName), username);
+        if (authentication != null) {
+            setUploader(folder.resolve(fileName), authentication.getName());
         }
 
         return ResponseEntity
