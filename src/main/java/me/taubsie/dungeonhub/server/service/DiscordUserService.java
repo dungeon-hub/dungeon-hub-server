@@ -75,6 +75,6 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
     }
 
     public long countLinkedUsers() {
-        return discordUserRepository.countDiscordUserByMinecraftIdNotEmpty();
+        return discordUserRepository.countDiscordUserByMinecraftIdIsNotNull();
     }
 }
