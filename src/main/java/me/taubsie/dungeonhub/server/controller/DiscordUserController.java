@@ -30,6 +30,7 @@ public class DiscordUserController {
         return discordUserService.findAllEntities().stream().map(DiscordUser::toModel).toList();
     }
 
+    @PreAuthorize("true")
     @GetMapping("count-linked")
     public long countLinkedUsers() {
         return discordUserService.countLinkedUsers();
