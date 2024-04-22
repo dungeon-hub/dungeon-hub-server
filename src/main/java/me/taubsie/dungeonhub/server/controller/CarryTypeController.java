@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/server/{server}/carry-type/")
+@RequestMapping("/api/v1/server/{server}/carry-type")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class CarryTypeController {
     private final DiscordServerService discordServerService;

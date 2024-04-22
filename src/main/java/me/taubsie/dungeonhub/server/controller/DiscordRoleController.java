@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/server/{server}/roles/")
+@RequestMapping("/api/v1/server/{server}/roles")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class DiscordRoleController {
     private final DiscordServerService discordServerService;
