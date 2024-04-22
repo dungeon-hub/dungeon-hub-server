@@ -73,4 +73,8 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
     public Function<DiscordUser, DiscordUserModel> toModel() {
         return DiscordUser::toModel;
     }
+
+    public long countLinkedUsers() {
+        return discordUserRepository.countDiscordUserByMinecraftIdNotEmpty();
+    }
 }

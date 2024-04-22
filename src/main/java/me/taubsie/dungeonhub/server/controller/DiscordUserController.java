@@ -30,6 +30,11 @@ public class DiscordUserController {
         return discordUserService.findAllEntities().stream().map(DiscordUser::toModel).toList();
     }
 
+    @GetMapping("count-linked")
+    public long countLinkedUsers() {
+        return discordUserService.countLinkedUsers();
+    }
+
     @GetMapping("{id}")
     public DiscordUserModel getById(@PathVariable long id) {
         return discordUserService.loadEntityById(id)
