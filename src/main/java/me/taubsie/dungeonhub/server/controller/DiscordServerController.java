@@ -52,6 +52,7 @@ public class DiscordServerController {
             for (ScoreType scoreType : ScoreType.getEntries()) {
                 if (scores.stream()
                         .filter(scoreModel -> scoreModel.getScoreType() == scoreType)
+                        .filter(scoreModel -> scoreModel.getCarryType() != null)
                         .filter(scoreModel -> scoreModel.getCarryType().getId() == carryType.getId())
                         .findAny().isEmpty()) {
                     scores.add(new ScoreModel(carrier.toModel(), carryType.toModel(), scoreType, 0L));
