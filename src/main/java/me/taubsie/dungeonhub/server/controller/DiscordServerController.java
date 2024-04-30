@@ -49,7 +49,7 @@ public class DiscordServerController {
                 .toList());
 
         for (CarryType carryType : carryTypeService.loadEntitiesByDiscordServer(discordServer)) {
-            for (ScoreType scoreType : ScoreType.values()) {
+            for (ScoreType scoreType : ScoreType.getEntries()) {
                 if (scores.stream()
                         .filter(scoreModel -> scoreModel.getScoreType() == scoreType)
                         .filter(scoreModel -> scoreModel.getCarryType().getId() == carryType.getId())
