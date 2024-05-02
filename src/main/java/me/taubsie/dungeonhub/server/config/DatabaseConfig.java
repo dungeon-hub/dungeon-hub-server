@@ -74,7 +74,7 @@ public class DatabaseConfig {
     }
 
     public @Unmodifiable @NotNull List<StrikeData> getAllStrikeData(long serverId, long userId) throws SQLException {
-        String sql = "select * from strikes where serverId = ? and user = ?";
+        String sql = "select * from strikes where server_id = ? and user = ?";
 
         List<StrikeData> strikes = new ArrayList<>();
 
@@ -125,7 +125,7 @@ public class DatabaseConfig {
     }
 
     public void removeStrike(long serverId, long id) throws SQLException {
-        String firstSql = "select serverId from strikes where id = ?";
+        String firstSql = "select server_id from strikes where id = ?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(firstSql)) {
@@ -153,7 +153,7 @@ public class DatabaseConfig {
     }
 
     public Map<Long, StrikeData> getStrikesInServer(Long serverId) throws SQLException {
-        String sql = "select * from strikes where serverId = ?";
+        String sql = "select * from strikes where server_id = ?";
 
         Map<Long, StrikeData> result = new HashMap<>();
 
