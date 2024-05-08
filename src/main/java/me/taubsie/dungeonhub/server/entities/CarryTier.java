@@ -64,7 +64,7 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
 
     @SuppressWarnings("java:S107")
     public CarryTier(long id, String identifier, String displayName, CarryType carryType, long category,
-                     long priceChannel, String descriptiveName, String thumbnailUrl, String priceTitle,
+                     Long priceChannel, String descriptiveName, String thumbnailUrl, String priceTitle,
                      String priceDescription) {
         this.id = id;
         this.identifier = identifier;
