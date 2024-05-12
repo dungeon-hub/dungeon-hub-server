@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
@@ -67,7 +66,7 @@ public class ContentController {
             fileExtension = getMimeType(new ByteArrayInputStream(image.getContentAsByteArray())).getExtension();
         }
         catch (MimeTypeException mimeTypeException) {
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (fileExtension == null || fileExtension.isBlank()) {
