@@ -12,6 +12,8 @@ import me.taubsie.dungeonhub.server.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -95,9 +97,16 @@ public class DiscordServerController {
                 .toModel();
     }
 
+    @PreAuthorize("true")
     @GetMapping("all")
-    public Set<DiscordServerModel> getAllServers() {
-        return discordServerService.findAll();
+    public List<DiscordServerModel> getAllServers(Authentication authentication) {
+        List<String> permissions = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        Set<DiscordServerModel> servers = discordServerService.findAll();
+
+        return servers.stream()
+                .filter(server -> permissions.contains("ROLE_admin") || permissions.contains("ROLE_bot") || permissions.contains("server_" + server.getId()))
+                .toList();
     }
 
     @GetMapping(value = "{server}/total-leaderboard")
