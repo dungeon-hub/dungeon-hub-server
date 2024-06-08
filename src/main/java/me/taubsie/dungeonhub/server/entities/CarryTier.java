@@ -8,11 +8,7 @@ import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
 import org.jetbrains.annotations.NotNull;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 

@@ -205,7 +205,7 @@ public class ContentController {
             return Optional.of(Charset.defaultCharset().decode(buf).toString());
         }
         catch (UnsupportedOperationException unsupportedOperationException) {
-            logger.warn("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
+            logger.error("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
             return Optional.empty();
         }
         catch (IOException | NullPointerException exception) {
