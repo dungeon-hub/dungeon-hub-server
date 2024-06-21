@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -35,7 +37,7 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
     private String displayName;
     @Getter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "carry_type", nullable = false)
     //final
     private CarryType carryType;
