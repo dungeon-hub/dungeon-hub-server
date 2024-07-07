@@ -101,7 +101,10 @@ public class DiscordServerController {
     @PreAuthorize("true")
     @GetMapping("all")
     public List<DiscordServerModel> getAllServers(Authentication authentication) {
-        List<String> permissions = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        List<String> permissions = Optional.ofNullable(authentication)
+                .map(Authentication::getAuthorities)
+                .orElse(List.of()).stream()
+                .map(GrantedAuthority::getAuthority).toList();
 
         Set<DiscordServerModel> servers = discordServerService.findAll();
 

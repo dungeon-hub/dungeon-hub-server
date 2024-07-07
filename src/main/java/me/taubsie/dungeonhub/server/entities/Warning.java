@@ -21,6 +21,7 @@ import java.time.Instant;
 @NoArgsConstructor
 public class Warning implements EntityModelRelation<WarningModel> {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private long id;
 
@@ -28,7 +29,7 @@ public class Warning implements EntityModelRelation<WarningModel> {
     @ManyToOne(fetch = FetchType.LAZY)
     private DiscordServer server;
 
-    @JoinColumn(name = "user", nullable = false)
+    @JoinColumn(name = "warned_user", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private DiscordUser user;
 

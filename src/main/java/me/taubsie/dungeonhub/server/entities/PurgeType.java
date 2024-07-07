@@ -18,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 public class PurgeType implements EntityModelRelation<PurgeTypeModel> {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     //final
     private long id;
