@@ -51,14 +51,12 @@ public class WarningController {
     }
 
     @DeleteMapping("{id}")
-    public WarningModel removeWarning(@PathVariable long server, @PathVariable long id) {
+    public WarningModel deactivateWarning(@PathVariable long server, @PathVariable long id) {
         Warning warning = warningService.loadEntityById(id)
                 .filter(w -> w.getServer().getId() == server)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        warningService.deleteEntity(warning);
-
-        return warning.toModel();
+        return warningService.deactivateWarning(warning).toModel();
     }
 
     @PostMapping

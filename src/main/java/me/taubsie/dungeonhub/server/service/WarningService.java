@@ -57,8 +57,10 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
         }).orElse(false);
     }
 
-    public void deleteEntity(Warning warning) {
-        warningRepository.delete(warning);
+    public Warning deactivateWarning(Warning warning) {
+        warning.setActive(false);
+
+        return warningRepository.save(warning);
     }
 
     @Override
