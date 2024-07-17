@@ -2,7 +2,9 @@ package me.taubsie.dungeonhub.server.service;
 
 import com.google.common.collect.Iterables;
 import lombok.NoArgsConstructor;
+import me.taubsie.dungeonhub.common.enums.ScoreResetType;
 import me.taubsie.dungeonhub.common.enums.ScoreType;
+import me.taubsie.dungeonhub.common.model.ScoreResetModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.ScoreRepository;
 import me.taubsie.dungeonhub.server.repositories.ScoreSumRepository;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @NoArgsConstructor
@@ -116,5 +119,33 @@ public class ScoreService {
         score.setScoreAmount(score.getScoreAmount() + amount);
 
         return scoreRepository.save(score);
+    }
+
+    public ScoreResetModel resetScores(CarryType carryType, ScoreResetType scoreResetType) {
+        List<Score> scores = getAllScores(carryType);
+
+        scores = applyScoreResetType(scores, scoreResetType);
+
+        List<Score> updatedScores = scoreRepository.saveAll(scores);
+
+        return new ScoreResetModel(
+                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.DEFAULT).count(),
+                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.EVENT).count()
+        );
+    }
+
+    private List<Score> applyScoreResetType(List<Score> scores, ScoreResetType scoreResetType) {
+        Stream<Score> currentScores = scores.parallelStream();
+
+        currentScores = switch (scoreResetType) {
+            case Both -> currentScores.filter(score -> score.getId().getScoreType() != ScoreType.ALLTIME);
+            case Event -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.EVENT);
+            case Default -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.DEFAULT);
+        };
+
+        return currentScores.map(score -> {
+            score.setScoreAmount(0L);
+            return score;
+        }).toList();
     }
 }

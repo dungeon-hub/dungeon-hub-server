@@ -1,7 +1,9 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import me.taubsie.dungeonhub.common.enums.ScoreResetType;
 import me.taubsie.dungeonhub.common.enums.ScoreType;
+import me.taubsie.dungeonhub.common.model.ScoreResetModel;
 import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreModel;
 import me.taubsie.dungeonhub.common.model.score.ScoreUpdateModel;
@@ -156,5 +158,15 @@ public class ScoreController {
         });
 
         return leaderboardModel;
+    }
+
+    @DeleteMapping
+    public ScoreResetModel resetScore(@PathVariable("server") long serverId, @PathVariable("carry-type") long carryTypeId, @RequestParam("score-type") ScoreResetType scoreResetType) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        return scoreService.resetScores(carryType, scoreResetType);
     }
 }
