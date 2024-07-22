@@ -2,10 +2,7 @@ package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.model.warning.DetailedWarningModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningCreationModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningEvidenceCreationModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningModel;
+import me.taubsie.dungeonhub.common.model.warning.*;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Warning;
@@ -65,14 +62,18 @@ public class WarningController {
     }
 
     @PostMapping
-    public WarningModel addWarning(@PathVariable long server, @RequestBody WarningCreationModel creationModel) {
+    public AddedWarningModel addWarning(@PathVariable long server, @RequestBody WarningCreationModel creationModel) {
         DiscordServer discordServer = discordServerService.getOrCreate(server);
         DiscordUser user = discordUserService.loadEntityOrCreate(creationModel.getUser());
         DiscordUser striker = discordUserService.loadEntityOrCreate(creationModel.getStriker());
 
         WarningInitializeModel initializeModel = new WarningInitializeModel(discordServer, user, striker).fromCreationModel(creationModel);
 
-        return warningService.create(initializeModel);
+        WarningModel warningModel = warningService.create(initializeModel);
+
+        List<WarningActionModel> actionModels = warningService.getActions(discordServer, user, warningModel.getWarningType());
+
+        return new AddedWarningModel(warningModel, actionModels);
     }
 
     @PutMapping("{id}/evidence")
@@ -80,7 +81,7 @@ public class WarningController {
         DiscordServer discordServer = discordServerService.getOrCreate(server);
         Warning warning = warningService.loadEntityById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if(warning.getServer().getId() != discordServer.getId()) {
+        if (warning.getServer().getId() != discordServer.getId()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
