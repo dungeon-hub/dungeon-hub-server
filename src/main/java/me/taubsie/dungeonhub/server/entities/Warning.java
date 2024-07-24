@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Getter
@@ -87,5 +88,16 @@ public class Warning implements EntityModelRelation<WarningModel> {
 
     public @NotNull DetailedWarningModel toDetailedModel() {
         return new DetailedWarningModel(id, server.toModel(), user.toModel(), striker.toModel(), warningType, reason, active, time, evidences.stream().map(WarningEvidence::toModel).toList());
+    }
+
+    public boolean isExpired() {
+        //Only strikes can expire
+        if(warningType != WarningType.Strike) {
+            return false;
+        }
+
+        //Strikes expire after 3 months
+        //Meaning: If time that warning happened + three months is before now
+        return time.plus(3, ChronoUnit.MONTHS).isBefore(Instant.now());
     }
 }
