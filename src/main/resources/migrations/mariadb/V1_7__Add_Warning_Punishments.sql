@@ -1,6 +1,6 @@
 use `dungeon-hub`;
 
-create table warning_punishment
+create table warn_punishment
 (
     id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     server_id    BIGINT                NOT NULL REFERENCES server (id),
