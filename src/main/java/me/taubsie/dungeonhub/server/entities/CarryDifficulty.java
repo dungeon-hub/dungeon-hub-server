@@ -41,9 +41,11 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     @Column(name = "thumbnail_url", length = 200)
     private String thumbnailUrl;
 
+    @Getter
     @Column(name = "bulk_price")
     private Integer bulkPrice;
 
+    @Getter
     @Column(name = "bulk_amount")
     private Integer bulkAmount;
 
