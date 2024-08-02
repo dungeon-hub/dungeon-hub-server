@@ -94,4 +94,16 @@ public class Carry implements EntityModelRelation<CarryModel> {
     private long getScoreMultiplier() {
         return carryDifficulty.getScore();
     }
+
+    //TODO merge this method and the one from ApplicationService into common?
+    public long calculatePrice() {
+        Integer bulkPrice = carryDifficulty.getBulkPrice();
+        Integer bulkAmount = carryDifficulty.getBulkAmount();
+
+        if (bulkPrice != null && bulkAmount != null && bulkAmount <= amount) {
+            return bulkPrice;
+        }
+
+        return carryDifficulty.getPrice();
+    }
 }

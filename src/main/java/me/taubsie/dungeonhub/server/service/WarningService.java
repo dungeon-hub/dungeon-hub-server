@@ -4,11 +4,16 @@ import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityService;
 import me.taubsie.dungeonhub.common.enums.WarningType;
 import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
+import me.taubsie.dungeonhub.common.model.warning.WarningActionModel;
 import me.taubsie.dungeonhub.common.model.warning.WarningCreationModel;
 import me.taubsie.dungeonhub.common.model.warning.WarningModel;
 import me.taubsie.dungeonhub.common.model.warning.WarningUpdateModel;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Warning;
+import me.taubsie.dungeonhub.server.entities.WarningPunishment;
 import me.taubsie.dungeonhub.server.model.WarningInitializeModel;
+import me.taubsie.dungeonhub.server.repositories.WarningPunishmentRepository;
 import me.taubsie.dungeonhub.server.repositories.WarningRepository;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +27,8 @@ import java.util.function.Function;
 @AllArgsConstructor
 @EnableScheduling
 public class WarningService implements EntityService<Warning, WarningModel, WarningCreationModel, WarningInitializeModel, WarningUpdateModel> {
-    private WarningRepository warningRepository;
+    private final WarningRepository warningRepository;
+    private final WarningPunishmentRepository warningPunishmentRepository;
 
     public List<Warning> findAllWarningsForUser(long server, long user) {
         return warningRepository.findAllByServer_IdAndUser_Id(server, user);
@@ -80,6 +86,25 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     @Override
     public Function<Warning, WarningModel> toModel() {
         return Warning::toModel;
+    }
+
+    public List<WarningPunishment> loadPunishmentsForServer(DiscordServer discordServer) {
+        return warningPunishmentRepository.findAllByServer(discordServer);
+    }
+
+    public List<WarningPunishment> loadPunishmentsForWarningType(DiscordServer discordServer, WarningType warningType) {
+        return warningPunishmentRepository.findAllByServerAndWarningType(discordServer, warningType);
+    }
+
+    public List<WarningActionModel> getActions(DiscordServer discordServer, DiscordUser discordUser, WarningType warningType) {
+        int activeWarnings = findAllActiveWarningsForUser(discordServer.getId(), discordUser.getId()).size();
+
+        List<WarningPunishment> punishments = loadPunishmentsForWarningType(discordServer, warningType);
+
+        return punishments.parallelStream()
+                .filter(punishment -> punishment.applies(activeWarnings))
+                .map(WarningPunishment::toAction)
+                .toList();
     }
 
     @Scheduled(cron = "0 0 2 * * *")
