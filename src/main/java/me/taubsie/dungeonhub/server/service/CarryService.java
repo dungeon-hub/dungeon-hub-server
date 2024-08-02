@@ -23,7 +23,7 @@ public class CarryService {
     }
 
     public List<Carry> getCarries(DiscordServer server) {
-        return carryRepository.getCarriesByCarryDifficulty_CarryType_DiscordServer(server);
+        return carryRepository.getCarriesByCarryDifficulty_CarryTier_CarryType_DiscordServer(server);
     }
 
     public Carry saveCarry(Carry carry) {

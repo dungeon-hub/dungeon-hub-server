@@ -10,5 +10,5 @@ import java.util.List;
 public interface CarryRepository extends JpaRepository<Carry, Long> {
     int countCarryByCarryDifficulty_CarryTier_CarryType_DiscordServerAndCarrier(DiscordServer server, DiscordUser carrier);
 
-    List<Carry> getCarriesByCarryDifficulty_CarryType_DiscordServer(DiscordServer server);
+    List<Carry> getCarriesByCarryDifficulty_CarryTier_CarryType_DiscordServer(DiscordServer server);
 }
