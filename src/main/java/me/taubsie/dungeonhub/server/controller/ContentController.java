@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
@@ -67,7 +66,7 @@ public class ContentController {
             fileExtension = getMimeType(new ByteArrayInputStream(image.getContentAsByteArray())).getExtension();
         }
         catch (MimeTypeException mimeTypeException) {
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (fileExtension == null || fileExtension.isBlank()) {
@@ -206,7 +205,7 @@ public class ContentController {
             return Optional.of(Charset.defaultCharset().decode(buf).toString());
         }
         catch (UnsupportedOperationException unsupportedOperationException) {
-            logger.warn("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
+            logger.error("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
             return Optional.empty();
         }
         catch (IOException | NullPointerException exception) {

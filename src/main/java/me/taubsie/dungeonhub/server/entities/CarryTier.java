@@ -7,12 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
 import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -39,7 +37,7 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
     private String displayName;
     @Getter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "carry_type", nullable = false)
     //final
     private CarryType carryType;
@@ -64,7 +62,7 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
 
     @SuppressWarnings("java:S107")
     public CarryTier(long id, String identifier, String displayName, CarryType carryType, long category,
-                     long priceChannel, String descriptiveName, String thumbnailUrl, String priceTitle,
+                     Long priceChannel, String descriptiveName, String thumbnailUrl, String priceTitle,
                      String priceDescription) {
         this.id = id;
         this.identifier = identifier;

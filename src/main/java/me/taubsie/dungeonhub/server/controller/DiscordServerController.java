@@ -33,6 +33,7 @@ public class DiscordServerController {
     private final CarryTierService carryTierService;
     private final CarryDifficultyService carryDifficultyService;
     private final DiscordUserService discordUserService;
+    private final CarryService carryService;
 
     @GetMapping("{server}")
     public DiscordServerModel getServerById(@PathVariable("server") long id) {
@@ -51,9 +52,10 @@ public class DiscordServerController {
                 .toList());
 
         for (CarryType carryType : carryTypeService.loadEntitiesByDiscordServer(discordServer)) {
-            for (ScoreType scoreType : ScoreType.values()) {
+            for (ScoreType scoreType : ScoreType.getEntries()) {
                 if (scores.stream()
                         .filter(scoreModel -> scoreModel.getScoreType() == scoreType)
+                        .filter(scoreModel -> scoreModel.getCarryType() != null)
                         .filter(scoreModel -> scoreModel.getCarryType().getId() == carryType.getId())
                         .findAny().isEmpty()) {
                     scores.add(new ScoreModel(carrier.toModel(), carryType.toModel(), scoreType, 0L));
@@ -100,7 +102,10 @@ public class DiscordServerController {
     @PreAuthorize("true")
     @GetMapping("all")
     public List<DiscordServerModel> getAllServers(Authentication authentication) {
-        List<String> permissions = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        List<String> permissions = Optional.ofNullable(authentication)
+                .map(Authentication::getAuthorities)
+                .orElse(List.of()).stream()
+                .map(GrantedAuthority::getAuthority).toList();
 
         Set<DiscordServerModel> servers = discordServerService.findAll();
 
@@ -138,5 +143,20 @@ public class DiscordServerController {
         });
 
         return leaderboardModel;
+    }
+
+    @GetMapping("{server}/total-money-spent")
+    public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        List<Carry> carries = carryService.getCarries(discordServer);
+
+        return carries.parallelStream()
+                .filter(carry -> userId == null || carry.getPlayer().getId() == userId)
+                .filter(carry -> carrierId == null || carry.getCarrier().getId() == carrierId)
+                .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
+                .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
+                .mapToLong(Carry::calculatePrice)
+                .sum();
     }
 }

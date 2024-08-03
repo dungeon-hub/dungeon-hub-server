@@ -3,8 +3,11 @@ package me.taubsie.dungeonhub.server.controller;
 import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserCreationModel;
 import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserModel;
 import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserUpdateModel;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
+import me.taubsie.dungeonhub.server.service.CarryService;
+import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,10 +22,14 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('bot', 'admin')")
 public class DiscordUserController {
     private final DiscordUserService discordUserService;
+    private final CarryService carryService;
+    private final DiscordServerService discordServerService;
 
     @Autowired
-    public DiscordUserController(DiscordUserService discordUserService) {
+    public DiscordUserController(DiscordUserService discordUserService, CarryService carryService, DiscordServerService discordServerService) {
         this.discordUserService = discordUserService;
+        this.carryService = carryService;
+        this.discordServerService = discordServerService;
     }
 
     @GetMapping("all")
@@ -41,6 +48,14 @@ public class DiscordUserController {
         return discordUserService.loadEntityById(id)
                 .map(DiscordUser::toModel)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("{id}/carries/{server}")
+    public int getCarryCount(@PathVariable long id, @PathVariable("server") long serverId) {
+        DiscordServer server = discordServerService.getOrCreate(serverId);
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+
+        return carryService.countCarries(server, carrier);
     }
 
     @PostMapping
