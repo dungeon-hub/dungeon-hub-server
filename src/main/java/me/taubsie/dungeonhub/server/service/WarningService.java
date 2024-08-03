@@ -15,6 +15,8 @@ import me.taubsie.dungeonhub.server.entities.WarningPunishment;
 import me.taubsie.dungeonhub.server.model.WarningInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.WarningPunishmentRepository;
 import me.taubsie.dungeonhub.server.repositories.WarningRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.util.function.Function;
 @AllArgsConstructor
 @EnableScheduling
 public class WarningService implements EntityService<Warning, WarningModel, WarningCreationModel, WarningInitializeModel, WarningUpdateModel> {
+    private static final Logger logger = LoggerFactory.getLogger(WarningService.class);
+
     private final WarningRepository warningRepository;
     private final WarningPunishmentRepository warningPunishmentRepository;
 
@@ -108,13 +112,15 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     }
 
     @Scheduled(cron = "0 0 2 * * *")
-    public void test() {
+    public void removeExpiredStrikes() {
         List<Warning> warnings = warningRepository.findAllByActiveAndWarningType(true, WarningType.Strike);
 
         warnings.stream().filter(Warning::isExpired)
                 .forEach(warning -> {
                     warning.setActive(false);
                     warningRepository.save(warning);
+
+                    logger.info("The strike warning with id was just deactivated: {}", warning.getId());
                 });
     }
 }
