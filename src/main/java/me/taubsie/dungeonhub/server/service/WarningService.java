@@ -101,7 +101,8 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     }
 
     public List<WarningActionModel> getActions(DiscordServer discordServer, DiscordUser discordUser, WarningType warningType) {
-        int activeWarnings = findAllActiveWarningsForUser(discordServer.getId(), discordUser.getId()).size();
+        long activeWarnings = findAllActiveWarningsForUser(discordServer.getId(), discordUser.getId())
+                .stream().filter(warning -> warning.getWarningType() == warningType).count();
 
         List<WarningPunishment> punishments = loadPunishmentsForWarningType(discordServer, warningType);
 

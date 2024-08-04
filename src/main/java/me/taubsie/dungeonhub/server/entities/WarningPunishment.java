@@ -44,7 +44,7 @@ public class WarningPunishment {
     @Column(name = "extra_data")
     private String extraData;
 
-    public boolean applies(int activeWarnings) {
+    public boolean applies(long activeWarnings) {
         return switch (comparison) {
             case GreaterOrEqual -> activeWarnings >= count;
             case Equal -> activeWarnings == count;
