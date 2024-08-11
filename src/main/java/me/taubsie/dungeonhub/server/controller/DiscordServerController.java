@@ -151,7 +151,7 @@ public class DiscordServerController {
 
         List<Carry> carries = carryService.getCarries(discordServer);
 
-        return carries.parallelStream()
+        return carries.stream()
                 .filter(carry -> userId == null || carry.getPlayer().getId() == userId)
                 .filter(carry -> carrierId == null || carry.getCarrier().getId() == carrierId)
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)

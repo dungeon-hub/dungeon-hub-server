@@ -6,6 +6,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.repositories.CarryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class CarryService {
         return carryRepository.countCarryByCarryDifficulty_CarryTier_CarryType_DiscordServerAndCarrier(server, user);
     }
 
+    @Transactional(readOnly = true)
     public List<Carry> getCarries(DiscordServer server) {
         return carryRepository.getCarriesByCarryDifficulty_CarryTier_CarryType_DiscordServer(server);
     }
