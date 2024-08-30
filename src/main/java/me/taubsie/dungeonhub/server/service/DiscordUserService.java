@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -37,6 +38,10 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
     @Override
     public Optional<DiscordUser> loadEntityByName(String name) {
         return Optional.empty();
+    }
+
+    public Optional<DiscordUser> loadEntityByMinecraftId(UUID minecraftId) {
+        return discordUserRepository.findDiscordUserByMinecraftId(minecraftId);
     }
 
     @Override

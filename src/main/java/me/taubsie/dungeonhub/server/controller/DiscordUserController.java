@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/discord-users")
@@ -46,6 +47,21 @@ public class DiscordUserController {
     @GetMapping("{id}")
     public DiscordUserModel getById(@PathVariable long id) {
         return discordUserService.loadEntityById(id)
+                .map(DiscordUser::toModel)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("find")
+    public DiscordUserModel findUser(@RequestParam(value = "uuid") String uuid) {
+        UUID userUuid;
+
+        try {
+            userUuid = UUID.fromString(uuid);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        return discordUserService.loadEntityByMinecraftId(userUuid)
                 .map(DiscordUser::toModel)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
