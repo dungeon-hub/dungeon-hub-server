@@ -17,6 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -157,6 +158,17 @@ public class DiscordServerController {
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
                 .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
                 .mapToLong(Carry::calculatePrice)
+                .sum();
+    }
+
+    @GetMapping("{server}/count-carries")
+    public long countCarries(@PathVariable("server") long serverId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return since
+                .map(instant -> carryService.getCarriesSince(discordServer, instant))
+                .orElseGet(() -> carryService.getCarries(discordServer))
+                .stream().mapToLong(Carry::getAmount)
                 .sum();
     }
 }

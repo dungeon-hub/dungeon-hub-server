@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -26,6 +27,10 @@ public class CarryService {
     @Transactional(readOnly = true)
     public List<Carry> getCarries(DiscordServer server) {
         return carryRepository.getCarriesByCarryDifficulty_CarryTier_CarryType_DiscordServer(server);
+    }
+
+    public List<Carry> getCarriesSince(DiscordServer server, Instant instant) {
+        return carryRepository.getCarriesByCarryDifficulty_CarryTier_CarryType_DiscordServerAndTimeGreaterThanEqual(server, instant);
     }
 
     public Carry saveCarry(Carry carry) {
