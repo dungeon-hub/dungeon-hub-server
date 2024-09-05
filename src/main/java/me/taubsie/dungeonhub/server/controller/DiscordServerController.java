@@ -147,7 +147,7 @@ public class DiscordServerController {
     }
 
     @GetMapping("{server}/total-money-spent")
-    public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId) {
+    public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         List<Carry> carries = carryService.getCarries(discordServer);
@@ -157,6 +157,7 @@ public class DiscordServerController {
                 .filter(carry -> carrierId == null || carry.getCarrier().getId() == carrierId)
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
                 .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
+                .filter(carry -> since.isEmpty() || since.get().isBefore(carry.getTime()))
                 .mapToLong(Carry::calculatePrice)
                 .sum();
     }
