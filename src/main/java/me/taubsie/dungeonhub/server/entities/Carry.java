@@ -76,8 +76,8 @@ public class Carry implements EntityModelRelation<CarryModel> {
 
     @Override
     public @NotNull Carry fromModel(@NotNull CarryModel model) {
-        return new Carry(model.id(), model.time(), model.amount(), carryDifficulty.fromModel(model.carryDifficulty())
-                , player.fromModel(model.player()), carrier.fromModel(model.carrier()), model.approver(),
+        return new Carry(model.id(), model.time(), model.amount(), carryDifficulty.fromModel(model.carryDifficulty()),
+                player.fromModel(model.player()), carrier.fromModel(model.carrier()), model.approver(),
                 model.attachmentLink());
     }
 
