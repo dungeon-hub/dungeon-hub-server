@@ -53,10 +53,15 @@ public class CntRequest implements EntityModelRelation<CntRequestModel> {
     @Column(name = "requirement", nullable = false, length = 100)
     private String requirement;
 
-    public CntRequest(DiscordServer discordServer, DiscordUser user, DiscordUser claimer) {
+    public CntRequest(long messageId, DiscordServer discordServer, DiscordUser user, @Nullable DiscordUser claimer, Instant time, String coinValue, String description, String requirement) {
+        this.messageId = messageId;
         this.discordServer = discordServer;
         this.user = user;
         this.claimer = claimer;
+        this.time = time;
+        this.coinValue = coinValue;
+        this.description = description;
+        this.requirement = requirement;
     }
 
     @Override
@@ -67,7 +72,9 @@ public class CntRequest implements EntityModelRelation<CntRequestModel> {
                 discordServer.fromModel(model.getDiscordServer()),
                 user.fromModel(model.getUser()),
                 //TODO better handling if claimer in the model is null :(
-                claimer != null ? claimer.fromModel(model.getClaimer()) : null,
+                model.getClaimer() != null ? (
+                        claimer != null ? claimer.fromModel(model.getClaimer()) : user.fromModel(model.getClaimer())
+                ) : null,
                 model.getTime(),
                 model.getCoinValue(),
                 model.getDescription(),
