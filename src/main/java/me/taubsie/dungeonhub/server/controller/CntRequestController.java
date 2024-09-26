@@ -30,8 +30,8 @@ public class CntRequestController {
         this.discordUserService = discordUserService;
     }
 
-    @GetMapping
-    public CntRequestModel getCntRequest(@PathVariable("server") long serverId, @RequestParam(value = "message-id") Long messageId) {
+    @GetMapping("find")
+    public CntRequestModel findCntRequest(@PathVariable("server") long serverId, @RequestParam(value = "message-id") Long messageId) {
         return cntRequestService.findByMessageId(messageId)
                 .filter(cntRequest -> cntRequest.getDiscordServer().getId() == serverId)
                 .map(CntRequest::toModel)
