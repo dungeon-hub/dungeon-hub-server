@@ -42,9 +42,9 @@ public class CntRequestController {
     public CntRequestModel createNewCntRequest(@PathVariable("server") long serverId,
                                                @RequestBody CntRequestCreationModel creationModel) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
-        DiscordUser user = discordUserService.loadEntityOrCreate(creationModel.getUser().getId());
+        DiscordUser user = discordUserService.loadEntityOrCreate(creationModel.getUser());
         DiscordUser claimer = creationModel.getClaimer() != null
-                ? discordUserService.loadEntityOrCreate(creationModel.getClaimer().getId())
+                ? discordUserService.loadEntityOrCreate(creationModel.getClaimer())
                 : null;
 
         return cntRequestService.createEntity(
