@@ -29,7 +29,7 @@ public class CntRequest implements EntityModelRelation<CntRequestModel> {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "server", nullable = false)
+    @JoinColumn(name = "server_id", nullable = false)
     private DiscordServer discordServer;
 
     @JoinColumn(name = "user_id", nullable = false)
