@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.controller;
 
 import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestCreationModel;
 import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestModel;
+import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CntRequest;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
@@ -51,5 +52,16 @@ public class CntRequestController {
                 new CntRequestInitializeModel(discordServer, user, claimer)
                         .fromCreationModel(creationModel)
         ).toModel();
+    }
+
+    @PutMapping("{id}")
+    public CntRequestModel updateCntRequest(@PathVariable("server") long serverId, @PathVariable long id,
+                                            @RequestBody CntRequestUpdateModel updateModel) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        CntRequest cntRequest = cntRequestService.loadEntityById(discordServer, id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        return cntRequestService.update(cntRequest, updateModel).toModel();
     }
 }

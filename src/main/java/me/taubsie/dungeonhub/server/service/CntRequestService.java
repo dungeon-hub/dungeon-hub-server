@@ -7,6 +7,7 @@ import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestCreationModel;
 import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestModel;
 import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CntRequest;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CntRequestInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CntRequestRepository;
 import org.springframework.data.repository.core.support.RepositoryMethodInvocationListener;
@@ -25,6 +26,11 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
     @Override
     public Optional<CntRequest> loadEntityById(long id) {
         return cntRequestRepository.findById(id);
+    }
+
+    public Optional<CntRequest> loadEntityById(DiscordServer discordServer, long id) {
+        return cntRequestRepository.findById(id)
+                .filter(cntRequest -> cntRequest.getDiscordServer().getId() == discordServer.getId());
     }
 
     @Override
