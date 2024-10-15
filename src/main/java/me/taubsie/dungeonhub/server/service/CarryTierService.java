@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Service
 public class CarryTierService implements EntityService<CarryTier, CarryTierModel, CarryTierCreationModel, CarryTierInitializeModel, CarryTierUpdateModel> {
@@ -50,6 +51,10 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
         return carryTierRepository.findAll();
     }
 
+    public Stream<CarryTier> findAllEntities(DiscordServer discordServer) {
+        return findAllEntities().stream().filter(carryTier -> carryTier.getCarryType().getDiscordServer().equals(discordServer));
+    }
+
     @Override
     public CarryTier createEntity(CarryTierInitializeModel initalizationModel) {
         return carryTierRepository.save(initalizationModel.toEntity());
@@ -82,5 +87,9 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
 
     public Optional<CarryTier> findByCategory(DiscordServer discordServer, long categoryId) {
         return carryTierRepository.findFirstByCarryType_DiscordServerAndCategory(discordServer, categoryId);
+    }
+
+    public void delete(CarryTier carryTier) {
+        carryTierRepository.delete(carryTier);
     }
 }

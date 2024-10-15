@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/server/{server}/carry-type/{carry-type}/carry-tier")
@@ -73,5 +74,20 @@ public class CarryTierController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return carryTierService.update(carryTier, updateModel).toModel();
+    }
+
+    @DeleteMapping("{id}")
+    public CarryTierModel deleteById(@PathVariable("server") long serverId, @PathVariable("carry-type") long carryTypeId, @PathVariable long id) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        Optional<CarryTier> carryTier = carryTierService.loadEntityById(carryType, id);
+
+        carryTier.ifPresent(carryTierService::delete);
+
+        return carryTier.map(CarryTier::toModel)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }

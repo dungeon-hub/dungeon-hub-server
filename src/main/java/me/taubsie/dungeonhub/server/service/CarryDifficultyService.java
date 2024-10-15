@@ -7,6 +7,7 @@ import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
 import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Service
 public class CarryDifficultyService implements EntityService<CarryDifficulty, CarryDifficultyModel,
@@ -48,6 +50,11 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
     @Override
     public List<CarryDifficulty> findAllEntities() {
         return carryDifficultyRepository.findAll();
+    }
+
+    public Stream<CarryDifficulty> findAllEntities(DiscordServer discordServer) {
+        return carryDifficultyRepository.findAll().stream()
+                .filter(carryDifficulty -> carryDifficulty.getCarryTier().getCarryType().getDiscordServer().equals(discordServer));
     }
 
     @Override

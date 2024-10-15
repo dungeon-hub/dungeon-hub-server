@@ -72,9 +72,7 @@ public class DiscordServerController {
     public List<CarryTierModel> getAllCarryTiers(@PathVariable("server") long serverId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        //TODO own service method
-        return carryTierService.findAllEntities()
-                .stream().filter(carryTier -> carryTier.getCarryType().getDiscordServer().equals(discordServer))
+        return carryTierService.findAllEntities(discordServer)
                 .map(CarryTier::toModel)
                 .toList();
     }
@@ -83,9 +81,7 @@ public class DiscordServerController {
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        //TODO own service method
-        return carryDifficultyService.findAllEntities()
-                .stream().filter(carryDifficulty -> carryDifficulty.getCarryTier().getCarryType().getDiscordServer().equals(discordServer))
+        return carryDifficultyService.findAllEntities(discordServer)
                 .map(CarryDifficulty::toModel)
                 .toList();
     }
