@@ -12,7 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Getter
@@ -92,12 +93,14 @@ public class Warning implements EntityModelRelation<WarningModel> {
 
     public boolean isExpired() {
         //Only strikes can expire
-        if(warningType != WarningType.Strike) {
+        if (warningType != WarningType.Strike) {
             return false;
         }
 
         //Strikes expire after 3 months
         //Meaning: If time that warning happened + three months is before now
-        return time.plus(3, ChronoUnit.MONTHS).isBefore(Instant.now());
+        OffsetDateTime expirationTime = time.atOffset(ZoneOffset.UTC).plusMonths(3);
+
+        return expirationTime.isBefore(Instant.now().atOffset(ZoneOffset.UTC));
     }
 }
