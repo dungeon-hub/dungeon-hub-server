@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.common.entity.EntityService;
+import me.taubsie.dungeonhub.common.enums.RoleAction;
 import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleCreationModel;
 import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
@@ -35,7 +36,7 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
     public DiscordRole loadOrCreate(DiscordServer discordServer, long id) {
         return loadEntityById(discordServer, id)
                 .orElseGet(() -> createEntity(new DiscordRoleInitializeModel(discordServer)
-                        .fromCreationModel(new DiscordRoleCreationModel(id, null, false))));
+                        .fromCreationModel(new DiscordRoleCreationModel(id, null, RoleAction.None))));
     }
 
     @Override
