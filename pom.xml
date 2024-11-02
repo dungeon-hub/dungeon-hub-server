@@ -96,7 +96,19 @@
             <groupId>me.taubsie</groupId>
             <artifactId>dungeon-hub-common</artifactId>
             <version>1.0.0</version>
-            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.dungeon-hub.api</groupId>
+            <artifactId>model</artifactId>
+            <version>0.1</version>
+        </dependency>
+
+        <!-- TODO find a way to just use the implementation of api model -->
+        <dependency>
+            <groupId>com.squareup.moshi</groupId>
+            <artifactId>moshi</artifactId>
+            <version>1.15.1</version>
         </dependency>
 
         <dependency>

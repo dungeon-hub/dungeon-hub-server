@@ -1,8 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestCreationModel;
-import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestModel;
-import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CntRequest;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
@@ -10,6 +7,9 @@ import me.taubsie.dungeonhub.server.model.CntRequestInitializeModel;
 import me.taubsie.dungeonhub.server.service.CntRequestService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
+import net.dungeonhub.model.cnt_request.CntRequestCreationModel;
+import net.dungeonhub.model.cnt_request.CntRequestModel;
+import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

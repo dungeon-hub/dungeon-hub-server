@@ -1,7 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupCreationModel;
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordRoleGroup;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
@@ -9,6 +7,8 @@ import me.taubsie.dungeonhub.server.model.DiscordRoleGroupInitializeModel;
 import me.taubsie.dungeonhub.server.service.DiscordRoleGroupService;
 import me.taubsie.dungeonhub.server.service.DiscordRoleService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupCreationModel;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

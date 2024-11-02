@@ -2,24 +2,26 @@ package me.taubsie.dungeonhub.server.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupCreationModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordRoleGroup;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupCreationModel;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupModel;
+import net.dungeonhub.structure.model.InitializeModel;
+import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 @Getter
-public class DiscordRoleGroupInitializeModel implements InitializeModel<DiscordRoleGroup, DiscordRoleGroupCreationModel> {
+public class DiscordRoleGroupInitializeModel implements InitializeModel<DiscordRoleGroup, DiscordRoleGroupModel, DiscordRoleGroupCreationModel> {
     private DiscordRole discordRole;
     private DiscordRole roleGroup;
 
     @Override
-    public DiscordRoleGroup toEntity() {
+    public @NotNull DiscordRoleGroup toEntity() {
         return new DiscordRoleGroup(discordRole, roleGroup);
     }
 
     @Override
-    public DiscordRoleGroupInitializeModel fromCreationModel(DiscordRoleGroupCreationModel creationModel) {
-        return new DiscordRoleGroupInitializeModel(discordRole.fromModel(creationModel.getDiscordRole()), roleGroup.fromModel(creationModel.getRoleGroup()));
+    public @NotNull DiscordRoleGroupInitializeModel fromCreationModel(DiscordRoleGroupCreationModel creationModel) {
+        return new DiscordRoleGroupInitializeModel(discordRole, roleGroup);
     }
 }

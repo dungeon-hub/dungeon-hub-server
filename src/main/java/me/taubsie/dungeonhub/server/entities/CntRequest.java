@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.cnt_request.CntRequestModel;
+import lombok.Setter;
+import net.dungeonhub.model.cnt_request.CntRequestModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import java.time.Instant;
 @Table(name = "cnt_request", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CntRequest implements EntityModelRelation<CntRequestModel> {
+public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntRequestModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -36,6 +36,7 @@ public class CntRequest implements EntityModelRelation<CntRequestModel> {
     @ManyToOne(fetch = FetchType.LAZY)
     private DiscordUser user;
 
+    @Setter
     @Nullable
     @JoinColumn(name = "claimer_id")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,12 +45,15 @@ public class CntRequest implements EntityModelRelation<CntRequestModel> {
     @Column(name = "request_time", nullable = false)
     private Instant time;
 
+    @Setter
     @Column(name = "coin_value", nullable = false, length = 50)
     private String coinValue;
 
+    @Setter
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Setter
     @Column(name = "requirement", nullable = false, length = 100)
     private String requirement;
 
@@ -62,24 +66,6 @@ public class CntRequest implements EntityModelRelation<CntRequestModel> {
         this.coinValue = coinValue;
         this.description = description;
         this.requirement = requirement;
-    }
-
-    @Override
-    public @NotNull CntRequest fromModel(@NotNull CntRequestModel model) {
-        return new CntRequest(
-                model.getId(),
-                model.getMessageId(),
-                discordServer.fromModel(model.getDiscordServer()),
-                user.fromModel(model.getUser()),
-                //TODO better handling if claimer in the model is null :(
-                model.getClaimer() != null ? (
-                        claimer != null ? claimer.fromModel(model.getClaimer()) : user.fromModel(model.getClaimer())
-                ) : null,
-                model.getTime(),
-                model.getCoinValue(),
-                model.getDescription(),
-                model.getRequirement()
-        );
     }
 
     @Override

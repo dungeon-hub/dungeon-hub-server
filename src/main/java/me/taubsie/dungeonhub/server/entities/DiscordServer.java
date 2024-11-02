@@ -8,8 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
+import net.dungeonhub.model.discord_server.DiscordServerModel;
 import org.jetbrains.annotations.NotNull;
 
 @Setter
@@ -18,16 +17,10 @@ import org.jetbrains.annotations.NotNull;
 @Table(name = "server", schema = "dungeon-hub")
 @NoArgsConstructor
 @AllArgsConstructor
-public class DiscordServer implements EntityModelRelation<DiscordServerModel> {
+public class DiscordServer implements net.dungeonhub.structure.entity.Entity<DiscordServerModel> {
     @Id
     @Column(name = "id", nullable = false)
-    //final
     private long id;
-
-    @Override
-    public @NotNull DiscordServer fromModel(@NotNull DiscordServerModel model) {
-        return new DiscordServer(model.getId());
-    }
 
     @Override
     public @NotNull DiscordServerModel toModel() {

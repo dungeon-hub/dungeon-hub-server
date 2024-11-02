@@ -5,8 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.warning.WarningEvidenceModel;
+import net.dungeonhub.model.warning.WarningEvidenceModel;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 @Table(name = "warn_proofs", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class WarningEvidence implements EntityModelRelation<WarningEvidenceModel> {
+public class WarningEvidence implements net.dungeonhub.structure.entity.Entity<WarningEvidenceModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -31,11 +30,6 @@ public class WarningEvidence implements EntityModelRelation<WarningEvidenceModel
     @JoinColumn(name = "submitter", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private DiscordUser submitter;
-
-    @Override
-    public @NotNull WarningEvidence fromModel(@NotNull WarningEvidenceModel model) {
-        return new WarningEvidence(model.getId(), warning.fromModel(model.getWarningModel()), model.getEvidence(), submitter.fromModel(model.getSubmitter()));
-    }
 
     public WarningEvidence(Warning warning, String evidence, DiscordUser submitter) {
         this.warning = warning;
