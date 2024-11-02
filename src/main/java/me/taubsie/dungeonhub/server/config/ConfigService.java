@@ -1,7 +1,7 @@
 package me.taubsie.dungeonhub.server.config;
 
-import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
 import me.taubsie.dungeonhub.server.DungeonHubServerApplication;
+import me.taubsie.dungeonhub.server.exception.ProgramStartException;
 
 import java.io.*;
 import java.nio.file.Files;
