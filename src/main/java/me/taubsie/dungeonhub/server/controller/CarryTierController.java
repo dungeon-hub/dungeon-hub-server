@@ -1,8 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierCreationModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
@@ -10,6 +7,9 @@ import me.taubsie.dungeonhub.server.model.CarryTierInitializeModel;
 import me.taubsie.dungeonhub.server.service.CarryTierService;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
+import net.dungeonhub.model.carry_tier.CarryTierCreationModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
+import net.dungeonhub.model.carry_tier.CarryTierUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

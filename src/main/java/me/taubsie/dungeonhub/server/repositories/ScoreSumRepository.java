@@ -1,9 +1,9 @@
 package me.taubsie.dungeonhub.server.repositories;
 
-import me.taubsie.dungeonhub.common.enums.ScoreType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.ScoreSum;
+import net.dungeonhub.enums.ScoreType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

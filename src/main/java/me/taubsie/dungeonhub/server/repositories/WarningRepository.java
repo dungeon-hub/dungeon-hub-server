@@ -1,7 +1,7 @@
 package me.taubsie.dungeonhub.server.repositories;
 
-import me.taubsie.dungeonhub.common.enums.WarningType;
 import me.taubsie.dungeonhub.server.entities.Warning;
+import net.dungeonhub.enums.WarningType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
