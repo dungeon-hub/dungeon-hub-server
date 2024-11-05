@@ -51,6 +51,10 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
         return carryTierRepository.save(initalizationModel.toEntity());
     }
 
+    public void delete(CarryTier carryTier) {
+        carryTierRepository.delete(carryTier);
+    }
+
     @Override
     public boolean delete(long id) {
         return carryTierRepository.findById(id).map(entity ->
