@@ -3,8 +3,8 @@ package me.taubsie.dungeonhub.server.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
+import lombok.Setter;
+import net.dungeonhub.model.discord_role.DiscordRoleModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -12,13 +12,15 @@ import org.jetbrains.annotations.NotNull;
 @Entity(name = "discord_role")
 @Table(name = "discord_role", schema = "dungeon-hub")
 @NoArgsConstructor
-public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
+public class DiscordRole implements net.dungeonhub.structure.entity.Entity<DiscordRoleModel> {
     @Id
     private long id;
 
+    @Setter
     @Column(name = "name_schema")
     private String nameSchema;
 
+    @Setter
     @Column(name = "verified_role")
     private boolean verifiedRole;
 
@@ -33,12 +35,6 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
         this.nameSchema = nameSchema;
         this.verifiedRole = verifiedRole;
         this.discordServer = discordServer;
-    }
-
-    @Override
-    public @NotNull DiscordRole fromModel(@NotNull DiscordRoleModel model) {
-        return new DiscordRole(model.getId(), model.getNameSchema(), model.isVerifiedRole(),
-                discordServer.fromModel(model.getDiscordServerModel()));
     }
 
     @Override

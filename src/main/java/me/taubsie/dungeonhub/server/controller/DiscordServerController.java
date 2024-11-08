@@ -1,14 +1,14 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
-import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
-import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
+import net.dungeonhub.model.discord_server.DiscordServerModel;
+import net.dungeonhub.model.score.LeaderboardModel;
+import net.dungeonhub.model.score.ScoreModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -125,21 +125,15 @@ public class DiscordServerController {
         Page<ScoreModel> scores = scoreService.getTotalLeaderboard(discordServer, scoreType, page)
                 .map(ScoreSum::toScoreModel);
 
-        LeaderboardModel leaderboardModel = new LeaderboardModel(
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new LeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
-                scores.getContent()
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
         );
-
-        userId.ifPresent(id -> {
-            DiscordUser user = discordUserService.loadEntityOrCreate(id);
-
-            leaderboardModel.setPlayerPosition(scoreService.getTotalPosition(discordServer, scoreType, user));
-            scoreService.countTotalScoreForCarrier(user, discordServer, scoreType).ifPresent(score ->
-                    leaderboardModel.setPlayerScore(score.toScoreModel()));
-        });
-
-        return leaderboardModel;
     }
 
     @GetMapping("{server}/total-money-spent")

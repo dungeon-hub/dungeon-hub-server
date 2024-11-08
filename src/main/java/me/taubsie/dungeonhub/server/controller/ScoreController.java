@@ -1,17 +1,17 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import me.taubsie.dungeonhub.common.enums.ScoreResetType;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.common.model.ScoreResetModel;
-import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreUpdateModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import me.taubsie.dungeonhub.server.service.ScoreService;
+import net.dungeonhub.enums.ScoreResetType;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.score.LeaderboardModel;
+import net.dungeonhub.model.score.ScoreModel;
+import net.dungeonhub.model.score.ScoreResetModel;
+import net.dungeonhub.model.score.ScoreUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -109,21 +109,15 @@ public class ScoreController {
         Page<ScoreModel> scores = scoreService.getTotalLeaderboard(discordServer, scoreType, page)
                 .map(ScoreSum::toScoreModel);
 
-        LeaderboardModel leaderboardModel = new LeaderboardModel(
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new LeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
-                scores.getContent()
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
         );
-
-        userId.ifPresent(id -> {
-            DiscordUser user = discordUserService.loadEntityOrCreate(id);
-
-            leaderboardModel.setPlayerPosition(scoreService.getTotalPosition(discordServer, scoreType, user));
-            scoreService.countTotalScoreForCarrier(user, discordServer, scoreType).ifPresent(score ->
-                    leaderboardModel.setPlayerScore(score.toScoreModel()));
-        });
-
-        return leaderboardModel;
     }
 
     @GetMapping(value = "leaderboard")
@@ -143,21 +137,15 @@ public class ScoreController {
 
         Page<ScoreModel> scores = scoreService.getLeaderboard(carryType, scoreType, page).map(Score::toModel);
 
-        LeaderboardModel leaderboardModel = new LeaderboardModel(
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new LeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
-                scores.getContent()
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
         );
-
-        userId.ifPresent(id -> {
-            DiscordUser user = discordUserService.loadEntityOrCreate(id);
-
-            leaderboardModel.setPlayerPosition(scoreService.getPosition(carryType, scoreType, user));
-            scoreService.countScoreForCarrier(user, carryType, scoreType).ifPresent(score ->
-                    leaderboardModel.setPlayerScore(score.toModel()));
-        });
-
-        return leaderboardModel;
     }
 
     @DeleteMapping

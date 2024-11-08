@@ -5,19 +5,18 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @Entity(name = "carry_tier")
 @Table(name = "carry_tier", schema = "dungeon-hub")
 @NoArgsConstructor
-public class CarryTier implements EntityModelRelation<CarryTierModel> {
+public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTierModel> {
     @Getter
     @OneToMany(mappedBy = "carryTier")
     @JsonIgnore
@@ -103,38 +102,6 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
         }
     }
 
-    public String getDescriptiveName() {
-        return getActualDescriptiveName().orElse(getDisplayName());
-    }
-
-    public Optional<String> getActualDescriptiveName() {
-        return Optional.ofNullable(descriptiveName == null || descriptiveName.isBlank() ? null : descriptiveName);
-    }
-
-    public Optional<Long> getCategory() {
-        return Optional.ofNullable(category > 0L ? category : null);
-    }
-
-    public Optional<String> getThumbnailUrl() {
-        return Optional.ofNullable(thumbnailUrl == null || thumbnailUrl.isBlank() ? null : thumbnailUrl);
-    }
-
-    public String getPriceTitle() {
-        return getActualPriceTitle().orElse(getDescriptiveName());
-    }
-
-    public Optional<String> getActualPriceTitle() {
-        return Optional.ofNullable(priceTitle == null || priceTitle.isBlank() ? null : priceTitle);
-    }
-
-    public Optional<String> getPriceDescription() {
-        return Optional.ofNullable(priceDescription == null || priceDescription.isBlank() ? null : priceDescription);
-    }
-
-    public Optional<Long> getPriceChannel() {
-        return Optional.ofNullable(priceChannel > 0L ? priceChannel : null);
-    }
-
     @Override
     public boolean equals(Object object) {
         if (object instanceof CarryTier carryTier) {
@@ -151,16 +118,18 @@ public class CarryTier implements EntityModelRelation<CarryTierModel> {
     }
 
     @Override
-    public @NotNull CarryTier fromModel(@NotNull CarryTierModel model) {
-        return new CarryTier(model.getId(), model.getIdentifier(), model.getDisplayName(),
-                carryType.fromModel(model.getCarryType()), model.getActualCategory(), model.getActualPriceChannel(),
-                model.getActualDescriptiveName().orElse(null), model.getActualThumbnailUrl(),
-                model.getActualPriceTitle().orElse(null), model.getActualPriceDescription());
-    }
-
-    @Override
     public @NotNull CarryTierModel toModel() {
-        return new CarryTierModel(category, priceChannel, descriptiveName, thumbnailUrl, priceTitle, priceDescription,
-                id, identifier, displayName, carryType.toModel());
+        return new CarryTierModel(
+                id,
+                identifier,
+                displayName,
+                carryType.toModel(),
+                category,
+                priceChannel,
+                descriptiveName,
+                thumbnailUrl,
+                priceTitle,
+                priceDescription
+        );
     }
 }

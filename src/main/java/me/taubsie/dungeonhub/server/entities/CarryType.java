@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
+import lombok.Setter;
+import net.dungeonhub.model.carry_type.CarryTypeModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,7 @@ import java.util.Set;
 @Entity(name = "carry_type")
 @Table(name = "carry_type", schema = "dungeon-hub")
 @NoArgsConstructor
-public class CarryType implements EntityModelRelation<CarryTypeModel> {
+public class CarryType implements net.dungeonhub.structure.entity.Entity<CarryTypeModel> {
     @Getter
     @OneToMany(mappedBy = "carryType")
     @JsonIgnore
@@ -34,19 +34,24 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
     //final
     private String identifier;
     @Getter
+    @Setter
     @Column(name = "display_name", nullable = false, length = 50)
     private String displayName;
 
     @Getter
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "server", nullable = false)
     //final
     private DiscordServer discordServer;
+    @Setter
     @Column(name = "log_channel")
     private Long logChannel;
+    @Setter
     @Column(name = "leaderboard_channel")
     private Long leaderboardChannel;
+    @Setter
     @Column(name = "event_active")
     private Boolean eventActive;
 
@@ -91,13 +96,6 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
     @Override
     public int hashCode() {
         return Long.hashCode(id);
-    }
-
-    @Override
-    public @NotNull CarryType fromModel(@NotNull CarryTypeModel model) {
-        return new CarryType(model.getId(), model.getIdentifier(), model.getDisplayName(),
-                discordServer.fromModel(model.getServer()), model.getActualLogChannel(), model.getActualLeaderboardChannel(),
-                model.getEventActive());
     }
 
     @Override

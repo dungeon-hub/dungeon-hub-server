@@ -1,12 +1,12 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.PurgeType;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.PurgeTypeService;
+import net.dungeonhub.model.purge_type.PurgeTypeModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

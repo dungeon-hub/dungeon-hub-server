@@ -4,10 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.enums.WarningType;
-import me.taubsie.dungeonhub.common.model.warning.DetailedWarningModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningModel;
+import net.dungeonhub.enums.WarningType;
+import net.dungeonhub.model.warning.DetailedWarningModel;
+import net.dungeonhub.model.warning.WarningModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +20,7 @@ import java.util.List;
 @Entity
 @Table(name = "warns", schema = "dungeon-hub")
 @NoArgsConstructor
-public class Warning implements EntityModelRelation<WarningModel> {
+public class Warning implements net.dungeonhub.structure.entity.Entity<WarningModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -75,11 +74,6 @@ public class Warning implements EntityModelRelation<WarningModel> {
         this.reason = reason;
         this.active = active;
         this.time = time;
-    }
-
-    @Override
-    public @NotNull Warning fromModel(@NotNull WarningModel model) {
-        return new Warning(model.getId(), server.fromModel(model.getServer()), user.fromModel(model.getUser()), striker.fromModel(model.getStriker()), model.getWarningType(), model.getReason(), model.isActive(), model.getTime());
     }
 
     @Override

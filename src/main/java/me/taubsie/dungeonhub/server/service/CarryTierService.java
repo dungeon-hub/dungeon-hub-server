@@ -1,15 +1,16 @@
 package me.taubsie.dungeonhub.server.service;
 
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierCreationModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTierInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTierRepository;
+import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.model.carry_tier.CarryTierCreationModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
+import net.dungeonhub.model.carry_tier.CarryTierUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
     }
 
     @Override
-    public Optional<CarryTier> loadEntityById(long id) {
+    public @NotNull Optional<CarryTier> loadEntityById(long id) {
         return carryTierRepository.findById(id);
     }
 
@@ -37,17 +38,12 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
                 .filter(carryTier -> carryTier.getCarryType().equals(carryType));
     }
 
-    @Override
-    public Optional<CarryTier> loadEntityByName(String name) {
-        return carryTierRepository.findCarryTierByIdentifier(name);
-    }
-
     public List<CarryTier> loadEntitiesByCarryType(CarryType carryType) {
         return carryTierRepository.findCarryTiersByCarryType(carryType);
     }
 
     @Override
-    public List<CarryTier> findAllEntities() {
+    public @NotNull List<CarryTier> findAllEntities() {
         return carryTierRepository.findAll();
     }
 
@@ -56,8 +52,12 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
     }
 
     @Override
-    public CarryTier createEntity(CarryTierInitializeModel initalizationModel) {
+    public @NotNull CarryTier createEntity(CarryTierInitializeModel initalizationModel) {
         return carryTierRepository.save(initalizationModel.toEntity());
+    }
+
+    public void delete(CarryTier carryTier) {
+        carryTierRepository.delete(carryTier);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
     }
 
     @Override
-    public CarryTier saveEntity(CarryTier entity) {
+    public @NotNull CarryTier saveEntity(@NotNull CarryTier entity) {
         return carryTierRepository.save(entity);
     }
 
@@ -81,7 +81,7 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
     }
 
     @Override
-    public Function<CarryTier, CarryTierModel> toModel() {
+    public @NotNull Function<CarryTier, CarryTierModel> toModel() {
         return CarryTier::toModel;
     }
 
@@ -89,7 +89,60 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
         return carryTierRepository.findFirstByCarryType_DiscordServerAndCategory(discordServer, categoryId);
     }
 
-    public void delete(CarryTier carryTier) {
-        carryTierRepository.delete(carryTier);
+    @Override
+    public @NotNull CarryTier updateEntity(@NotNull CarryTier carryTier, @NotNull CarryTierUpdateModel carryTierUpdateModel) {
+        if (carryTierUpdateModel.getDisplayName() != null) {
+            carryTier.setDisplayName(carryTierUpdateModel.getDisplayName());
+        }
+
+        if (carryTierUpdateModel.getResetCategory()) {
+            carryTier.setCategory(null);
+        }
+
+        if (carryTierUpdateModel.getCategory() != null) {
+            carryTier.setCategory(carryTierUpdateModel.getCategory());
+        }
+
+        if (carryTierUpdateModel.getResetPriceChannel()) {
+            carryTier.setPriceChannel(null);
+        }
+
+        if (carryTierUpdateModel.getPriceChannel() != null) {
+            carryTier.setPriceChannel(carryTierUpdateModel.getPriceChannel());
+        }
+
+        if (carryTierUpdateModel.getResetDescriptiveName()) {
+            carryTier.setDescriptiveName(null);
+        }
+
+        if (carryTierUpdateModel.getDescriptiveName() != null) {
+            carryTier.setDescriptiveName(carryTierUpdateModel.getDescriptiveName());
+        }
+
+        if (carryTierUpdateModel.getResetThumbnailUrl()) {
+            carryTier.setThumbnailUrl(null);
+        }
+
+        if (carryTierUpdateModel.getThumbnailUrl() != null) {
+            carryTier.setThumbnailUrl(carryTierUpdateModel.getThumbnailUrl());
+        }
+
+        if (carryTierUpdateModel.getResetPriceTitle()) {
+            carryTier.setPriceTitle(null);
+        }
+
+        if (carryTierUpdateModel.getPriceTitle() != null) {
+            carryTier.setPriceTitle(carryTierUpdateModel.getPriceTitle());
+        }
+
+        if (carryTierUpdateModel.getResetPriceDescription()) {
+            carryTier.setPriceDescription(null);
+        }
+
+        if (carryTierUpdateModel.getPriceDescription() != null) {
+            carryTier.setPriceDescription(carryTierUpdateModel.getPriceDescription());
+        }
+
+        return carryTier;
     }
 }

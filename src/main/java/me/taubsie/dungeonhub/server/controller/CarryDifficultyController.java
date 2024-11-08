@@ -1,7 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
@@ -10,6 +8,8 @@ import me.taubsie.dungeonhub.server.service.CarryDifficultyService;
 import me.taubsie.dungeonhub.server.service.CarryTierService;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
