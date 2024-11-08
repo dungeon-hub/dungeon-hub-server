@@ -57,7 +57,11 @@ public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntReq
     @Column(name = "requirement", nullable = false, length = 100)
     private String requirement;
 
-    public CntRequest(long messageId, DiscordServer discordServer, DiscordUser user, @Nullable DiscordUser claimer, Instant time, String coinValue, String description, String requirement) {
+    @Setter
+    @Column(name = "completed", nullable = false)
+    private boolean completed;
+
+    public CntRequest(long messageId, DiscordServer discordServer, DiscordUser user, @Nullable DiscordUser claimer, Instant time, String coinValue, String description, String requirement, boolean completed) {
         this.messageId = messageId;
         this.discordServer = discordServer;
         this.user = user;
@@ -66,10 +70,11 @@ public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntReq
         this.coinValue = coinValue;
         this.description = description;
         this.requirement = requirement;
+        this.completed = completed;
     }
 
     @Override
     public @NotNull CntRequestModel toModel() {
-        return new CntRequestModel(id, messageId, discordServer.toModel(), user.toModel(), claimer != null ? claimer.toModel() : null, time, coinValue, description, requirement);
+        return new CntRequestModel(id, messageId, discordServer.toModel(), user.toModel(), claimer != null ? claimer.toModel() : null, time, coinValue, description, requirement, completed);
     }
 }

@@ -30,7 +30,7 @@ public class CntRequestInitializeModel implements InitializeModel<CntRequest, Cn
 
     @Override
     public @NotNull CntRequest toEntity() {
-        return new CntRequest(messageId, discordServer, user, claimer, time, coinValue, description, requirement);
+        return new CntRequest(messageId, discordServer, user, claimer, time, coinValue, description, requirement, false);
     }
 
     @Override
