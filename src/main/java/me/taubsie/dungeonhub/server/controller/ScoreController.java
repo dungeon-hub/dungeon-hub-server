@@ -143,8 +143,8 @@ public class ScoreController {
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
                 scores.getContent(),
-                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
-                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
+                user.map(userEntity -> scoreService.getPosition(carryType, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countScoreForCarrier(userEntity, carryType, scoreType).map(Score::toModel)).orElse(null)
         );
     }
 
