@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import me.taubsie.dungeonhub.common.DungeonHubService;
+import net.dungeonhub.service.MoshiService;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.metadata.Metadata;
@@ -113,8 +114,8 @@ public class ContentController {
                 return ResponseEntity
                         .status(HttpStatus.FOUND)
                         .body(new InMemoryResource(
-                                DungeonHubService.getInstance()
-                                        .getGson()
+                                MoshiService.INSTANCE.getMoshi()
+                                        .adapter(List.class)
                                         .toJson(allFiles)
                         ));
             }

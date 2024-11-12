@@ -1,14 +1,14 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserCreationModel;
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserModel;
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
 import me.taubsie.dungeonhub.server.service.CarryService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
+import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
+import net.dungeonhub.model.discord_user.DiscordUserModel;
+import net.dungeonhub.model.discord_user.DiscordUserUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -1,13 +1,6 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.enums.WarningType;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.warning.WarningActionModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningCreationModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningModel;
-import me.taubsie.dungeonhub.common.model.warning.WarningUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Warning;
@@ -15,6 +8,14 @@ import me.taubsie.dungeonhub.server.entities.WarningPunishment;
 import me.taubsie.dungeonhub.server.model.WarningInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.WarningPunishmentRepository;
 import me.taubsie.dungeonhub.server.repositories.WarningRepository;
+import net.dungeonhub.enums.WarningType;
+import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.model.warning.WarningActionModel;
+import net.dungeonhub.model.warning.WarningCreationModel;
+import net.dungeonhub.model.warning.WarningModel;
+import net.dungeonhub.model.warning.WarningUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -43,22 +44,17 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     }
 
     @Override
-    public Optional<Warning> loadEntityById(long id) {
+    public @NotNull Optional<Warning> loadEntityById(long id) {
         return warningRepository.findById(id);
     }
 
     @Override
-    public Optional<Warning> loadEntityByName(String name) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<Warning> findAllEntities() {
+    public @NotNull List<Warning> findAllEntities() {
         return warningRepository.findAll();
     }
 
     @Override
-    public Warning createEntity(WarningInitializeModel initalizationModel) {
+    public @NotNull Warning createEntity(WarningInitializeModel initalizationModel) {
         return saveEntity(initalizationModel.toEntity());
     }
 
@@ -78,7 +74,7 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     }
 
     @Override
-    public Warning saveEntity(Warning entity) {
+    public @NotNull Warning saveEntity(@NotNull Warning entity) {
         return warningRepository.save(entity);
     }
 
@@ -88,7 +84,7 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     }
 
     @Override
-    public Function<Warning, WarningModel> toModel() {
+    public @NotNull Function<Warning, WarningModel> toModel() {
         return Warning::toModel;
     }
 
@@ -123,5 +119,32 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
 
                     logger.info("The strike warning with id was just deactivated: {}", warning.getId());
                 });
+    }
+
+    @Override
+    public @NotNull Warning updateEntity(@NotNull Warning warning, @NotNull WarningUpdateModel warningUpdateModel) {
+        /*
+        var warningType: WarningType?,
+        reason: String?,
+        var active: Boolean?
+        */
+
+        if(warningUpdateModel.getWarningType() != null) {
+            warning.setWarningType(warningUpdateModel.getWarningType());
+        }
+
+        if(warningUpdateModel.getResetReason()) {
+            warning.setReason(null);
+        }
+
+        if(warningUpdateModel.getReason() != null) {
+            warning.setReason(warningUpdateModel.getReason());
+        }
+
+        if(warningUpdateModel.getActive() != null) {
+            warning.setActive(warningUpdateModel.getActive());
+        }
+
+        return warning;
     }
 }

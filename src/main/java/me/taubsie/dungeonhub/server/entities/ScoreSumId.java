@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
+import net.dungeonhub.enums.ScoreType;
 import org.hibernate.Hibernate;
 
 import java.io.Serial;

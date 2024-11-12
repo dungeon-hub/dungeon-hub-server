@@ -5,8 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.carry.CarryModel;
+import net.dungeonhub.model.carry.CarryModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +18,7 @@ import java.time.Instant;
 @Table(name = "carry", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Carry implements EntityModelRelation<CarryModel> {
+public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -36,6 +35,7 @@ public class Carry implements EntityModelRelation<CarryModel> {
     @JoinColumn(name = "carry_difficulty")
     private CarryDifficulty carryDifficulty;
 
+    //TODO make not nullable ?
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "player")
@@ -75,16 +75,17 @@ public class Carry implements EntityModelRelation<CarryModel> {
     }
 
     @Override
-    public @NotNull Carry fromModel(@NotNull CarryModel model) {
-        return new Carry(model.id(), model.time(), model.amount(), carryDifficulty.fromModel(model.carryDifficulty())
-                , player.fromModel(model.player()), carrier.fromModel(model.carrier()), model.approver(),
-                model.attachmentLink());
-    }
-
-    @Override
     public @NotNull CarryModel toModel() {
-        return new CarryModel(id, time, amount, carryDifficulty.toModel(), player.toModel(), carrier.toModel(),
-                approver, attachmentLink);
+        return new CarryModel(
+                id,
+                amount,
+                carryDifficulty.toModel(),
+                player.toModel(),
+                carrier.toModel(),
+                approver,
+                attachmentLink,
+                time
+        );
     }
 
     public long calculateScore() {

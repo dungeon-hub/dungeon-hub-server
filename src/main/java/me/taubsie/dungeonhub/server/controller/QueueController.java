@@ -1,14 +1,14 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import me.taubsie.dungeonhub.common.enums.QueueStep;
-import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueCreationModel;
-import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
-import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueUpdateModel;
-import me.taubsie.dungeonhub.common.model.score.LoggedCarryModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.model.CarryQueueInitializeModel;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.enums.QueueStep;
+import net.dungeonhub.model.carry_queue.CarryQueueCreationModel;
+import net.dungeonhub.model.carry_queue.CarryQueueModel;
+import net.dungeonhub.model.carry_queue.CarryQueueUpdateModel;
+import net.dungeonhub.model.score.LoggedCarryModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -81,9 +81,8 @@ public class QueueController {
     @PostMapping("log/{id}")
     public LoggedCarryModel logCarry(@PathVariable Long id, @RequestBody CarryQueueUpdateModel updateModel) {
         try {
-            CarryQueue carryQueue = carryQueueService.getCarryQueue(id)
-                    .fromModel(updateModel.apply(carryQueueService.getCarryQueue(id).toModel()));
-
+            CarryQueue carryQueue = carryQueueService.getCarryQueue(id);
+            carryQueue = carryQueueService.update(carryQueue, updateModel);
             Carry carry = carryQueue.toCarry();
 
             carry.setApprover(updateModel.getApprover());

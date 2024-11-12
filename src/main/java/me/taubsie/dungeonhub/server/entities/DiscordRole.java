@@ -3,9 +3,9 @@ package me.taubsie.dungeonhub.server.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
+import lombok.Setter;
 import me.taubsie.dungeonhub.common.enums.RoleAction;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
+import net.dungeonhub.model.discord_role.DiscordRoleModel;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -14,13 +14,15 @@ import org.jetbrains.annotations.NotNull;
 @Entity(name = "discord_role")
 @Table(name = "discord_role", schema = "dungeon-hub")
 @NoArgsConstructor
-public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
+public class DiscordRole implements net.dungeonhub.structure.entity.Entity<DiscordRoleModel> {
     @Id
     private long id;
 
+    @Setter
     @Column(name = "name_schema")
     private String nameSchema;
 
+    @Setter
     @Column(name = "role_action", nullable = false)
     @Enumerated
     @ColumnDefault("0")
@@ -37,12 +39,6 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
         this.nameSchema = nameSchema;
         this.roleAction = roleAction;
         this.discordServer = discordServer;
-    }
-
-    @Override
-    public @NotNull DiscordRole fromModel(@NotNull DiscordRoleModel model) {
-        return new DiscordRole(model.getId(), model.getNameSchema(), model.getRoleAction(),
-                discordServer.fromModel(model.getDiscordServerModel()));
     }
 
     @Override
