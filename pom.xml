@@ -127,7 +127,7 @@
         <dependency>
             <groupId>net.dungeon-hub.api</groupId>
             <artifactId>model</artifactId>
-            <version>0.2.0</version>
+            <version>0.3.0</version>
         </dependency>
 
         <!-- TODO find a way to just use the implementation of api model -->

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import net.dungeonhub.enums.RoleAction;
 import net.dungeonhub.model.discord_role.DiscordRoleCreationModel;
 import net.dungeonhub.model.discord_role.DiscordRoleModel;
 import net.dungeonhub.structure.model.InitializeModel;
