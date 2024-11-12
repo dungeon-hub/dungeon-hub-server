@@ -119,12 +119,6 @@
         </dependency>
 
         <dependency>
-            <groupId>me.taubsie</groupId>
-            <artifactId>dungeon-hub-common</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>net.dungeon-hub.api</groupId>
             <artifactId>model</artifactId>
             <version>0.3.0</version>

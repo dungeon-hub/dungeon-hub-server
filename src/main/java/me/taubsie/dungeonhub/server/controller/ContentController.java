@@ -1,7 +1,7 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import me.taubsie.dungeonhub.common.DungeonHubService;
+import me.taubsie.dungeonhub.server.config.ConfigService;
 import net.dungeonhub.service.MoshiService;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
@@ -11,6 +11,7 @@ import org.apache.tika.mime.MimeTypeException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -41,9 +42,15 @@ import java.util.UUID;
 public class ContentController {
     private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
 
-    private static String getContentFolder() {
-        return DungeonHubService.getInstance()
-                .getMainFolder() + File.separator + "cdn";
+    private final ConfigService configService;
+
+    @Autowired
+    public ContentController(ConfigService configService) {
+        this.configService = configService;
+    }
+
+    private String getContentFolder() {
+        return configService.getDungeonHubDirectory() + File.separator + "cdn";
     }
 
     public MimeType getMimeType(InputStream inputStream) throws IOException, MimeTypeException {
