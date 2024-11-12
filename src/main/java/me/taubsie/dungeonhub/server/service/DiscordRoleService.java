@@ -5,6 +5,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordRoleRepository;
+import net.dungeonhub.enums.RoleAction;
 import net.dungeonhub.expections.EntityUnknownException;
 import net.dungeonhub.model.discord_role.DiscordRoleCreationModel;
 import net.dungeonhub.model.discord_role.DiscordRoleModel;
@@ -36,7 +37,7 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
     public DiscordRole loadOrCreate(DiscordServer discordServer, long id) {
         return loadEntityById(discordServer, id)
                 .orElseGet(() -> createEntity(new DiscordRoleInitializeModel(discordServer)
-                        .fromCreationModel(new DiscordRoleCreationModel(id, null, false))));
+                        .fromCreationModel(new DiscordRoleCreationModel(id, null, RoleAction.None))));
     }
 
     @Override
@@ -92,8 +93,8 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
             discordRole.setNameSchema(discordRoleUpdateModel.getNameSchema());
         }
 
-        if (discordRoleUpdateModel.getVerifiedRole() != null) {
-            discordRole.setVerifiedRole(discordRoleUpdateModel.getVerifiedRole());
+        if (discordRoleUpdateModel.getRoleAction() != null) {
+            discordRole.setRoleAction(discordRoleUpdateModel.getRoleAction());
         }
 
         return discordRole;
