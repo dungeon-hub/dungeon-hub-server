@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 public class ConfigService {
     private final String dungeonHubDirectory;
 
-    public ConfigService(@Value("dungeon-hub.directory") String dungeonHubDirectory) {
+    public ConfigService(@Value("${dungeon-hub.directory}") String dungeonHubDirectory) {
         this.dungeonHubDirectory = dungeonHubDirectory;
     }
 
