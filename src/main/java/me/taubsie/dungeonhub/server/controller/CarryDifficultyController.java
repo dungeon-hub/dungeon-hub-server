@@ -4,10 +4,12 @@ import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
 import me.taubsie.dungeonhub.server.service.CarryDifficultyService;
 import me.taubsie.dungeonhub.server.service.CarryTierService;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyCreationModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +71,14 @@ public class CarryDifficultyController {
         return getFromArguments(serverId, carryTypeId, carryTierId, id).toModel();
     }
 
+    @PostMapping
+    public CarryDifficultyModel createCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry" +
+            "-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId,
+                                                      @RequestBody CarryDifficultyCreationModel creationModel) {
+        CarryTier carryTier = getFromArguments(serverId, carryTypeId, carryTierId);
+
+        return carryDifficultyService.create(new CarryDifficultyInitializeModel(carryTier).fromCreationModel(creationModel));
+    }
 
     @PutMapping("{id}")
     public CarryDifficultyModel updateCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry" +
@@ -77,5 +87,14 @@ public class CarryDifficultyController {
         CarryDifficulty carryDifficulty = getFromArguments(serverId, carryTypeId, carryTierId, id);
 
         return carryDifficultyService.update(carryDifficulty, updateModel).toModel();
+    }
+
+    @DeleteMapping("{id}")
+    public CarryDifficultyModel deleteCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId, @PathVariable long id) {
+        CarryDifficulty carryDifficulty = getFromArguments(serverId, carryTypeId, carryTierId, id);
+
+        carryDifficultyService.delete(carryDifficulty);
+
+        return carryDifficulty.toModel();
     }
 }

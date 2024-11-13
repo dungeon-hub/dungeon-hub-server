@@ -58,6 +58,10 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
         return carryDifficultyRepository.save(initalizationModel.toEntity());
     }
 
+    public void delete(CarryDifficulty carryDifficulty) {
+        carryDifficultyRepository.delete(carryDifficulty);
+    }
+
     @Override
     public boolean delete(long id) {
         return carryDifficultyRepository.findById(id).map(entity ->
