@@ -123,12 +123,6 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
 
     @Override
     public @NotNull Warning updateEntity(@NotNull Warning warning, @NotNull WarningUpdateModel warningUpdateModel) {
-        /*
-        var warningType: WarningType?,
-        reason: String?,
-        var active: Boolean?
-        */
-
         if(warningUpdateModel.getWarningType() != null) {
             warning.setWarningType(warningUpdateModel.getWarningType());
         }
