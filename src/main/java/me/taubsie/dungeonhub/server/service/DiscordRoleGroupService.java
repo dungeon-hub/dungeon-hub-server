@@ -1,15 +1,16 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupCreationModel;
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupModel;
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRoleGroup;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleGroupInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordRoleGroupRepository;
+import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupCreationModel;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupModel;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class DiscordRoleGroupService implements EntityService<DiscordRoleGroup, 
     private final DiscordRoleGroupRepository discordRoleGroupRepository;
 
     @Override
-    public Optional<DiscordRoleGroup> loadEntityById(long id) {
+    public @NotNull Optional<DiscordRoleGroup> loadEntityById(long id) {
         return discordRoleGroupRepository.findById(id);
     }
 
@@ -32,17 +33,12 @@ public class DiscordRoleGroupService implements EntityService<DiscordRoleGroup, 
     }
 
     @Override
-    public Optional<DiscordRoleGroup> loadEntityByName(String name) {
-        return Optional.empty();
-    }
-
-    @Override
-    public List<DiscordRoleGroup> findAllEntities() {
+    public @NotNull List<DiscordRoleGroup> findAllEntities() {
         return discordRoleGroupRepository.findAll();
     }
 
     @Override
-    public DiscordRoleGroup createEntity(DiscordRoleGroupInitializeModel initalizationModel) {
+    public @NotNull DiscordRoleGroup createEntity(DiscordRoleGroupInitializeModel initalizationModel) {
         return discordRoleGroupRepository.save(initalizationModel.toEntity());
     }
 
@@ -60,7 +56,7 @@ public class DiscordRoleGroupService implements EntityService<DiscordRoleGroup, 
     }
 
     @Override
-    public DiscordRoleGroup saveEntity(DiscordRoleGroup entity) {
+    public @NotNull DiscordRoleGroup saveEntity(@NotNull DiscordRoleGroup entity) {
         return discordRoleGroupRepository.save(entity);
     }
 
@@ -71,11 +67,16 @@ public class DiscordRoleGroupService implements EntityService<DiscordRoleGroup, 
     }
 
     @Override
-    public Function<DiscordRoleGroup, DiscordRoleGroupModel> toModel() {
+    public @NotNull Function<DiscordRoleGroup, DiscordRoleGroupModel> toModel() {
         return DiscordRoleGroup::toModel;
     }
 
     public List<DiscordRoleGroup> loadEntitiesByDiscordServer(DiscordServer discordServer) {
         return discordRoleGroupRepository.findDiscordRoleGroupsByDiscordRole_DiscordServer(discordServer);
+    }
+
+    @Override
+    public @NotNull DiscordRoleGroup updateEntity(@NotNull DiscordRoleGroup discordRoleGroup, @NotNull DiscordRoleGroupUpdateModel discordRoleGroupUpdateModel) {
+        return discordRoleGroup;
     }
 }

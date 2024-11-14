@@ -3,49 +3,49 @@ package me.taubsie.dungeonhub.server.service;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserCreationModel;
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserModel;
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordUserRepository;
+import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
+import net.dungeonhub.model.discord_user.DiscordUserModel;
+import net.dungeonhub.model.discord_user.DiscordUserUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
 @Getter
 @Setter
 @AllArgsConstructor
-public class DiscordUserService implements EntityService<DiscordUser, DiscordUserModel, DiscordUserCreationModel,
-        DiscordUserInitializeModel, DiscordUserUpdateModel> {
+public class DiscordUserService implements EntityService<DiscordUser, DiscordUserModel, DiscordUserCreationModel, DiscordUserInitializeModel, DiscordUserUpdateModel> {
     private final DiscordUserRepository discordUserRepository;
 
     @Override
-    public Optional<DiscordUser> loadEntityById(long id) {
+    public @NotNull Optional<DiscordUser> loadEntityById(long id) {
         return discordUserRepository.findById(id);
     }
 
     public DiscordUser loadEntityOrCreate(long id) {
-        return loadEntityById(id).orElseGet(() -> createEntity(new DiscordUserInitializeModel(id, null)));
+        return discordUserRepository.loadEntityOrCreate(id);
+    }
+
+    public Optional<DiscordUser> loadEntityByMinecraftId(UUID minecraftId) {
+        return discordUserRepository.findDiscordUserByMinecraftId(minecraftId);
     }
 
     @Override
-    public Optional<DiscordUser> loadEntityByName(String name) {
-        return Optional.empty();
-    }
-
-    @Override
-    public List<DiscordUser> findAllEntities() {
+    public @NotNull List<DiscordUser> findAllEntities() {
         return discordUserRepository.findAll();
     }
 
     @Override
-    public DiscordUser createEntity(DiscordUserInitializeModel initalizationModel) {
+    public @NotNull DiscordUser createEntity(DiscordUserInitializeModel initalizationModel) {
         return discordUserRepository.save(initalizationModel.toEntity());
     }
 
@@ -59,7 +59,7 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
     }
 
     @Override
-    public DiscordUser saveEntity(DiscordUser entity) {
+    public @NotNull DiscordUser saveEntity(@NotNull DiscordUser entity) {
         return discordUserRepository.save(entity);
     }
 
@@ -70,11 +70,24 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
     }
 
     @Override
-    public Function<DiscordUser, DiscordUserModel> toModel() {
+    public @NotNull Function<DiscordUser, DiscordUserModel> toModel() {
         return DiscordUser::toModel;
     }
 
     public long countLinkedUsers() {
         return discordUserRepository.countDiscordUserByMinecraftIdIsNotNull();
+    }
+
+    @Override
+    public @NotNull DiscordUser updateEntity(@NotNull DiscordUser discordUser, @NotNull DiscordUserUpdateModel discordUserUpdateModel) {
+        if (discordUserUpdateModel.getRemoveMinecraftId()) {
+            discordUser.setMinecraftId(null);
+        }
+
+        if (discordUserUpdateModel.getMinecraftId() != null) {
+            discordUser.setMinecraftId(discordUserUpdateModel.getMinecraftId());
+        }
+
+        return discordUser;
     }
 }

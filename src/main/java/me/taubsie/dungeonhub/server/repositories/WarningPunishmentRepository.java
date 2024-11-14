@@ -1,8 +1,8 @@
 package me.taubsie.dungeonhub.server.repositories;
 
-import me.taubsie.dungeonhub.common.enums.WarningType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.WarningPunishment;
+import net.dungeonhub.enums.WarningType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

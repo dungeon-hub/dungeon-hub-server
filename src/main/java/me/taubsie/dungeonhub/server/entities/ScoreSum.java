@@ -2,7 +2,7 @@ package me.taubsie.dungeonhub.server.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
+import net.dungeonhub.model.score.ScoreModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 

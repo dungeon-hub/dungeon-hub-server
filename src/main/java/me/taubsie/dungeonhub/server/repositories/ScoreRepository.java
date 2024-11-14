@@ -1,10 +1,10 @@
 package me.taubsie.dungeonhub.server.repositories;
 
-import me.taubsie.dungeonhub.common.enums.ScoreType;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Score;
+import net.dungeonhub.enums.ScoreType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +19,12 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
     Optional<Score> findScoreByCarrierAndCarryTypeAndId_ScoreType(DiscordUser carrier, CarryType carryType, ScoreType scoreType);
 
     List<Score> findScoresByCarryType(CarryType carryType);
+
+    default List<Score> findScoresByCarryTypeAndScoreAmountNotZero(CarryType carryType) {
+        return findScoresByCarryTypeAndScoreAmountNot(carryType, 0L);
+    }
+
+    List<Score> findScoresByCarryTypeAndScoreAmountNot(CarryType carryType, Long scoreAmount);
 
     List<Score> findScoresByCarrierAndCarryType(DiscordUser carrier, CarryType carryType);
 

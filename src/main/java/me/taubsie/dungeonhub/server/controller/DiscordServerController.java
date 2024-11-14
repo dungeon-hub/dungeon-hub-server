@@ -1,14 +1,14 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
-import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
-import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
+import net.dungeonhub.model.discord_server.DiscordServerModel;
+import net.dungeonhub.model.score.LeaderboardModel;
+import net.dungeonhub.model.score.ScoreModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,9 +72,7 @@ public class DiscordServerController {
     public List<CarryTierModel> getAllCarryTiers(@PathVariable("server") long serverId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        //TODO own service method
-        return carryTierService.findAllEntities()
-                .stream().filter(carryTier -> carryTier.getCarryType().getDiscordServer().equals(discordServer))
+        return carryTierService.findAllEntities(discordServer)
                 .map(CarryTier::toModel)
                 .toList();
     }
@@ -82,9 +81,7 @@ public class DiscordServerController {
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        //TODO own service method
-        return carryDifficultyService.findAllEntities()
-                .stream().filter(carryDifficulty -> carryDifficulty.getCarryTier().getCarryType().getDiscordServer().equals(discordServer))
+        return carryDifficultyService.findAllEntities(discordServer)
                 .map(CarryDifficulty::toModel)
                 .toList();
     }
@@ -128,35 +125,41 @@ public class DiscordServerController {
         Page<ScoreModel> scores = scoreService.getTotalLeaderboard(discordServer, scoreType, page)
                 .map(ScoreSum::toScoreModel);
 
-        LeaderboardModel leaderboardModel = new LeaderboardModel(
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new LeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
-                scores.getContent()
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
         );
-
-        userId.ifPresent(id -> {
-            DiscordUser user = discordUserService.loadEntityOrCreate(id);
-
-            leaderboardModel.setPlayerPosition(scoreService.getTotalPosition(discordServer, scoreType, user));
-            scoreService.countTotalScoreForCarrier(user, discordServer, scoreType).ifPresent(score ->
-                    leaderboardModel.setPlayerScore(score.toScoreModel()));
-        });
-
-        return leaderboardModel;
     }
 
     @GetMapping("{server}/total-money-spent")
-    public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId) {
+    public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         List<Carry> carries = carryService.getCarries(discordServer);
 
-        return carries.parallelStream()
+        return carries.stream()
                 .filter(carry -> userId == null || carry.getPlayer().getId() == userId)
                 .filter(carry -> carrierId == null || carry.getCarrier().getId() == carrierId)
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
                 .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
+                .filter(carry -> since.isEmpty() || since.get().isBefore(carry.getTime()))
                 .mapToLong(Carry::calculatePrice)
+                .sum();
+    }
+
+    @GetMapping("{server}/count-carries")
+    public long countCarries(@PathVariable("server") long serverId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return since
+                .map(instant -> carryService.getCarriesSince(discordServer, instant))
+                .orElseGet(() -> carryService.getCarries(discordServer))
+                .stream().mapToLong(Carry::getAmount)
                 .sum();
     }
 }

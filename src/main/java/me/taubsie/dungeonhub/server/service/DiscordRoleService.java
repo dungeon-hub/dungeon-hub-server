@@ -1,15 +1,17 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleCreationModel;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordRoleRepository;
+import net.dungeonhub.enums.RoleAction;
+import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.model.discord_role.DiscordRoleCreationModel;
+import net.dungeonhub.model.discord_role.DiscordRoleModel;
+import net.dungeonhub.model.discord_role.DiscordRoleUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +25,7 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
     private final DiscordRoleRepository discordRoleRepository;
 
     @Override
-    public Optional<DiscordRole> loadEntityById(long id) {
+    public @NotNull Optional<DiscordRole> loadEntityById(long id) {
         return discordRoleRepository.findById(id);
     }
 
@@ -35,21 +37,16 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
     public DiscordRole loadOrCreate(DiscordServer discordServer, long id) {
         return loadEntityById(discordServer, id)
                 .orElseGet(() -> createEntity(new DiscordRoleInitializeModel(discordServer)
-                        .fromCreationModel(new DiscordRoleCreationModel(id, null, false))));
+                        .fromCreationModel(new DiscordRoleCreationModel(id, null, RoleAction.None))));
     }
 
     @Override
-    public Optional<DiscordRole> loadEntityByName(String name) {
-        return Optional.empty();
-    }
-
-    @Override
-    public List<DiscordRole> findAllEntities() {
+    public @NotNull List<DiscordRole> findAllEntities() {
         return discordRoleRepository.findAll();
     }
 
     @Override
-    public DiscordRole createEntity(DiscordRoleInitializeModel initalizationModel) {
+    public @NotNull DiscordRole createEntity(DiscordRoleInitializeModel initalizationModel) {
         return discordRoleRepository.save(initalizationModel.toEntity());
     }
 
@@ -67,7 +64,7 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
     }
 
     @Override
-    public DiscordRole saveEntity(DiscordRole entity) {
+    public @NotNull DiscordRole saveEntity(@NotNull DiscordRole entity) {
         return discordRoleRepository.save(entity);
     }
 
@@ -78,11 +75,28 @@ public class DiscordRoleService implements EntityService<DiscordRole, DiscordRol
     }
 
     @Override
-    public Function<DiscordRole, DiscordRoleModel> toModel() {
+    public @NotNull Function<DiscordRole, DiscordRoleModel> toModel() {
         return DiscordRole::toModel;
     }
 
     public List<DiscordRole> loadEntitiesByDiscordServer(DiscordServer discordServer) {
         return discordRoleRepository.findDiscordRolesByDiscordServer(discordServer);
+    }
+
+    @Override
+    public @NotNull DiscordRole updateEntity(@NotNull DiscordRole discordRole, @NotNull DiscordRoleUpdateModel discordRoleUpdateModel) {
+        if (discordRoleUpdateModel.getResetNameSchema()) {
+            discordRole.setNameSchema(null);
+        }
+
+        if (discordRoleUpdateModel.getNameSchema() != null) {
+            discordRole.setNameSchema(discordRoleUpdateModel.getNameSchema());
+        }
+
+        if (discordRoleUpdateModel.getRoleAction() != null) {
+            discordRole.setRoleAction(discordRoleUpdateModel.getRoleAction());
+        }
+
+        return discordRole;
     }
 }

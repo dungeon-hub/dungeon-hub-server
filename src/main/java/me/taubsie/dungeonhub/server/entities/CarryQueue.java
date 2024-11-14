@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.enums.QueueStep;
-import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
+import net.dungeonhub.enums.QueueStep;
+import net.dungeonhub.model.carry_queue.CarryQueueModel;
+import net.dungeonhub.model.carry_queue.CarryQueueUpdateModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ import java.time.Instant;
 @Table(name = "carry_queue", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
+public class CarryQueue implements net.dungeonhub.structure.entity.Entity<CarryQueueModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -79,14 +79,6 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
 
     public CarryTier getCarryTier() {
         return getCarryDifficulty().getCarryTier();
-    }
-
-    @Override
-    public @NotNull CarryQueue fromModel(@NotNull CarryQueueModel model) {
-        return new CarryQueue(model.getId(), model.getQueueStep(), carrier.fromModel(model.getCarrier()),
-                player.fromModel(model.getPlayer()), model.getAmount(),
-                carryDifficulty.fromModel(model.getCarryDifficulty()), model.getRelationId(),
-                model.getAttachmentLink(), model.getTime());
     }
 
     @Override

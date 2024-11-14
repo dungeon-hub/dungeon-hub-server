@@ -2,12 +2,12 @@ package me.taubsie.dungeonhub.server.service;
 
 import com.google.common.collect.Iterables;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.enums.ScoreResetType;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.common.model.ScoreResetModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.ScoreRepository;
 import me.taubsie.dungeonhub.server.repositories.ScoreSumRepository;
+import net.dungeonhub.enums.ScoreResetType;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.score.ScoreResetModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -93,6 +93,10 @@ public class ScoreService {
         return scoreRepository.findScoresByCarryType(carryType);
     }
 
+    public List<Score> getAllNonZeroScores(CarryType carryType) {
+        return scoreRepository.findScoresByCarryTypeAndScoreAmountNotZero(carryType);
+    }
+
     public List<Score> getAllScores(DiscordUser carrier, CarryType carryType) {
         return scoreRepository.findScoresByCarrierAndCarryType(carrier, carryType);
     }
@@ -122,15 +126,15 @@ public class ScoreService {
     }
 
     public ScoreResetModel resetScores(CarryType carryType, ScoreResetType scoreResetType) {
-        List<Score> scores = getAllScores(carryType);
+        List<Score> scores = getAllNonZeroScores(carryType);
 
         scores = applyScoreResetType(scores, scoreResetType);
 
         List<Score> updatedScores = scoreRepository.saveAll(scores);
 
         return new ScoreResetModel(
-                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.DEFAULT).count(),
-                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.EVENT).count()
+                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.Default).count(),
+                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.Event).count()
         );
     }
 
@@ -138,9 +142,9 @@ public class ScoreService {
         Stream<Score> currentScores = scores.parallelStream();
 
         currentScores = switch (scoreResetType) {
-            case Both -> currentScores.filter(score -> score.getId().getScoreType() != ScoreType.ALLTIME);
-            case Event -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.EVENT);
-            case Default -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.DEFAULT);
+            case Both -> currentScores.filter(score -> score.getId().getScoreType() != ScoreType.Alltime);
+            case Event -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.Event);
+            case Default -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.Default);
         };
 
         return currentScores.map(score -> {

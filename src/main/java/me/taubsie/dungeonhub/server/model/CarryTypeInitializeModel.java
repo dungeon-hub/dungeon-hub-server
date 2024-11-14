@@ -1,13 +1,15 @@
 package me.taubsie.dungeonhub.server.model;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeCreationModel;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import net.dungeonhub.model.carry_type.CarryTypeCreationModel;
+import net.dungeonhub.model.carry_type.CarryTypeModel;
+import net.dungeonhub.structure.model.InitializeModel;
+import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
-public class CarryTypeInitializeModel implements InitializeModel<CarryType, CarryTypeCreationModel> {
+public class CarryTypeInitializeModel implements InitializeModel<CarryType, CarryTypeModel, CarryTypeCreationModel> {
     private final DiscordServer discordServer;
     private String identifier;
     private String displayName;
@@ -20,12 +22,12 @@ public class CarryTypeInitializeModel implements InitializeModel<CarryType, Carr
     }
 
     @Override
-    public CarryType toEntity() {
+    public @NotNull CarryType toEntity() {
         return new CarryType(identifier, displayName, discordServer, logChannel, leaderboardChannel, eventActive);
     }
 
     @Override
-    public CarryTypeInitializeModel fromCreationModel(CarryTypeCreationModel creationModel) {
+    public @NotNull CarryTypeInitializeModel fromCreationModel(CarryTypeCreationModel creationModel) {
         return new CarryTypeInitializeModel(discordServer, creationModel.getIdentifier(),
                 creationModel.getDisplayName(), creationModel.getLogChannel(), creationModel.getLeaderboardChannel(),
                 creationModel.getEventActive());

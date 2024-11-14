@@ -5,10 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.enums.WarningAction;
-import me.taubsie.dungeonhub.common.enums.WarningComparison;
-import me.taubsie.dungeonhub.common.enums.WarningType;
-import me.taubsie.dungeonhub.common.model.warning.WarningActionModel;
+import net.dungeonhub.enums.WarningAction;
+import net.dungeonhub.enums.WarningComparison;
+import net.dungeonhub.enums.WarningType;
+import net.dungeonhub.model.warning.WarningActionModel;
 
 @Getter
 @Setter
@@ -44,7 +44,7 @@ public class WarningPunishment {
     @Column(name = "extra_data")
     private String extraData;
 
-    public boolean applies(int activeWarnings) {
+    public boolean applies(long activeWarnings) {
         return switch (comparison) {
             case GreaterOrEqual -> activeWarnings >= count;
             case Equal -> activeWarnings == count;

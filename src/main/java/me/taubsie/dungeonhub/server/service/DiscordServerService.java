@@ -1,12 +1,12 @@
 package me.taubsie.dungeonhub.server.service;
 
-import com.google.errorprone.annotations.DoNotCall;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordServerInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordServerRepository;
+import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.model.discord_server.DiscordServerModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +15,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 @Service
-public class DiscordServerService implements EntityService<DiscordServer, DiscordServerModel, DiscordServerModel, DiscordServerInitializeModel,
-        DiscordServerModel> {
+public class DiscordServerService implements EntityService<DiscordServer, DiscordServerModel, DiscordServerModel, DiscordServerInitializeModel, DiscordServerModel> {
     private final DiscordServerRepository discordServerRepository;
 
     @Autowired
@@ -25,7 +24,7 @@ public class DiscordServerService implements EntityService<DiscordServer, Discor
     }
 
     @Override
-    public Optional<DiscordServer> loadEntityById(long id) {
+    public @NotNull Optional<DiscordServer> loadEntityById(long id) {
         return discordServerRepository.findById(id);
     }
 
@@ -39,18 +38,12 @@ public class DiscordServerService implements EntityService<DiscordServer, Discor
     }
 
     @Override
-    @DoNotCall
-    public Optional<DiscordServer> loadEntityByName(String name) {
-        return Optional.empty();
-    }
-
-    @Override
-    public List<DiscordServer> findAllEntities() {
+    public @NotNull List<DiscordServer> findAllEntities() {
         return discordServerRepository.findAll();
     }
 
     @Override
-    public DiscordServer createEntity(DiscordServerInitializeModel initalizationModel) {
+    public @NotNull DiscordServer createEntity(DiscordServerInitializeModel initalizationModel) {
         return discordServerRepository.save(initalizationModel.toEntity());
     }
 
@@ -64,7 +57,7 @@ public class DiscordServerService implements EntityService<DiscordServer, Discor
     }
 
     @Override
-    public DiscordServer saveEntity(DiscordServer entity) {
+    public @NotNull DiscordServer saveEntity(@NotNull DiscordServer entity) {
         return discordServerRepository.save(entity);
     }
 
@@ -74,7 +67,12 @@ public class DiscordServerService implements EntityService<DiscordServer, Discor
     }
 
     @Override
-    public Function<DiscordServer, DiscordServerModel> toModel() {
+    public @NotNull Function<DiscordServer, DiscordServerModel> toModel() {
         return server -> new DiscordServerModel(server.getId());
+    }
+
+    @Override
+    public @NotNull DiscordServer updateEntity(@NotNull DiscordServer discordServer, @NotNull DiscordServerModel discordServerModel) {
+        return discordServer;
     }
 }
