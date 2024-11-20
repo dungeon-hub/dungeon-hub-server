@@ -30,7 +30,7 @@ public class CarryDifficultyInitializeModel implements InitializeModel<CarryDiff
 
     @Override
     public @NotNull CarryDifficulty toEntity() {
-        return new CarryDifficulty(identifier, displayName, thumbnailUrl, bulkPrice, bulkAmount, priceName, price,
+        return new CarryDifficulty(identifier, displayName, carryTier, thumbnailUrl, bulkPrice, bulkAmount, priceName, price,
                 score);
     }
 
