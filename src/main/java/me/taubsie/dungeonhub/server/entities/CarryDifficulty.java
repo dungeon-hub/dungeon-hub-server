@@ -79,10 +79,11 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
         this.score = score;
     }
 
-    public CarryDifficulty(String identifier, String displayName, String thumbnailUrl, Integer bulkPrice,
-                           Integer bulkAmount, String priceName, int price, int score) {
+    public CarryDifficulty(String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
+                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score) {
         this.identifier = identifier;
         this.displayName = displayName;
+        this.carryTier = carryTier;
         this.thumbnailUrl = thumbnailUrl;
         this.bulkPrice = bulkPrice;
         this.bulkAmount = bulkAmount;
