@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="start-backend-test" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+  <configuration default="false" name="start-backend-test-mariadb" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <envs>
-      <env name="spring_profiles_active" value="test" />
+      <env name="spring_profiles_active" value="test-mariadb" />
     </envs>
     <module name="dungeon-hub-server" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="me.taubsie.dungeonhub.server.DungeonHubServerApplication" />
