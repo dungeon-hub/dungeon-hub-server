@@ -69,7 +69,7 @@ public class RoleRequirementController {
                                              @RequestBody RoleRequirementCreationModel creationModel) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        DiscordRole discordRole = discordRoleService.loadOrCreate(discordServer, creationModel.getDiscordRole().getId());
+        DiscordRole discordRole = discordRoleService.loadOrCreate(discordServer, creationModel.getDiscordRole());
 
         return roleRequirementService.createEntity(new RoleRequirementInitializeModel(discordRole)
                 .fromCreationModel(creationModel)).toModel();
