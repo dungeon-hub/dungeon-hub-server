@@ -30,6 +30,6 @@ public class PurgeTypeRole implements net.dungeonhub.structure.entity.Entity<Pur
 
     @Override
     public @NotNull PurgeTypeRoleModel toModel() {
-        return new PurgeTypeRoleModel(purgeType.toModel(), discordRole.toModel());
+        return new PurgeTypeRoleModel(purgeType.toSimpleModel(), discordRole.toModel());
     }
 }
