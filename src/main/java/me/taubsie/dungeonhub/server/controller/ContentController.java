@@ -1,5 +1,18 @@
 package me.taubsie.dungeonhub.server.controller;
 
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.Hidden;
 import me.taubsie.dungeonhub.server.config.ConfigService;
 import net.dungeonhub.service.MoshiService;
@@ -14,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.*;
@@ -22,19 +36,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.util.InMemoryResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.UserDefinedFileAttributeView;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Hidden
 @RestController
@@ -185,14 +186,12 @@ public class ContentController {
 
             getUploader(content).ifPresent(s -> headers.set("X-Content-Owner", s));
 
-            ByteArrayResource image = new ByteArrayResource(Files.readAllBytes(content));
-
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .headers(headers)
-                    .contentLength(image.contentLength())
+                    .contentLength(Files.size(content))
                     .contentType(MediaType.parseMediaType(mimeType))
-                    .body(image);
+                    .body(new FileSystemResource(content));
         }
         catch (NoSuchFileException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
