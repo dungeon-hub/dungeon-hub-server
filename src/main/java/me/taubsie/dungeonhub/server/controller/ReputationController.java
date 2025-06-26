@@ -15,13 +15,7 @@ public class ReputationController {
     }
 
     @GetMapping("/{userId}")
-    public Reputation findUserById(@PathVariable int userId) {
+    public Reputation findUserById(@PathVariable Long userId) {
         return reputationService.findByUserId(userId);
     }
-
-    @PostMapping
-    public Reputation save(@RequestBody Reputation reputation) {
-        return reputationService.save(reputation);
-    }
 }
-
