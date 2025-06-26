@@ -1,17 +1,23 @@
-package me.taubsie.dungeonhub.server.entities;
+package me.taubsie.dungeonhub.server.controller;
 
-import jakarta.persistence.*;
-import lombok.Getter;
+import me.taubsie.dungeonhub.server.entities.Reputation;
+import me.taubsie.dungeonhub.server.service.ReputationService;
+import org.springframework.web.bind.annotation.*;
 
-@Getter
-@Entity(name = "reputation")
-@Table(name = "reputation", schema = "dungeon-hub")
-public class Reputation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id", nullable = false)
-    private int userId;
+@RestController
+@RequestMapping("/api/v1/reputation")
+public class ReputationController {
 
-    @Column(name = "rep_amount", nullable = true)
-    private int repAmt;
+    private final ReputationService reputationService;
+
+    public ReputationController(ReputationService reputationService) {
+        this.reputationService = reputationService;
+    }
+
+    @GetMapping("/{userId}")
+    public Reputation findUserById(@PathVariable Long userId) {
+        return reputationService.findByUserId(userId);
+    }
 }
+
+
