@@ -112,13 +112,12 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     public void removeExpiredStrikes() {
         List<Warning> warnings = warningRepository.findAllByActiveAndWarningType(true, WarningType.Strike);
 
-        warnings.stream().filter(Warning::isExpired)
-                .forEach(warning -> {
-                    warning.setActive(false);
-                    warningRepository.save(warning);
+        warnings.stream().filter(Warning::isExpired).forEach(warning -> {
+            warning.setActive(false);
+            warningRepository.save(warning);
 
-                    logger.info("The strike warning with id was just deactivated: {}", warning.getId());
-                });
+            logger.info("The strike warning with id was just deactivated: {}", warning.getId());
+        });
     }
 
     @Override
