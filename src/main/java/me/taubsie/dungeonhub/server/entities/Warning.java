@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.TemporalAmount;
 import java.util.List;
 
 @Getter
@@ -86,14 +87,14 @@ public class Warning implements net.dungeonhub.structure.entity.Entity<WarningMo
     }
 
     public boolean isExpired() {
-        //Only strikes can expire
-        if (warningType != WarningType.Strike) {
+        TemporalAmount expiration = warningType.getExpiration();
+
+        if (expiration == null) {
             return false;
         }
 
-        //Strikes expire after 3 months
-        //Meaning: If time that warning happened + three months is before now
-        OffsetDateTime expirationTime = time.atOffset(ZoneOffset.UTC).plusMonths(3);
+        // Check if the time that the warning was issued + the expiration time is before now
+        OffsetDateTime expirationTime = time.atOffset(ZoneOffset.UTC).plus(expiration);
 
         return expirationTime.isBefore(Instant.now().atOffset(ZoneOffset.UTC));
     }
