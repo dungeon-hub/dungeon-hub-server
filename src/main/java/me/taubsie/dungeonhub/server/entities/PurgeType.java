@@ -1,15 +1,16 @@
 package me.taubsie.dungeonhub.server.entities;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.dungeonhub.model.purge_type.PurgeTypeModel;
+import net.dungeonhub.model.purge_type.SimplePurgeTypeModel;
 import org.hibernate.annotations.OnDelete;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 @Getter
 @Entity(name = "purge_type")
@@ -56,5 +57,9 @@ public class PurgeType implements net.dungeonhub.structure.entity.Entity<PurgeTy
     @Override
     public @NotNull PurgeTypeModel toModel() {
         return new PurgeTypeModel(id, identifier, displayName, carryType.toModel(), purgeTypeRoles.stream().map(PurgeTypeRole::toModel).toList());
+    }
+
+    public @NotNull SimplePurgeTypeModel toSimpleModel() {
+        return new SimplePurgeTypeModel(id, identifier, displayName, carryType.toModel());
     }
 }

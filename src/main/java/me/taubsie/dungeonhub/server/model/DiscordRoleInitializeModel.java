@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import net.dungeonhub.enums.RoleAction;
 import net.dungeonhub.model.discord_role.DiscordRoleCreationModel;
 import net.dungeonhub.model.discord_role.DiscordRoleModel;
 import net.dungeonhub.structure.model.InitializeModel;
@@ -17,7 +18,7 @@ public class DiscordRoleInitializeModel implements InitializeModel<DiscordRole, 
     private final DiscordServer discordServer;
     private long id;
     private String nameSchema;
-    private boolean verifiedRole;
+    private RoleAction roleAction;
 
     public DiscordRoleInitializeModel(DiscordServer discordServer) {
         this.discordServer = discordServer;
@@ -25,12 +26,12 @@ public class DiscordRoleInitializeModel implements InitializeModel<DiscordRole, 
 
     @Override
     public @NotNull DiscordRole toEntity() {
-        return new DiscordRole(id, nameSchema, verifiedRole, discordServer);
+        return new DiscordRole(id, nameSchema, roleAction, discordServer);
     }
 
     @Override
     public @NotNull DiscordRoleInitializeModel fromCreationModel(DiscordRoleCreationModel creationModel) {
         return new DiscordRoleInitializeModel(discordServer, creationModel.getId(), creationModel.getNameSchema(),
-                creationModel.getVerifiedRole());
+                creationModel.getRoleAction());
     }
 }

@@ -44,6 +44,7 @@ public class DiscordUserController {
         return discordUserService.countLinkedUsers();
     }
 
+    @PreAuthorize("hasAuthority('linking.read') || hasAnyRole('bot', 'admin')")
     @GetMapping("{id}")
     public DiscordUserModel getById(@PathVariable long id) {
         return discordUserService.loadEntityById(id)
@@ -51,6 +52,7 @@ public class DiscordUserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @PreAuthorize("hasAuthority('linking.read') || hasAnyRole('bot', 'admin')")
     @GetMapping("find")
     public DiscordUserModel findUser(@RequestParam(value = "uuid") String uuid) {
         UUID userUuid;

@@ -93,6 +93,10 @@ public class ScoreService {
         return scoreRepository.findScoresByCarryType(carryType);
     }
 
+    public List<Score> getAllNonZeroScores(CarryType carryType) {
+        return scoreRepository.findScoresByCarryTypeAndScoreAmountNotZero(carryType);
+    }
+
     public List<Score> getAllScores(DiscordUser carrier, CarryType carryType) {
         return scoreRepository.findScoresByCarrierAndCarryType(carrier, carryType);
     }
@@ -122,7 +126,7 @@ public class ScoreService {
     }
 
     public ScoreResetModel resetScores(CarryType carryType, ScoreResetType scoreResetType) {
-        List<Score> scores = getAllScores(carryType);
+        List<Score> scores = getAllNonZeroScores(carryType);
 
         scores = applyScoreResetType(scores, scoreResetType);
 

@@ -1,4 +1,3 @@
-version: "3"
 services:
   dungeon-hub-dev:
     image: 'mariadb:latest'
@@ -7,3 +6,11 @@ services:
       MYSQL_DATABASE: dungeon-hub
     ports:
       - '3306:3306'
+  dungeon-hub-test-postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: dungeon-hub
+    ports:
+      - '5432:5432'

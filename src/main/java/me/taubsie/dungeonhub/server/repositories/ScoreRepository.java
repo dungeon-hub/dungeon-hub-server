@@ -20,6 +20,12 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
 
     List<Score> findScoresByCarryType(CarryType carryType);
 
+    default List<Score> findScoresByCarryTypeAndScoreAmountNotZero(CarryType carryType) {
+        return findScoresByCarryTypeAndScoreAmountNot(carryType, 0L);
+    }
+
+    List<Score> findScoresByCarryTypeAndScoreAmountNot(CarryType carryType, Long scoreAmount);
+
     List<Score> findScoresByCarrierAndCarryType(DiscordUser carrier, CarryType carryType);
 
     List<Score> findScoresByCarrierAndCarryType_DiscordServer(DiscordUser carrier, DiscordServer discordServer);

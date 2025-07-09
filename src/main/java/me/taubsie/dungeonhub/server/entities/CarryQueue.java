@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.dungeonhub.enums.QueueStep;
 import net.dungeonhub.model.carry_queue.CarryQueueModel;
-import net.dungeonhub.model.carry_queue.CarryQueueUpdateModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;

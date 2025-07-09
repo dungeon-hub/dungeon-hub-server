@@ -1,27 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import io.swagger.v3.oas.annotations.Hidden;
-import me.taubsie.dungeonhub.common.DungeonHubService;
-import net.dungeonhub.service.MoshiService;
-import org.apache.tika.Tika;
-import org.apache.tika.config.TikaConfig;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.util.InMemoryResource;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -35,15 +13,45 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import me.taubsie.dungeonhub.server.config.ConfigService;
+import net.dungeonhub.service.MoshiService;
+import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.util.InMemoryResource;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 @Hidden
 @RestController
 @RequestMapping("/cdn")
 public class ContentController {
     private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
 
-    private static String getContentFolder() {
-        return DungeonHubService.getInstance()
-                .getMainFolder() + File.separator + "cdn";
+    private final ConfigService configService;
+
+    @Autowired
+    public ContentController(ConfigService configService) {
+        this.configService = configService;
+    }
+
+    private String getContentFolder() {
+        return configService.getDungeonHubDirectory() + File.separator + "cdn";
     }
 
     public MimeType getMimeType(InputStream inputStream) throws IOException, MimeTypeException {
@@ -178,14 +186,12 @@ public class ContentController {
 
             getUploader(content).ifPresent(s -> headers.set("X-Content-Owner", s));
 
-            ByteArrayResource image = new ByteArrayResource(Files.readAllBytes(content));
-
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .headers(headers)
-                    .contentLength(image.contentLength())
+                    .contentLength(Files.size(content))
                     .contentType(MediaType.parseMediaType(mimeType))
-                    .body(image);
+                    .body(new FileSystemResource(content));
         }
         catch (NoSuchFileException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
