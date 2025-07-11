@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor
 public class Reputation implements net.dungeonhub.structure.entity.Entity<ReputationModel> {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
