@@ -10,6 +10,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
+
 @Getter
 @Entity(name = "reputation")
 @Table(name = "reputation", schema = "dungeon-hub")
@@ -43,12 +45,16 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     @Column(name = "rep_reason")
     private String reason;
 
-    public Reputation(DiscordServer discordServer, DiscordUser user, DiscordUser reputor, int amount, String reason) {
+    @Column(name = "time")
+    private Instant time;
+
+    public Reputation(DiscordServer discordServer, DiscordUser user, DiscordUser reputor, int amount, String reason, Instant time) {
         this.discordServer = discordServer;
         this.user = user;
         this.reputor = reputor;
         this.amount = amount;
         this.reason = reason;
+        this.time = time;
     }
 
     @NotNull
@@ -59,7 +65,8 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
                 user.toModel(),
                 reputor.toModel(),
                 amount,
-                reason
+                reason,
+                time
         );
     }
 }

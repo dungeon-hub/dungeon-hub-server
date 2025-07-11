@@ -9,6 +9,8 @@ import net.dungeonhub.model.reputation.ReputationModel;
 import net.dungeonhub.structure.model.InitializeModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
+
 @AllArgsConstructor
 public class ReputationInitializeModel implements InitializeModel<Reputation, ReputationModel, ReputationCreationModel> {
     private final DiscordServer discordServer;
@@ -26,7 +28,7 @@ public class ReputationInitializeModel implements InitializeModel<Reputation, Re
     @NotNull
     @Override
     public Reputation toEntity() {
-        return new Reputation(discordServer, user, reputor, amount, reason);
+        return new Reputation(discordServer, user, reputor, amount, reason, Instant.now());
     }
 
     @NotNull

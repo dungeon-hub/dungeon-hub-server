@@ -1,6 +1,8 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Reputation;
 import me.taubsie.dungeonhub.server.model.ReputationInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.ReputationRepository;
@@ -75,5 +77,9 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
         }
 
         return reputation;
+    }
+
+    public long calculateReputation(DiscordServer discordServer, DiscordUser discordUser) {
+        return reputationRepository.sumReputation(discordServer, discordUser);
     }
 }

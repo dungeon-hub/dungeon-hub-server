@@ -7,5 +7,6 @@ create table reputation
     user_id    BIGINT REFERENCES discord_user (id) NOT NULL,
     reputor_id BIGINT REFERENCES discord_user (id),
     rep_amount INT                                 NOT NULL,
-    rep_reason VARCHAR(512)
+    rep_reason VARCHAR(512),
+    time       TIMESTAMP                           NOT NULL
 );
