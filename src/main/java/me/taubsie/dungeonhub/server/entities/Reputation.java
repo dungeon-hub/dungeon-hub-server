@@ -43,7 +43,8 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     @Column(name = "rep_reason")
     private String reason;
 
-    public Reputation(DiscordUser user, DiscordUser reputor, int amount, String reason) {
+    public Reputation(DiscordServer discordServer, DiscordUser user, DiscordUser reputor, int amount, String reason) {
+        this.discordServer = discordServer;
         this.user = user;
         this.reputor = reputor;
         this.amount = amount;

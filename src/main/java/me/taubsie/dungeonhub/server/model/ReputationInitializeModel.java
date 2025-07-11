@@ -1,6 +1,7 @@
 package me.taubsie.dungeonhub.server.model;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Reputation;
 import net.dungeonhub.model.reputation.ReputationCreationModel;
@@ -10,12 +11,14 @@ import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 public class ReputationInitializeModel implements InitializeModel<Reputation, ReputationModel, ReputationCreationModel> {
+    private final DiscordServer discordServer;
     private final DiscordUser user;
     private final DiscordUser reputor;
     private int amount;
     private String reason;
 
-    public ReputationInitializeModel(DiscordUser user, DiscordUser reputor) {
+    public ReputationInitializeModel(DiscordServer discordServer, DiscordUser user, DiscordUser reputor) {
+        this.discordServer = discordServer;
         this.user = user;
         this.reputor = reputor;
     }
@@ -23,12 +26,12 @@ public class ReputationInitializeModel implements InitializeModel<Reputation, Re
     @NotNull
     @Override
     public Reputation toEntity() {
-        return new Reputation(user, reputor, amount, reason);
+        return new Reputation(discordServer, user, reputor, amount, reason);
     }
 
     @NotNull
     @Override
     public ReputationInitializeModel fromCreationModel(ReputationCreationModel reputationCreationModel) {
-        return new ReputationInitializeModel(user, reputor, reputationCreationModel.getAmount(), reputationCreationModel.getReason());
+        return new ReputationInitializeModel(discordServer, user, reputor, reputationCreationModel.getAmount(), reputationCreationModel.getReason());
     }
 }
