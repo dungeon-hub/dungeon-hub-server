@@ -9,7 +9,7 @@ import me.taubsie.dungeonhub.server.model.WarningInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.WarningPunishmentRepository;
 import me.taubsie.dungeonhub.server.repositories.WarningRepository;
 import net.dungeonhub.enums.WarningType;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.warning.WarningActionModel;
 import net.dungeonhub.model.warning.WarningCreationModel;
 import net.dungeonhub.model.warning.WarningModel;

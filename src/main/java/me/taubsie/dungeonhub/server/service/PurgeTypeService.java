@@ -5,7 +5,7 @@ import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.PurgeType;
 import me.taubsie.dungeonhub.server.model.PurgeTypeInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.PurgeTypeRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.purge_type.PurgeTypeCreationModel;
 import net.dungeonhub.model.purge_type.PurgeTypeModel;
 import net.dungeonhub.model.purge_type.PurgeTypeUpdateModel;

@@ -4,7 +4,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.RoleRequirement;
 import me.taubsie.dungeonhub.server.model.RoleRequirementInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.RoleRequirementRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.role_requirement.RoleRequirementCreationModel;
 import net.dungeonhub.model.role_requirement.RoleRequirementModel;
 import net.dungeonhub.model.role_requirement.RoleRequirementUpdateModel;

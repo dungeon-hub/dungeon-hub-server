@@ -7,7 +7,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.model.CntRequestInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CntRequestRepository;
 import me.taubsie.dungeonhub.server.repositories.DiscordUserRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.cnt_request.CntRequestCreationModel;
 import net.dungeonhub.model.cnt_request.CntRequestModel;
 import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
@@ -24,8 +24,6 @@ import java.util.function.Function;
 public class CntRequestService implements EntityService<CntRequest, CntRequestModel, CntRequestCreationModel, CntRequestInitializeModel, CntRequestUpdateModel> {
     private final CntRequestRepository cntRequestRepository;
     private final DiscordUserRepository discordUserRepository;
-    //TODO can this be removed? probably just a wrong suggestion by ide
-    //private final RepositoryMethodInvocationListener repositoryMethodInvocationListener;
 
     @Override
     public @NotNull Optional<CntRequest> loadEntityById(long id) {

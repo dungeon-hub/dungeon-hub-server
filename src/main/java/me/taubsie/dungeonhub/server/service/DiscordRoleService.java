@@ -6,7 +6,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordRoleRepository;
 import net.dungeonhub.enums.RoleAction;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.discord_role.DiscordRoleCreationModel;
 import net.dungeonhub.model.discord_role.DiscordRoleModel;
 import net.dungeonhub.model.discord_role.DiscordRoleUpdateModel;

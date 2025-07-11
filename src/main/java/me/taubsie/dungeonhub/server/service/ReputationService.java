@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.Reputation;
 import me.taubsie.dungeonhub.server.model.ReputationInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.ReputationRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.reputation.ReputationCreationModel;
 import net.dungeonhub.model.reputation.ReputationModel;
 import net.dungeonhub.model.reputation.ReputationUpdateModel;
