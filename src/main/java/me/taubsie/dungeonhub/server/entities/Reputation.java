@@ -29,11 +29,11 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     @JoinColumn(name = "server_id", nullable = false)
     private DiscordServer discordServer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private DiscordUser user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reputor_id", nullable = false)
     private DiscordUser reputor;
 
