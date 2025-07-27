@@ -36,8 +36,7 @@ public class ReputationController {
         Optional<DiscordUser> discordUser = discordUserService.loadEntityById(discordUserId);
 
         if(discordServer.isEmpty() || discordUser.isEmpty()) {
-            return 0;
-
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         return reputationService.calculateReputation(discordServer.get(), discordUser.get());
