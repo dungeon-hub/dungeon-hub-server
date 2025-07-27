@@ -6,7 +6,7 @@ import lombok.Setter;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordUserRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
 import net.dungeonhub.model.discord_user.DiscordUserModel;
 import net.dungeonhub.model.discord_user.DiscordUserUpdateModel;

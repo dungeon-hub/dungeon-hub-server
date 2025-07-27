@@ -3,7 +3,7 @@ package me.taubsie.dungeonhub.server.service;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordServerInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.DiscordServerRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.discord_server.DiscordServerModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jetbrains.annotations.NotNull;

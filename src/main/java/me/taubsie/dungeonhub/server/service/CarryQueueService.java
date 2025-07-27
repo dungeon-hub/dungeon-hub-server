@@ -7,7 +7,7 @@ import me.taubsie.dungeonhub.server.model.CarryQueueInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import me.taubsie.dungeonhub.server.repositories.CarryQueueRepository;
 import me.taubsie.dungeonhub.server.repositories.DiscordUserRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_queue.CarryQueueCreationModel;
 import net.dungeonhub.model.carry_queue.CarryQueueModel;
 import net.dungeonhub.model.carry_queue.CarryQueueUpdateModel;

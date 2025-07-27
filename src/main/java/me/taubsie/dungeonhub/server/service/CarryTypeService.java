@@ -5,7 +5,7 @@ import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTypeInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTypeRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_type.CarryTypeCreationModel;
 import net.dungeonhub.model.carry_type.CarryTypeModel;
 import net.dungeonhub.model.carry_type.CarryTypeUpdateModel;

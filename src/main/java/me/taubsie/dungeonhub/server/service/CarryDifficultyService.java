@@ -5,7 +5,7 @@ import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
-import net.dungeonhub.expections.EntityUnknownException;
+import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyCreationModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyUpdateModel;
