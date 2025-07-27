@@ -63,7 +63,7 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
         return new ReputationModel(
                 id,
                 user.toModel(),
-                reputor.toModel(),
+                reputor != null ? reputor.toModel() : null,
                 amount,
                 reason,
                 time
