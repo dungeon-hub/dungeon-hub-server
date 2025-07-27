@@ -34,10 +34,10 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     private DiscordUser user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "reputor_id")
+    @JoinColumn(name = "reputor_id", nullable = false)
     private DiscordUser reputor;
 
+    @Setter
     @Column(name = "rep_amount", nullable = false)
     private int amount;
 
@@ -63,7 +63,7 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
         return new ReputationModel(
                 id,
                 user.toModel(),
-                reputor != null ? reputor.toModel() : null,
+                reputor.toModel(),
                 amount,
                 reason,
                 time

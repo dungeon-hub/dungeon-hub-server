@@ -76,6 +76,10 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
             reputation.setReason(reputationUpdateModel.getReason());
         }
 
+        if(reputationUpdateModel.getAmount() != null) {
+            reputation.setAmount(reputationUpdateModel.getAmount());
+        }
+
         return reputation;
     }
 
