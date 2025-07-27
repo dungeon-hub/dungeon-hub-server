@@ -23,7 +23,6 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Getter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "server_id", nullable = false)
