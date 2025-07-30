@@ -7,7 +7,9 @@ import net.dungeonhub.enums.ScoreType;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import net.dungeonhub.model.carry_tier.CarryTierModel;
 import net.dungeonhub.model.discord_server.DiscordServerModel;
-import net.dungeonhub.model.score.LeaderboardModel;
+import net.dungeonhub.model.reputation.ReputationLeaderboardModel;
+import net.dungeonhub.model.reputation.ReputationSumModel;
+import net.dungeonhub.model.score.ScoreLeaderboardModel;
 import net.dungeonhub.model.score.ScoreModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,7 @@ public class DiscordServerController {
     private final CarryDifficultyService carryDifficultyService;
     private final DiscordUserService discordUserService;
     private final CarryService carryService;
+    private final ReputationService reputationService;
 
     @GetMapping("{server}")
     public DiscordServerModel getServerById(@PathVariable("server") long id) {
@@ -112,7 +115,7 @@ public class DiscordServerController {
     }
 
     @GetMapping(value = "{server}/total-leaderboard")
-    public LeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId, @RequestParam(required =
+    public ScoreLeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId, @RequestParam(required =
             false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
                                                 @RequestParam(value = "user", required = false) Optional<Long> userId) {
@@ -127,12 +130,41 @@ public class DiscordServerController {
 
         Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
 
-        return new LeaderboardModel(
+        return new ScoreLeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
                 scores.getContent(),
                 user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
                 user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
+        );
+    }
+
+    @GetMapping(value = "{server}/reputation-leaderboard")
+    public ReputationLeaderboardModel getReputationLeaderboard(
+            @PathVariable("server") long serverId,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(value = "user", required = false) Optional<Long> userId
+    ) {
+        if (page < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        Page<ReputationSumModel> reputation = reputationService.getReputationLeaderboard(discordServer, page)
+                .map(ReputationSum::toReputationSumModel);
+
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new ReputationLeaderboardModel(
+                reputation.getPageable().getPageNumber(),
+                reputation.getTotalPages(),
+                reputation.getContent(),
+                user.map(userEntity -> reputationService.getPosition(discordServer, userEntity)).orElse(null),
+                user.map(userEntity -> reputationService.calculateReputation(discordServer, userEntity))
+                        .map(count -> new ReputationSum(user.get(), count))
+                        .map(ReputationSum::toReputationSumModel)
+                        .orElse(null)
         );
     }
 

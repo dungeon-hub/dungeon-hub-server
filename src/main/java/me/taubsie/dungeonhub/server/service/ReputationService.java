@@ -1,9 +1,11 @@
 package me.taubsie.dungeonhub.server.service;
 
+import com.google.common.collect.Iterables;
 import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Reputation;
+import me.taubsie.dungeonhub.server.entities.ReputationSum;
 import me.taubsie.dungeonhub.server.model.ReputationInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.ReputationRepository;
 import net.dungeonhub.exceptions.EntityUnknownException;
@@ -13,6 +15,9 @@ import net.dungeonhub.model.reputation.ReputationUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +27,7 @@ import java.util.function.Function;
 @Service
 @AllArgsConstructor
 public class ReputationService implements EntityService<Reputation, ReputationModel, ReputationCreationModel, ReputationInitializeModel, ReputationUpdateModel> {
+    private static final int PAGE_SIZE = 10;
     private final ReputationRepository reputationRepository;
 
     @NotNull
@@ -83,7 +89,26 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
         return reputation;
     }
 
-    public long calculateReputation(DiscordServer discordServer, DiscordUser discordUser) {
+    public Long calculateReputation(DiscordServer discordServer, DiscordUser discordUser) {
         return reputationRepository.sumReputation(discordServer, discordUser);
+    }
+
+    public Page<ReputationSum> getReputationLeaderboard(DiscordServer discordServer, int page) {
+        return reputationRepository.findAllReputations(discordServer, PageRequest.of(page, PAGE_SIZE));
+    }
+
+    public Page<ReputationSum> getFullReputationLeaderboard(DiscordServer discordServer) {
+        return reputationRepository.findAllReputations(discordServer, Pageable.unpaged());
+    }
+
+    public int getPosition(DiscordServer discordServer, DiscordUser user) {
+        return Iterables.indexOf(
+                getFullReputationLeaderboard(discordServer),
+                rep -> user.getId() == rep.discordUser().getId()
+        );
+    }
+
+    public List<Reputation> getAllReputations(DiscordServer discordServer, DiscordUser user) {
+        return reputationRepository.findReputationsByDiscordServerAndUser(discordServer, user);
     }
 }

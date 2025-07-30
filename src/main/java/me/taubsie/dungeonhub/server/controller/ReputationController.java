@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.controller;
 
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
+import me.taubsie.dungeonhub.server.entities.Reputation;
 import me.taubsie.dungeonhub.server.model.ReputationInitializeModel;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -29,22 +31,38 @@ public class ReputationController {
         this.discordServerService = discordServerService;
     }
 
+    @GetMapping("all")
+    public List<ReputationModel> getAllReputations(@PathVariable("server") long serverId, @PathVariable("discord-user") long discordUserId) {
+        Optional<DiscordServer> discordServer = discordServerService.loadEntityById(serverId);
+
+        Optional<DiscordUser> discordUser = discordUserService.loadEntityById(discordUserId);
+
+        if (discordServer.isEmpty() || discordUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        return reputationService.getAllReputations(discordServer.get(), discordUser.get()).stream()
+                .map(Reputation::toModel)
+                .toList();
+    }
+
     @GetMapping("calculate")
     public long calculateReputation(@PathVariable("server") long serverId, @PathVariable("discord-user") long discordUserId) {
         Optional<DiscordServer> discordServer = discordServerService.loadEntityById(serverId);
 
         Optional<DiscordUser> discordUser = discordUserService.loadEntityById(discordUserId);
 
-        if(discordServer.isEmpty() || discordUser.isEmpty()) {
+        if (discordServer.isEmpty() || discordUser.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        return reputationService.calculateReputation(discordServer.get(), discordUser.get());
+        return Optional.ofNullable(reputationService.calculateReputation(discordServer.get(), discordUser.get()))
+                .orElse(0L);
     }
 
     @PostMapping
     public ReputationModel addReputation(@PathVariable("server") long serverId, @PathVariable("discord-user") long discordUserId, @RequestBody ReputationCreationModel creationModel) {
-        if(discordUserId != creationModel.getUser()) {
+        if (discordUserId != creationModel.getUser()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 

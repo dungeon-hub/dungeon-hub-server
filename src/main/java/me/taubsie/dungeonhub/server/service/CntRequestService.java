@@ -73,6 +73,10 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
         return cntRequestRepository.findByMessageId(messageId);
     }
 
+    public List<CntRequest> findByUser(DiscordUser user) {
+        return cntRequestRepository.findByUser(user);
+    }
+
     @Override
     public @NotNull CntRequest updateEntity(@NotNull CntRequest cntRequest, @NotNull CntRequestUpdateModel cntRequestUpdateModel) {
         if(cntRequestUpdateModel.getResetClaimer()) {
@@ -95,6 +99,10 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
 
         if(cntRequestUpdateModel.getRequirement() != null) {
             cntRequest.setRequirement(cntRequestUpdateModel.getRequirement());
+        }
+
+        if(cntRequestUpdateModel.getCompleted() != null) {
+            cntRequest.setCompleted(cntRequestUpdateModel.getCompleted());
         }
 
         return cntRequest;

@@ -8,7 +8,7 @@ import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import me.taubsie.dungeonhub.server.service.ScoreService;
 import net.dungeonhub.enums.ScoreResetType;
 import net.dungeonhub.enums.ScoreType;
-import net.dungeonhub.model.score.LeaderboardModel;
+import net.dungeonhub.model.score.ScoreLeaderboardModel;
 import net.dungeonhub.model.score.ScoreModel;
 import net.dungeonhub.model.score.ScoreResetModel;
 import net.dungeonhub.model.score.ScoreUpdateModel;
@@ -95,11 +95,11 @@ public class ScoreController {
     }
 
     @GetMapping(value = "total-leaderboard")
-    public LeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId,
-                                                @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
+    public ScoreLeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId,
+                                                     @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
             false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
-                                                @RequestParam(value = "user", required = false) Optional<Long> userId) {
+                                                     @RequestParam(value = "user", required = false) Optional<Long> userId) {
         if (page < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -111,7 +111,7 @@ public class ScoreController {
 
         Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
 
-        return new LeaderboardModel(
+        return new ScoreLeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
                 scores.getContent(),
@@ -121,7 +121,7 @@ public class ScoreController {
     }
 
     @GetMapping(value = "leaderboard")
-    public LeaderboardModel getLeaderboard(@PathVariable("server") long serverId,
+    public ScoreLeaderboardModel getLeaderboard(@PathVariable("server") long serverId,
                                            @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
             false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
@@ -139,7 +139,7 @@ public class ScoreController {
 
         Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
 
-        return new LeaderboardModel(
+        return new ScoreLeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
                 scores.getContent(),

@@ -16,6 +16,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/server/{server}/cnt-request")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
@@ -32,11 +35,29 @@ public class CntRequestController {
     }
 
     @GetMapping("find")
-    public CntRequestModel findCntRequest(@PathVariable("server") long serverId, @RequestParam(value = "message-id") Long messageId) {
-        return cntRequestService.findByMessageId(messageId)
-                .filter(cntRequest -> cntRequest.getDiscordServer().getId() == serverId)
-                .map(CntRequest::toModel)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    public List<CntRequestModel> findCntRequest(
+            @PathVariable("server") long serverId,
+            @RequestParam(value = "message-id", required = false) Long messageId,
+            @RequestParam(value = "user", required = false) Long userId
+    ) {
+        if (messageId != null) {
+            return cntRequestService.findByMessageId(messageId)
+                    .filter(cntRequest -> cntRequest.getDiscordServer().getId() == serverId)
+                    .map(CntRequest::toModel)
+                    .map(Collections::singletonList)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        }
+
+        if(userId != null) {
+            DiscordUser user = discordUserService.loadEntityById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+            return cntRequestService.findByUser(user).stream()
+                    .map(CntRequest::toModel)
+                    .toList();
+        }
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping
