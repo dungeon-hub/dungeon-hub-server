@@ -64,6 +64,7 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
         this.cntRequest = cntRequest;
         this.amount = amount;
         this.reason = reason;
+        this.active = true;
         this.time = time;
     }
 
