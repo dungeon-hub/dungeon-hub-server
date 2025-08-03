@@ -8,6 +8,7 @@ import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import net.dungeonhub.model.carry_tier.CarryTierModel;
 import net.dungeonhub.model.discord_server.DiscordServerModel;
 import net.dungeonhub.model.reputation.ReputationLeaderboardModel;
+import net.dungeonhub.model.reputation.ReputationModel;
 import net.dungeonhub.model.reputation.ReputationSumModel;
 import net.dungeonhub.model.score.ScoreLeaderboardModel;
 import net.dungeonhub.model.score.ScoreModel;
@@ -95,6 +96,15 @@ public class DiscordServerController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         return carryTierService.findByCategory(discordServer, categoryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
+                .toModel();
+    }
+
+    @GetMapping("{server}/reputation/{id}")
+    public ReputationModel getReputation(@PathVariable("server") long serverId, @PathVariable long id) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return reputationService.loadEntityById(discordServer, id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
                 .toModel();
     }
