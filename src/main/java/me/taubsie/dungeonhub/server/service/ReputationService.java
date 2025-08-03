@@ -36,6 +36,12 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
         return reputationRepository.findById(id);
     }
 
+    public Optional<Reputation> loadEntityById(DiscordServer discordServer, DiscordUser discordUser, long id) {
+        return reputationRepository.findById(id)
+                .filter(rep -> rep.getDiscordServer().getId() == discordServer.getId())
+                .filter(rep -> rep.getUser().getId() == discordUser.getId());
+    }
+
     @NotNull
     @Override
     public List<Reputation> findAllEntities() {
@@ -84,6 +90,10 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
 
         if(reputationUpdateModel.getAmount() != null) {
             reputation.setAmount(reputationUpdateModel.getAmount());
+        }
+
+        if(reputationUpdateModel.getActive() != null) {
+            reputation.setActive(reputationUpdateModel.getActive());
         }
 
         return reputation;

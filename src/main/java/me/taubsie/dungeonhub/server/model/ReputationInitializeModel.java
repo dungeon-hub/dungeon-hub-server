@@ -1,6 +1,7 @@
 package me.taubsie.dungeonhub.server.model;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.entities.CntRequest;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Reputation;
@@ -8,6 +9,7 @@ import net.dungeonhub.model.reputation.ReputationCreationModel;
 import net.dungeonhub.model.reputation.ReputationModel;
 import net.dungeonhub.structure.model.InitializeModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 
@@ -16,24 +18,27 @@ public class ReputationInitializeModel implements InitializeModel<Reputation, Re
     private final DiscordServer discordServer;
     private final DiscordUser user;
     private final DiscordUser reputor;
+    @Nullable
+    private final CntRequest cntRequest;
     private int amount;
     private String reason;
 
-    public ReputationInitializeModel(DiscordServer discordServer, DiscordUser user, DiscordUser reputor) {
+    public ReputationInitializeModel(DiscordServer discordServer, DiscordUser user, DiscordUser reputor, @Nullable CntRequest cntRequest) {
         this.discordServer = discordServer;
         this.user = user;
         this.reputor = reputor;
+        this.cntRequest = cntRequest;
     }
 
     @NotNull
     @Override
     public Reputation toEntity() {
-        return new Reputation(discordServer, user, reputor, amount, reason, Instant.now());
+        return new Reputation(discordServer, user, reputor, cntRequest, amount, reason, Instant.now());
     }
 
     @NotNull
     @Override
     public ReputationInitializeModel fromCreationModel(ReputationCreationModel reputationCreationModel) {
-        return new ReputationInitializeModel(discordServer, user, reputor, reputationCreationModel.getAmount(), reputationCreationModel.getReason());
+        return new ReputationInitializeModel(discordServer, user, reputor, cntRequest, reputationCreationModel.getAmount(), reputationCreationModel.getReason());
     }
 }

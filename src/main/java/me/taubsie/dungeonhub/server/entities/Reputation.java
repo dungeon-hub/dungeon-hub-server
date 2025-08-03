@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.dungeonhub.model.reputation.ReputationModel;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,10 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     @JoinColumn(name = "reputor_id", nullable = false)
     private DiscordUser reputor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cnt_request")
+    private CntRequest cntRequest;
+
     @Setter
     @Column(name = "rep_amount", nullable = false)
     private int amount;
@@ -44,13 +49,19 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
     @Column(name = "rep_reason")
     private String reason;
 
+    @Setter
+    @Column(name = "active", nullable = false)
+    @ColumnDefault("true")
+    private boolean active;
+
     @Column(name = "time")
     private Instant time;
 
-    public Reputation(DiscordServer discordServer, DiscordUser user, DiscordUser reputor, int amount, String reason, Instant time) {
+    public Reputation(DiscordServer discordServer, DiscordUser user, DiscordUser reputor, CntRequest cntRequest, int amount, String reason, Instant time) {
         this.discordServer = discordServer;
         this.user = user;
         this.reputor = reputor;
+        this.cntRequest = cntRequest;
         this.amount = amount;
         this.reason = reason;
         this.time = time;
@@ -63,8 +74,10 @@ public class Reputation implements net.dungeonhub.structure.entity.Entity<Reputa
                 id,
                 user.toModel(),
                 reputor.toModel(),
+                cntRequest.toModel(),
                 amount,
                 reason,
+                active,
                 time
         );
     }
