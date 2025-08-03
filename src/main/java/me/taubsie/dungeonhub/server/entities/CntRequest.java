@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.dungeonhub.enums.CntRequestType;
 import net.dungeonhub.model.cnt_request.CntRequestModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -26,6 +27,10 @@ public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntReq
 
     @Column(name = "message_id", nullable = false)
     private long messageId;
+
+    @Enumerated
+    @Column(name = "request_type", nullable = false)
+    private CntRequestType requestType;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -61,8 +66,9 @@ public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntReq
     @Column(name = "completed", nullable = false)
     private boolean completed;
 
-    public CntRequest(long messageId, DiscordServer discordServer, DiscordUser user, @Nullable DiscordUser claimer, Instant time, String coinValue, String description, String requirement, boolean completed) {
+    public CntRequest(long messageId, CntRequestType requestType, DiscordServer discordServer, DiscordUser user, @Nullable DiscordUser claimer, Instant time, String coinValue, String description, String requirement, boolean completed) {
         this.messageId = messageId;
+        this.requestType = requestType;
         this.discordServer = discordServer;
         this.user = user;
         this.claimer = claimer;
@@ -75,6 +81,6 @@ public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntReq
 
     @Override
     public @NotNull CntRequestModel toModel() {
-        return new CntRequestModel(id, messageId, discordServer.toModel(), user.toModel(), claimer != null ? claimer.toModel() : null, time, coinValue, description, requirement, completed);
+        return new CntRequestModel(id, messageId, requestType, discordServer.toModel(), user.toModel(), claimer != null ? claimer.toModel() : null, time, coinValue, description, requirement, completed);
     }
 }

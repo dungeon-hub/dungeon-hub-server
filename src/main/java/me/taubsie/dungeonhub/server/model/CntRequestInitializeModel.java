@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.CntRequest;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
+import net.dungeonhub.enums.CntRequestType;
 import net.dungeonhub.model.cnt_request.CntRequestCreationModel;
 import net.dungeonhub.model.cnt_request.CntRequestModel;
 import net.dungeonhub.structure.model.InitializeModel;
@@ -14,6 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class CntRequestInitializeModel implements InitializeModel<CntRequest, CntRequestModel, CntRequestCreationModel> {
     private long messageId;
+    private CntRequestType requestType;
     private final DiscordServer discordServer;
     private final DiscordUser user;
     private final DiscordUser claimer;
@@ -30,11 +32,11 @@ public class CntRequestInitializeModel implements InitializeModel<CntRequest, Cn
 
     @Override
     public @NotNull CntRequest toEntity() {
-        return new CntRequest(messageId, discordServer, user, claimer, time, coinValue, description, requirement, false);
+        return new CntRequest(messageId, requestType, discordServer, user, claimer, time, coinValue, description, requirement, false);
     }
 
     @Override
     public @NotNull CntRequestInitializeModel fromCreationModel(CntRequestCreationModel creationModel) {
-        return new CntRequestInitializeModel(creationModel.getMessageId(), discordServer, user, claimer, creationModel.getTime(), creationModel.getCoinValue(), creationModel.getDescription(), creationModel.getRequirement());
+        return new CntRequestInitializeModel(creationModel.getMessageId(), creationModel.getRequestType(), discordServer, user, claimer, creationModel.getTime(), creationModel.getCoinValue(), creationModel.getDescription(), creationModel.getRequirement());
     }
 }
