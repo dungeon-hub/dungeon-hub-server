@@ -1,3 +1,6 @@
+# WARNING: This docker-compose file is for local development only.
+# It uses default credentials and is NOT suitable for production.
+
 services:
   dungeon-hub-dev:
     image: 'mariadb:latest'
