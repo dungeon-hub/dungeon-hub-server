@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -109,8 +110,11 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
     }
 
     @Scheduled(cron = "0 0 2 * * *")
-    public void removeExpiredStrikes() {
-        List<Warning> warnings = warningRepository.findAllByActiveAndWarningType(true, WarningType.Strike);
+    public void removeExpiredWarnings() {
+        List<Warning> warnings = Arrays.stream(WarningType.values())
+                .filter(warningType -> warningType.getExpiration() != null)
+                .flatMap(warningType -> warningRepository.findAllByActiveAndWarningType(true, warningType).stream())
+                .toList();
 
         warnings.stream().filter(Warning::isExpired).forEach(warning -> {
             warning.setActive(false);
