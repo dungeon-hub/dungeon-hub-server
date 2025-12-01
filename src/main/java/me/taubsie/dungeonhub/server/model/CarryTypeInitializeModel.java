@@ -14,7 +14,6 @@ public class CarryTypeInitializeModel implements InitializeModel<CarryType, Carr
     private String identifier;
     private String displayName;
     private Long logChannel;
-    private Long leaderboardChannel;
     private Boolean eventActive;
 
     public CarryTypeInitializeModel(DiscordServer discordServer) {
@@ -23,13 +22,13 @@ public class CarryTypeInitializeModel implements InitializeModel<CarryType, Carr
 
     @Override
     public @NotNull CarryType toEntity() {
-        return new CarryType(identifier, displayName, discordServer, logChannel, leaderboardChannel, eventActive);
+        return new CarryType(identifier, displayName, discordServer, logChannel, eventActive);
     }
 
     @Override
     public @NotNull CarryTypeInitializeModel fromCreationModel(CarryTypeCreationModel creationModel) {
         return new CarryTypeInitializeModel(discordServer, creationModel.getIdentifier(),
-                creationModel.getDisplayName(), creationModel.getLogChannel(), creationModel.getLeaderboardChannel(),
+                creationModel.getDisplayName(), creationModel.getLogChannel(),
                 creationModel.getEventActive());
     }
 }

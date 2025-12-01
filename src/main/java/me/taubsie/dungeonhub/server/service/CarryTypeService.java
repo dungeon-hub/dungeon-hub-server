@@ -94,14 +94,6 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
             carryType.setLogChannel(carryTypeUpdateModel.getLogChannel());
         }
 
-        if(carryTypeUpdateModel.getResetLeaderboardChannel()) {
-            carryType.setLeaderboardChannel(null);
-        }
-
-        if (carryTypeUpdateModel.getLeaderboardChannel() != null) {
-            carryType.setLeaderboardChannel(carryTypeUpdateModel.getLeaderboardChannel());
-        }
-
         if(carryTypeUpdateModel.getResetEventActive()) {
             carryType.setEventActive(null);
         }
