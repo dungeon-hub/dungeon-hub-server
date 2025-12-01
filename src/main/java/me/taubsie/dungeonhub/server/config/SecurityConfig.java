@@ -14,6 +14,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@Profile("!dev")
 public class SecurityConfig {
     private final JwtAuthConverter jwtAuthConverter;
 
@@ -40,13 +42,5 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oAuth2ResourceServerConfigurer -> oAuth2ResourceServerConfigurer.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthConverter)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
-    }
-
-    /**
-     * This makes sure that method security (pre- and post-annotations) are only active if the profile requires those.
-     */
-    @Profile("!dev")
-    @EnableMethodSecurity
-    static class Dummy {
     }
 }
