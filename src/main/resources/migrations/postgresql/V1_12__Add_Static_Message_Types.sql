@@ -12,7 +12,7 @@ create table static_message
 
 create table static_message_object
 (
-    static_message BIGINT REFERENCES static_message (id),
+    static_message BIGINT REFERENCES static_message (id) on delete cascade,
     object_id      BIGINT NOT NULL
 );
 
