@@ -42,7 +42,7 @@ public class StaticMessageController {
     }
 
     @GetMapping("find")
-    public List<StaticMessageModel> findStaticMessage(
+    public List<StaticMessageModel> findStaticMessages(
             @PathVariable("server") long serverId,
             @RequestParam(value = "staticMessageType", required = false) StaticMessageType staticMessageType,
             @RequestParam(value = "channelId", required = false) Long channelId
