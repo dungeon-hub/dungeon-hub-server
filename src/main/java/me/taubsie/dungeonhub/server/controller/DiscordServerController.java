@@ -12,6 +12,7 @@ import net.dungeonhub.model.reputation.ReputationModel;
 import net.dungeonhub.model.reputation.ReputationSumModel;
 import net.dungeonhub.model.score.ScoreLeaderboardModel;
 import net.dungeonhub.model.score.ScoreModel;
+import net.dungeonhub.model.static_message.StaticMessageModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,6 +40,7 @@ public class DiscordServerController {
     private final DiscordUserService discordUserService;
     private final CarryService carryService;
     private final ReputationService reputationService;
+    private final StaticMessageService staticMessageService;
 
     @GetMapping("{server}")
     public DiscordServerModel getServerById(@PathVariable("server") long id) {
@@ -203,5 +205,13 @@ public class DiscordServerController {
                 .orElseGet(() -> carryService.getCarries(discordServer))
                 .stream().mapToLong(Carry::getAmount)
                 .sum();
+    }
+
+    @PreAuthorize("hasAnyRole('bot', 'admin')")
+    @GetMapping("static-messages")
+    public List<StaticMessageModel> getStaticMessages() {
+        return staticMessageService.findAllEntities().stream()
+                .map(StaticMessage::toModel)
+                .toList();
     }
 }

@@ -49,9 +49,6 @@ public class CarryType implements net.dungeonhub.structure.entity.Entity<CarryTy
     @Column(name = "log_channel")
     private Long logChannel;
     @Setter
-    @Column(name = "leaderboard_channel")
-    private Long leaderboardChannel;
-    @Setter
     @Column(name = "event_active")
     private Boolean eventActive;
 
@@ -62,24 +59,22 @@ public class CarryType implements net.dungeonhub.structure.entity.Entity<CarryTy
         this.discordServer = discordServer;
     }
 
-    public CarryType(String identifier, String displayName, DiscordServer discordServer, Long logChannel, Long leaderboardChannel,
+    public CarryType(String identifier, String displayName, DiscordServer discordServer, Long logChannel,
                      Boolean eventActive) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.discordServer = discordServer;
         this.logChannel = logChannel;
-        this.leaderboardChannel = leaderboardChannel;
         this.eventActive = eventActive;
     }
 
     public CarryType(long id, String identifier, String displayName, DiscordServer discordServer, Long logChannel,
-                     Long leaderboardChannel, Boolean eventActive) {
+                     Boolean eventActive) {
         this.id = id;
         this.identifier = identifier;
         this.displayName = displayName;
         this.discordServer = discordServer;
         this.logChannel = logChannel;
-        this.leaderboardChannel = leaderboardChannel;
         this.eventActive = eventActive;
     }
 
@@ -100,7 +95,7 @@ public class CarryType implements net.dungeonhub.structure.entity.Entity<CarryTy
 
     @Override
     public @NotNull CarryTypeModel toModel() {
-        return new CarryTypeModel(id, identifier, displayName, discordServer.toModel(), logChannel, leaderboardChannel,
+        return new CarryTypeModel(id, identifier, displayName, discordServer.toModel(), logChannel,
                 eventActive);
     }
 }
