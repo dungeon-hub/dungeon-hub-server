@@ -18,7 +18,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
         url = "discord.dungeon-hub.net", email = "contact@dungeon-hub.net"), termsOfService = "https://dungeon-hub" +
         ".net/terms-of-service", extensions = {@Extension(name = "x-logo", properties = {@ExtensionProperty(name =
         "url", value = "/cdn/static/favicon.gif"), @ExtensionProperty(name = "altText", value = "Dungeon Hub Logo"),
-        @ExtensionProperty(name = "href", value = "#")})}), servers = {@Server(url = "api.dungeon-hub.net")})
+        @ExtensionProperty(name = "href", value = "#")})}), servers = {@Server(url = "https://api.dungeon-hub.net/")})
 public class DungeonHubServerApplication {
     public static void main(String[] args) {
         ConfigService.ensureConfigFile();
