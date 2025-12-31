@@ -20,6 +20,7 @@ public class StaticMessageInitializeModel implements InitializeModel<StaticMessa
     private StaticMessageType staticMessageType;
     @NotNull
     private List<Long> objectIds;
+    private String embedOverride;
 
     public StaticMessageInitializeModel(DiscordServer server) {
         this.server = server;
@@ -27,7 +28,7 @@ public class StaticMessageInitializeModel implements InitializeModel<StaticMessa
 
     @Override
     public @NonNull StaticMessage toEntity() {
-        return new StaticMessage(server, channelId, messageId, staticMessageType, objectIds);
+        return new StaticMessage(server, channelId, messageId, staticMessageType, objectIds, embedOverride);
     }
 
     @Override
@@ -37,7 +38,8 @@ public class StaticMessageInitializeModel implements InitializeModel<StaticMessa
                 creationModel.getChannelId(),
                 creationModel.getMessageId(),
                 creationModel.getStaticMessageType(),
-                creationModel.getObjectIds()
+                creationModel.getObjectIds(),
+                creationModel.getEmbedOverride()
         );
     }
 }

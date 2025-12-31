@@ -50,23 +50,32 @@ public class StaticMessage implements net.dungeonhub.structure.entity.Entity<Sta
     @NotNull
     private List<StaticMessageObject> staticMessageObjects = new ArrayList<>();
 
+    // TODO migrations
+    // mariadb: JSON
+    // postgres: JSONB
+    @Getter
+    @Setter
+    @Column(name = "embed_override")
+    private String embedOverride;
+
     public void setObjectIds(@NotNull List<Long> objectIds) {
         this.staticMessageObjects.clear();
         this.staticMessageObjects.addAll(objectIds.stream().map(objectId -> new StaticMessageObject(this, objectId)).toList());
     }
 
-    public StaticMessage(DiscordServer server, Long channelId, Long messageId, StaticMessageType staticMessageType, @NotNull List<Long> objectIds) {
+    public StaticMessage(DiscordServer server, Long channelId, Long messageId, StaticMessageType staticMessageType, @NotNull List<Long> objectIds, String embedOverride) {
         this.server = server;
         this.channelId = channelId;
         this.messageId = messageId;
         this.staticMessageType = staticMessageType;
+        this.embedOverride = embedOverride;
 
         this.setObjectIds(objectIds);
     }
 
     @Override
     public @NonNull StaticMessageModel toModel() {
-        return new StaticMessageModel(id, server.toModel(), channelId, messageId, staticMessageType, staticMessageObjects.stream().map(StaticMessageObject::getObjectId).toList());
+        return new StaticMessageModel(id, server.toModel(), channelId, messageId, staticMessageType, staticMessageObjects.stream().map(StaticMessageObject::getObjectId).toList(), embedOverride);
     }
 }
 

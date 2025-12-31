@@ -98,6 +98,14 @@ public class StaticMessageService implements EntityService<StaticMessage, Static
             staticMessage.setObjectIds(staticMessageUpdateModel.getObjectIds());
         }
 
+        if(staticMessageUpdateModel.getResetEmbedOverride()) {
+            staticMessage.setEmbedOverride(null);
+        }
+
+        if(staticMessageUpdateModel.getEmbedOverride() != null) {
+            staticMessage.setEmbedOverride(staticMessageUpdateModel.getEmbedOverride());
+        }
+
         return staticMessage;
     }
 }
