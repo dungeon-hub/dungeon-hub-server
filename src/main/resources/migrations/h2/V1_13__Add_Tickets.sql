@@ -44,7 +44,7 @@ create table ticket_panel
     claimer_allowed_permissions          VARBINARY,
     claimer_denied_permissions           VARBINARY,
     everyone_allowed_permissions         VARBINARY,
-    everyone_denied_permissions          VARBINARY,
+    everyone_denied_permissions          VARBINARY
 );
 
 create table ticket
@@ -53,7 +53,7 @@ create table ticket
     state        SMALLINT              NOT NULL,
     channel      BIGINT REFERENCES discord_channel (id),
     ticket_panel BIGINT                NOT NULL REFERENCES ticket_panel (id),
-    user         BIGINT                NOT NULL REFERENCES discord_user (id),
+    user_id      BIGINT                NOT NULL REFERENCES discord_user (id),
     claimer      BIGINT REFERENCES discord_user (id),
     created      TIMESTAMP             NOT NULL
 );

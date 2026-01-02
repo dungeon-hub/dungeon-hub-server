@@ -1,47 +1,37 @@
 package me.taubsie.dungeonhub.server.converter;
 
-import dev.kord.common.DiscordBitSet;
+import dev.kord.common.DiscordBitSetKt;
 import dev.kord.common.entity.Permissions;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
+import java.math.BigInteger;
 
 // TODO: add entity and db columns
 // h2: VARBINARY
 // mariadb: VARBINARY(32)
 // postgres: BYTEA
 @Converter
-public class PermissionsConverter implements AttributeConverter<Permissions, byte[]> {
+public class PermissionsConverter implements AttributeConverter<Permissions, Long> {
     @Override
-    public byte[] convertToDatabaseColumn(Permissions attribute) {
-        if(attribute == null) {
+    public Long convertToDatabaseColumn(Permissions attribute) {
+        if (attribute == null) {
             return null;
         }
 
-        return longArrayToByteArray(attribute.getCode().getData$common());
-    }
+        BigInteger value = new BigInteger(attribute.getCode().getValue(), 10);
 
-    byte[] longArrayToByteArray(long[] data) {
-        ByteBuffer buffer = ByteBuffer.allocate(data.length * Long.BYTES);
-        buffer.asLongBuffer().put(data);
-        return buffer.array();
+        assert value.bitLength() <= 63 : "DiscordBitSet too large to store as BIGINT (" + value.bitLength() + " bits)";
+
+        return value.longValueExact();
     }
 
     @Override
-    public Permissions convertToEntityAttribute(byte[] dbData) {
-        if(dbData == null) {
+    public Permissions convertToEntityAttribute(Long dbData) {
+        if (dbData == null) {
             return null;
         }
 
-        return new Permissions(new DiscordBitSet(byteArrayToLongArray(dbData)));
-    }
-
-    long[] byteArrayToLongArray(byte[] bytes) {
-        LongBuffer buffer = ByteBuffer.wrap(bytes).asLongBuffer();
-        long[] data = new long[buffer.remaining()];
-        buffer.get(data);
-        return data;
+        return new Permissions(DiscordBitSetKt.DiscordBitSet(dbData.toString()));
     }
 }

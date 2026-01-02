@@ -6,7 +6,7 @@ public class Ticket {
     state        SMALLINT              NOT NULL,
     channel      BIGINT REFERENCES discord_channel (id),
     ticket_panel BIGINT                NOT NULL REFERENCES ticket_panel (id),
-    user         BIGINT                NOT NULL REFERENCES discord_user (id),
+    user_id         BIGINT                NOT NULL REFERENCES discord_user (id),
     claimer      BIGINT REFERENCES discord_user (id),
     created      TIMESTAMP             NOT NULL
     */
