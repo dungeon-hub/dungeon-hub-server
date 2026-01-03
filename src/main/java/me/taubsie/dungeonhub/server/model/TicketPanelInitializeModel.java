@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import me.taubsie.dungeonhub.server.entities.DiscordChannel;
+import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import net.dungeonhub.enums.TicketPermissionCandidate;
@@ -15,6 +16,7 @@ import net.dungeonhub.structure.model.InitializeModel;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -23,6 +25,8 @@ import java.util.Map;
 public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, TicketPanelModel, TicketPanelCreationModel> {
     private final DiscordServer discordServer;
     private final DiscordChannel transcriptChannel;
+    private final List<DiscordRole> supportRoles;
+    private final List<DiscordRole> additionalRoles;
 
     private String name;
     private String displayName;
@@ -36,13 +40,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
     private String ticketMessage;
     private boolean requiresLinking;
 
-    /*
-    TODO:
-    val supportRoles: List<DiscordRoleModel>,
-    val additionalRoles: List<DiscordRoleModel>,
-    val openCategories: List<DiscordChannelModel>,
-    val closedCategories: List<DiscordChannelModel>,
-    */
+    private List<Long> openCategories;
+    private List<Long> closedCategories;
 
     private Permissions supportTeamAllowedPermissions;
     private Permissions supportTeamDeniedPermissions;
@@ -55,14 +54,21 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
     private Permissions everyoneAllowedPermissions;
     private Permissions everyoneDeniedPermissions;
 
-    public TicketPanelInitializeModel(DiscordServer discordServer, DiscordChannel transcriptChannel) {
+    public TicketPanelInitializeModel(
+            DiscordServer discordServer,
+            DiscordChannel transcriptChannel,
+            List<DiscordRole> supportRoles,
+            List<DiscordRole> additionalRoles
+    ) {
         this.discordServer = discordServer;
         this.transcriptChannel = transcriptChannel;
+        this.supportRoles = supportRoles;
+        this.additionalRoles = additionalRoles;
     }
 
     @Override
     public @NonNull TicketPanel toEntity() {
-        return new TicketPanel(name, displayName, emoji, discordServer, closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel, ticketMessage, requiresLinking, supportTeamAllowedPermissions, supportTeamDeniedPermissions, additionalRolesAllowedPermissions, additionalRolesDeniedPermissions, creatorAllowedPermissions, creatorDeniedPermissions, claimerAllowedPermissions, claimerDeniedPermissions, everyoneAllowedPermissions, everyoneDeniedPermissions);
+        return new TicketPanel(name, displayName, emoji, discordServer, closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel, ticketMessage, requiresLinking, supportRoles, additionalRoles, openCategories, closedCategories, supportTeamAllowedPermissions, supportTeamDeniedPermissions, additionalRolesAllowedPermissions, additionalRolesDeniedPermissions, creatorAllowedPermissions, creatorDeniedPermissions, claimerAllowedPermissions, claimerDeniedPermissions, everyoneAllowedPermissions, everyoneDeniedPermissions);
     }
 
     @Override
@@ -83,6 +89,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
         return new TicketPanelInitializeModel(
                 discordServer,
                 transcriptChannel,
+                supportRoles,
+                additionalRoles,
                 ticketPanelCreationModel.getName(),
                 ticketPanelCreationModel.getDisplayName(),
                 ticketPanelCreationModel.getEmoji(),
@@ -94,6 +102,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
                 ticketPanelCreationModel.getClosedChannelName(),
                 ticketPanelCreationModel.getTicketMessage(),
                 ticketPanelCreationModel.getRequiresLinking(),
+                ticketPanelCreationModel.getOpenCategories(),
+                ticketPanelCreationModel.getClosedCategories(),
                 supportTeamAllowedPermissions,
                 supportTeamDeniedPermissions,
                 additionalRolesAllowedPermissions,

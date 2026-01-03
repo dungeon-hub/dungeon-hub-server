@@ -11,10 +11,12 @@ import net.dungeonhub.enums.TicketPermissionType;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Entity(name = "ticket_panel")
@@ -23,6 +25,7 @@ import java.util.Map;
 public class TicketPanel implements net.dungeonhub.structure.entity.Entity<TicketPanelModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     @Column(name = "id", nullable = false)
     private long id;
 
@@ -82,13 +85,25 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @Column(name = "requires_linking", nullable = false)
     private boolean requiresLinking;
 
-    /*
-    TODO:
-    val supportRoles: List<DiscordRoleModel>,
-    val additionalRoles: List<DiscordRoleModel>,
-    val openCategories: List<DiscordChannelModel>,
-    val closedCategories: List<DiscordChannelModel>,
-    */
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelSupportRole> supportRoles = new ArrayList<>();
+
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelAdditionalRole> additionalRoles = new ArrayList<>();
+
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelOpenCategory> openCategories = new ArrayList<>();
+
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelClosedCategory> closedCategories = new ArrayList<>();
 
     @Setter
     @Convert(converter = PermissionsConverter.class)
@@ -140,7 +155,35 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @Column(name = "everyone_denied_permissions")
     private Permissions everyoneDeniedPermissions;
 
-    public TicketPanel(String name, String displayName, String emoji, DiscordServer discordServer, boolean closeable, boolean closeConfirmation, boolean claimable, String openChannelName, String claimedChannelName, String closedChannelName, DiscordChannel transcriptChannel, String ticketMessage, boolean requiresLinking, Permissions supportTeamAllowedPermissions, Permissions supportTeamDeniedPermissions, Permissions additionalRolesAllowedPermissions, Permissions additionalRolesDeniedPermissions, Permissions creatorAllowedPermissions, Permissions creatorDeniedPermissions, Permissions claimerAllowedPermissions, Permissions claimerDeniedPermissions, Permissions everyoneAllowedPermissions, Permissions everyoneDeniedPermissions) {
+    public TicketPanel(
+            String name,
+            String displayName,
+            String emoji,
+            DiscordServer discordServer,
+            boolean closeable,
+            boolean closeConfirmation,
+            boolean claimable,
+            String openChannelName,
+            String claimedChannelName,
+            String closedChannelName,
+            DiscordChannel transcriptChannel,
+            String ticketMessage,
+            boolean requiresLinking,
+            List<DiscordRole> supportRoles,
+            List<DiscordRole> additionalRoles,
+            List<Long> openCategories,
+            List<Long> closedCategories,
+            Permissions supportTeamAllowedPermissions,
+            Permissions supportTeamDeniedPermissions,
+            Permissions additionalRolesAllowedPermissions,
+            Permissions additionalRolesDeniedPermissions,
+            Permissions creatorAllowedPermissions,
+            Permissions creatorDeniedPermissions,
+            Permissions claimerAllowedPermissions,
+            Permissions claimerDeniedPermissions,
+            Permissions everyoneAllowedPermissions,
+            Permissions everyoneDeniedPermissions
+    ) {
         this.name = name;
         this.displayName = displayName;
         this.emoji = emoji;
@@ -154,6 +197,12 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.transcriptChannel = transcriptChannel;
         this.ticketMessage = ticketMessage;
         this.requiresLinking = requiresLinking;
+
+        this.setSupportRoles(supportRoles);
+        this.setAdditionalRoles(additionalRoles);
+        this.setOpenCategories(openCategories);
+        this.setClosedCategories(closedCategories);
+
         this.supportTeamAllowedPermissions = supportTeamAllowedPermissions;
         this.supportTeamDeniedPermissions = supportTeamDeniedPermissions;
         this.additionalRolesAllowedPermissions = additionalRolesAllowedPermissions;
@@ -164,6 +213,34 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.claimerDeniedPermissions = claimerDeniedPermissions;
         this.everyoneAllowedPermissions = everyoneAllowedPermissions;
         this.everyoneDeniedPermissions = everyoneDeniedPermissions;
+    }
+
+    public void setSupportRoles(List<DiscordRole> supportRoles) {
+        if(supportRoles == null) return;
+
+        this.supportRoles.clear();
+        this.supportRoles.addAll(supportRoles.stream().map(supportRole -> new TicketPanelSupportRole(this, supportRole)).toList());
+    }
+
+    public void setAdditionalRoles(List<DiscordRole> additionalRoles) {
+        if(additionalRoles == null) return;
+
+        this.additionalRoles.clear();
+        this.additionalRoles.addAll(additionalRoles.stream().map(additionalRole -> new TicketPanelAdditionalRole(this, additionalRole)).toList());
+    }
+
+    public void setOpenCategories(List<Long> openCategories) {
+        if(openCategories == null) return;
+
+        this.openCategories.clear();
+        this.openCategories.addAll(openCategories.stream().map(openCategoryId -> new TicketPanelOpenCategory(this, openCategoryId)).toList());
+    }
+
+    public void setClosedCategories(List<Long> closedCategories) {
+        if(closedCategories == null) return;
+
+        this.closedCategories.clear();
+        this.closedCategories.addAll(closedCategories.stream().map(closedCategoryId -> new TicketPanelClosedCategory(this, closedCategoryId)).toList());
     }
 
     @Override
@@ -180,7 +257,27 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         setPermissions(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Allowed, everyoneAllowedPermissions);
         setPermissions(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Denied, everyoneDeniedPermissions);
 
-        return new TicketPanelModel(id, name, displayName, emoji, discordServer.toModel(), closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel != null ? transcriptChannel.toModel() : null, ticketMessage, requiresLinking, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), permissions);
+        return new TicketPanelModel(
+                id,
+                name,
+                displayName,
+                emoji,
+                discordServer.toModel(),
+                closeable,
+                closeConfirmation,
+                claimable,
+                openChannelName,
+                claimedChannelName,
+                closedChannelName,
+                transcriptChannel != null ? transcriptChannel.toModel() : null,
+                ticketMessage,
+                requiresLinking,
+                supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),
+                additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
+                openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),
+                closedCategories.stream().map(TicketPanelClosedCategory::getClosedCategoryId).toList(),
+                permissions
+        );
     }
 
     private void setPermissions(Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions, TicketPermissionCandidate permissionCandidate, TicketPermissionType permissionType, Permissions permission) {

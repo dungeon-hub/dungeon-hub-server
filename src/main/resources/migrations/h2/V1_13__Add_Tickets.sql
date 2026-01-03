@@ -28,13 +28,6 @@ create table ticket_panel
     ticket_message                       CLOB,
     requires_linking                     boolean               NOT NULL,
 
-    /*TODO:
-      val supportRoles: List<DiscordRoleModel>,
-      val additionalRoles: List<DiscordRoleModel>,
-      val openCategories: List<DiscordChannelModel>,
-      val closedCategories: List<DiscordChannelModel>,
-      */
-
     support_team_allowed_permissions     VARBINARY,
     support_team_denied_permissions      VARBINARY,
     additional_roles_allowed_permissions VARBINARY,
@@ -45,6 +38,30 @@ create table ticket_panel
     claimer_denied_permissions           VARBINARY,
     everyone_allowed_permissions         VARBINARY,
     everyone_denied_permissions          VARBINARY
+);
+
+create table ticket_panel_support_role
+(
+    ticket_panel BIGINT REFERENCES ticket_panel (id),
+    support_role BIGINT NOT NULL REFERENCES discord_role (id)
+);
+
+create table ticket_panel_additional_role
+(
+    ticket_panel    BIGINT REFERENCES ticket_panel (id),
+    additional_role BIGINT NOT NULL REFERENCES discord_role (id)
+);
+
+create table ticket_panel_open_category
+(
+    ticket_panel  BIGINT REFERENCES ticket_panel (id),
+    open_category BIGINT NOT NULL
+);
+
+create table ticket_panel_closed_category
+(
+    ticket_panel    BIGINT REFERENCES ticket_panel (id),
+    closed_category BIGINT NOT NULL
 );
 
 create table ticket

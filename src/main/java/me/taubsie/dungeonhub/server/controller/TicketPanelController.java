@@ -2,10 +2,12 @@ package me.taubsie.dungeonhub.server.controller;
 
 import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.DiscordChannel;
+import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketPanelInitializeModel;
 import me.taubsie.dungeonhub.server.service.DiscordChannelService;
+import me.taubsie.dungeonhub.server.service.DiscordRoleService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.TicketPanelService;
 import net.dungeonhub.model.ticket_panel.TicketPanelCreationModel;
@@ -16,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +30,7 @@ public class TicketPanelController {
     private final TicketPanelService ticketPanelService;
     private final DiscordServerService discordServerService;
     private final DiscordChannelService discordChannelService;
+    private final DiscordRoleService discordRoleService;
 
     @GetMapping("{id}")
     public TicketPanelModel getById(@PathVariable("server") long serverId, @PathVariable long id) {
@@ -65,7 +69,19 @@ public class TicketPanelController {
         Optional<DiscordChannel> transcriptChannel = Optional.ofNullable(creationModel.getTranscriptChannel())
                 .map(id -> discordChannelService.loadEntityOrCreate(discordServer, id));
 
-        return ticketPanelService.createEntity(new TicketPanelInitializeModel(discordServer, transcriptChannel.orElse(null))
+        Optional<List<DiscordRole>> supportRoles = Optional.ofNullable(creationModel.getSupportRoles())
+                .map(supportRoleIds -> supportRoleIds.stream()
+                        .map(supportRoleId -> discordRoleService.loadOrCreate(discordServer, supportRoleId))
+                        .toList()
+                );
+
+        Optional<List<DiscordRole>> additionalRoles = Optional.ofNullable(creationModel.getAdditionalRoles())
+                .map(additionalRoleIds -> additionalRoleIds.stream()
+                        .map(additionalRoleId -> discordRoleService.loadOrCreate(discordServer, additionalRoleId))
+                        .toList()
+                );
+
+        return ticketPanelService.createEntity(new TicketPanelInitializeModel(discordServer, transcriptChannel.orElse(null), supportRoles.orElse(Collections.emptyList()), additionalRoles.orElse(Collections.emptyList()))
                 .fromCreationModel(creationModel)).toModel();
     }
 
