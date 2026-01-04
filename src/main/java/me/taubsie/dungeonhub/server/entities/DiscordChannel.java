@@ -15,6 +15,7 @@ import org.jspecify.annotations.NonNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DiscordChannel implements net.dungeonhub.structure.entity.Entity<DiscordChannelModel> {
+    @Getter
     @Id
     private long id;
 

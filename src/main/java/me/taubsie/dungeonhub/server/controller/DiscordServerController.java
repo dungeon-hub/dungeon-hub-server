@@ -13,6 +13,7 @@ import net.dungeonhub.model.reputation.ReputationSumModel;
 import net.dungeonhub.model.score.ScoreLeaderboardModel;
 import net.dungeonhub.model.score.ScoreModel;
 import net.dungeonhub.model.static_message.StaticMessageModel;
+import net.dungeonhub.model.ticket.TicketModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("api/v1/server")
@@ -41,6 +43,7 @@ public class DiscordServerController {
     private final CarryService carryService;
     private final ReputationService reputationService;
     private final StaticMessageService staticMessageService;
+    private final TicketService ticketService;
 
     @GetMapping("{server}")
     public DiscordServerModel getServerById(@PathVariable("server") long id) {
@@ -213,5 +216,18 @@ public class DiscordServerController {
         return staticMessageService.findAllEntities().stream()
                 .map(StaticMessage::toModel)
                 .toList();
+    }
+
+    @GetMapping("{server}/ticket/find")
+    public List<TicketModel> findTickets(@PathVariable("server") long serverId, @RequestParam(name = "channel", required = false) Optional<Long> channelId) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        Stream<Ticket> result = ticketService.loadEntitiesByServer(discordServer).stream();
+
+        if(channelId.isPresent()) {
+            result = result.filter(ticket -> ticket.getDiscordChannel() != null && ticket.getDiscordChannel().getId() == channelId.get());
+        }
+
+        return result.map(Ticket::toModel).toList();
     }
 }

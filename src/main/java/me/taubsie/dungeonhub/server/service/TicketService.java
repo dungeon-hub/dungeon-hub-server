@@ -1,6 +1,7 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketInitializeModel;
@@ -42,6 +43,10 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
 
     public List<Ticket> loadEntitiesByTicketPanel(TicketPanel ticketPanel) {
         return ticketRepository.findTicketsByTicketPanel(ticketPanel);
+    }
+
+    public List<Ticket> loadEntitiesByServer(DiscordServer discordServer) {
+        return ticketRepository.findTicketsByTicketPanel_DiscordServer(discordServer);
     }
 
     @Override
