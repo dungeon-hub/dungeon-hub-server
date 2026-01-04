@@ -83,6 +83,6 @@ public class TicketController {
         Ticket ticket = ticketService.loadEntityById(ticketPanel, id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        return ticketService.updateEntity(ticket, updateModel).toModel();
+        return ticketService.update(ticket, updateModel).toModel();
     }
 }
