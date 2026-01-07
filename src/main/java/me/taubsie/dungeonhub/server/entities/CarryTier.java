@@ -41,6 +41,11 @@ public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTi
     //final
     private CarryType carryType;
     @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "related_ticket_panel")
+    private TicketPanel relatedTicketPanel;
+    @Setter
     @Column(name = "category")
     private Long category;
     @Setter
@@ -59,35 +64,12 @@ public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTi
     @Column(name = "price_description", length = 200)
     private String priceDescription;
 
-    @SuppressWarnings("java:S107")
-    public CarryTier(long id, String identifier, String displayName, CarryType carryType, long category,
-                     Long priceChannel, String descriptiveName, String thumbnailUrl, String priceTitle,
-                     String priceDescription) {
-        this.id = id;
-        this.identifier = identifier;
-        this.displayName = displayName;
-        this.carryType = carryType;
-        this.category = category;
-        this.priceChannel = priceChannel;
-        this.descriptiveName = descriptiveName;
-        this.thumbnailUrl = thumbnailUrl;
-        this.priceTitle = priceTitle;
-        this.priceDescription = priceDescription;
-    }
-
-    public CarryTier(long id, String identifier, String displayName, CarryType carryType) {
-        this.id = id;
-        this.identifier = identifier;
-        this.displayName = displayName;
-        this.carryType = carryType;
-    }
-
-    @SuppressWarnings("java:S107")
-    public CarryTier(String identifier, String displayName, CarryType carryType, long category, long priceChannel,
+    public CarryTier(String identifier, String displayName, CarryType carryType, TicketPanel relatedTicketPanel, long category, long priceChannel,
                      String descriptiveName, String thumbnailUrl, String priceTitle, String priceDescription) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.carryType = carryType;
+        this.relatedTicketPanel = relatedTicketPanel;
         this.category = category;
         this.priceChannel = priceChannel;
         this.descriptiveName = descriptiveName;
@@ -124,6 +106,7 @@ public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTi
                 identifier,
                 displayName,
                 carryType.toModel(),
+                relatedTicketPanel == null ? null : relatedTicketPanel.toModel(),
                 category,
                 priceChannel,
                 descriptiveName,

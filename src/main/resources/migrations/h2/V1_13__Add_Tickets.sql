@@ -74,3 +74,6 @@ create table ticket
     claimer      BIGINT REFERENCES discord_user (id),
     created      TIMESTAMP             NOT NULL
 );
+
+alter table carry_tier
+    add column related_ticket_panel BIGINT REFERENCES ticket_panel (id);

@@ -1,5 +1,6 @@
 package me.taubsie.dungeonhub.server.service;
 
+import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
@@ -11,7 +12,6 @@ import net.dungeonhub.model.carry_tier.CarryTierModel;
 import net.dungeonhub.model.carry_tier.CarryTierUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,13 +20,10 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Service
+@AllArgsConstructor
 public class CarryTierService implements EntityService<CarryTier, CarryTierModel, CarryTierCreationModel, CarryTierInitializeModel, CarryTierUpdateModel> {
     private final CarryTierRepository carryTierRepository;
-
-    @Autowired
-    public CarryTierService(CarryTierRepository carryTierRepository) {
-        this.carryTierRepository = carryTierRepository;
-    }
+    private final TicketPanelService ticketPanelService;
 
     @Override
     public @NotNull Optional<CarryTier> loadEntityById(long id) {
@@ -93,6 +90,15 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
     public @NotNull CarryTier updateEntity(@NotNull CarryTier carryTier, @NotNull CarryTierUpdateModel carryTierUpdateModel) {
         if (carryTierUpdateModel.getDisplayName() != null) {
             carryTier.setDisplayName(carryTierUpdateModel.getDisplayName());
+        }
+
+        if(carryTierUpdateModel.getResetRelatedTicketPanel()) {
+            carryTier.setRelatedTicketPanel(null);
+        }
+
+        if(carryTierUpdateModel.getRelatedTicketPanel() != null) {
+            ticketPanelService.loadEntityById(carryTierUpdateModel.getRelatedTicketPanel())
+                    .ifPresent(carryTier::setRelatedTicketPanel);
         }
 
         if (carryTierUpdateModel.getResetCategory()) {
