@@ -18,7 +18,7 @@ public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, Ca
     private DiscordUser carrier;
     private DiscordUser player;
 
-    private Long amount;
+    private int amount;
     private CarryDifficulty carryDifficulty;
     private Long relationId;
     private String attachmentLink;
