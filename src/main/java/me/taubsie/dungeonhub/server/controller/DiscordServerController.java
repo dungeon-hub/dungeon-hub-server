@@ -56,7 +56,6 @@ public class DiscordServerController {
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
-        //TODO maybe move the following code to service? service should return the models afterall imo
         List<ScoreModel> scores = new ArrayList<>(scoreService.getAllScores(carrier, discordServer)
                 .stream().map(Score::toModel)
                 .toList());
@@ -72,7 +71,6 @@ public class DiscordServerController {
                 }
             }
         }
-
 
         return scores;
     }
