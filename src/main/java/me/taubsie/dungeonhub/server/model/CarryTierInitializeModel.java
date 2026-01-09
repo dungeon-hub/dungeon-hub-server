@@ -21,7 +21,6 @@ public class CarryTierInitializeModel implements InitializeModel<CarryTier, Carr
     private String identifier;
     private String displayName;
     private Long category;
-    private Long priceChannel;
     private String descriptiveName;
     private String thumbnailUrl;
     private String priceTitle;
@@ -34,14 +33,14 @@ public class CarryTierInitializeModel implements InitializeModel<CarryTier, Carr
 
     @Override
     public @NotNull CarryTier toEntity() {
-        return new CarryTier(identifier, displayName, carryType, relatedTicketPanel, category, priceChannel, descriptiveName,
+        return new CarryTier(identifier, displayName, carryType, relatedTicketPanel, category, descriptiveName,
                 thumbnailUrl, priceTitle, priceDescription);
     }
 
     @Override
     public @NotNull CarryTierInitializeModel fromCreationModel(CarryTierCreationModel creationModel) {
         return new CarryTierInitializeModel(carryType, relatedTicketPanel, creationModel.getIdentifier(), creationModel.getDisplayName(),
-                creationModel.getCategory(), creationModel.getPriceChannel(), creationModel.getDescriptiveName(),
+                creationModel.getCategory(), creationModel.getDescriptiveName(),
                 creationModel.getThumbnailUrl(), creationModel.getPriceTitle(), creationModel.getPriceDescription());
     }
 }

@@ -109,14 +109,6 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
             carryTier.setCategory(carryTierUpdateModel.getCategory());
         }
 
-        if (carryTierUpdateModel.getResetPriceChannel()) {
-            carryTier.setPriceChannel(null);
-        }
-
-        if (carryTierUpdateModel.getPriceChannel() != null) {
-            carryTier.setPriceChannel(carryTierUpdateModel.getPriceChannel());
-        }
-
         if (carryTierUpdateModel.getResetDescriptiveName()) {
             carryTier.setDescriptiveName(null);
         }
