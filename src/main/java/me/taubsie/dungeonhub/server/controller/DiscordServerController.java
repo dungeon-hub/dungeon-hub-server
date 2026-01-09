@@ -195,7 +195,7 @@ public class DiscordServerController {
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
                 .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
                 .filter(carry -> since.isEmpty() || since.get().isBefore(carry.getTime()))
-                .mapToLong(Carry::calculatePrice)
+                .mapToLong(Carry::calculateTotalPrice)
                 .sum();
     }
 
