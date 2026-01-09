@@ -105,6 +105,6 @@ public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel>
             return bulkPrice;
         }
 
-        return carryDifficulty.getPrice();
+        return carryDifficulty.getPrice() * amount;
     }
 }
