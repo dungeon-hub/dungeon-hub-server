@@ -8,7 +8,9 @@ import lombok.Setter;
 import me.taubsie.dungeonhub.server.converter.PermissionsConverter;
 import net.dungeonhub.enums.TicketPermissionCandidate;
 import net.dungeonhub.enums.TicketPermissionType;
+import net.dungeonhub.enums.TranscriptTarget;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -84,6 +86,18 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @Setter
     @Column(name = "requires_linking", nullable = false)
     private boolean requiresLinking;
+
+    @Setter
+    @Column(name = "close_transcript_target", nullable = false)
+    @Enumerated
+    @ColumnDefault("0")
+    private TranscriptTarget closeTranscriptTarget;
+
+    @Setter
+    @Column(name = "delete_transcript_target", nullable = false)
+    @Enumerated
+    @ColumnDefault("0")
+    private TranscriptTarget deleteTranscriptTarget;
 
     @Getter
     @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -169,6 +183,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
             DiscordChannel transcriptChannel,
             String ticketMessage,
             boolean requiresLinking,
+            TranscriptTarget closeTranscriptTarget,
+            TranscriptTarget deleteTranscriptTarget,
             List<DiscordRole> supportRoles,
             List<DiscordRole> additionalRoles,
             List<Long> openCategories,
@@ -197,6 +213,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.transcriptChannel = transcriptChannel;
         this.ticketMessage = ticketMessage;
         this.requiresLinking = requiresLinking;
+        this.closeTranscriptTarget = closeTranscriptTarget;
+        this.deleteTranscriptTarget = deleteTranscriptTarget;
 
         this.setSupportRoles(supportRoles);
         this.setAdditionalRoles(additionalRoles);
@@ -272,6 +290,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 transcriptChannel != null ? transcriptChannel.toModel() : null,
                 ticketMessage,
                 requiresLinking,
+                closeTranscriptTarget,
+                deleteTranscriptTarget,
                 supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),
                 additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
                 openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),

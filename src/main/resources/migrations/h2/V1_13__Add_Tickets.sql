@@ -27,6 +27,8 @@ create table ticket_panel
     transcript_channel                   BIGINT REFERENCES discord_channel (id),
     ticket_message                       CLOB,
     requires_linking                     boolean               NOT NULL,
+    close_transcript_target              INT                   NOT NULL DEFAULT 0,
+    delete_transcript_target             INT                   NOT NULL DEFAULT 0,
 
     support_team_allowed_permissions     VARBINARY,
     support_team_denied_permissions      VARBINARY,
