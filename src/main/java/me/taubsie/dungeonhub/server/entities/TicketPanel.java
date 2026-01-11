@@ -99,6 +99,10 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @ColumnDefault("0")
     private TranscriptTarget deleteTranscriptTarget;
 
+    @Setter
+    @Column(name = "user_transcript_dm")
+    private String userTranscriptDm;
+
     @Getter
     @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
@@ -185,6 +189,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
             boolean requiresLinking,
             TranscriptTarget closeTranscriptTarget,
             TranscriptTarget deleteTranscriptTarget,
+            String userTranscriptDm,
             List<DiscordRole> supportRoles,
             List<DiscordRole> additionalRoles,
             List<Long> openCategories,
@@ -215,6 +220,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.requiresLinking = requiresLinking;
         this.closeTranscriptTarget = closeTranscriptTarget;
         this.deleteTranscriptTarget = deleteTranscriptTarget;
+        this.userTranscriptDm = userTranscriptDm;
 
         this.setSupportRoles(supportRoles);
         this.setAdditionalRoles(additionalRoles);
@@ -292,6 +298,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 requiresLinking,
                 closeTranscriptTarget,
                 deleteTranscriptTarget,
+                userTranscriptDm,
                 supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),
                 additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
                 openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),

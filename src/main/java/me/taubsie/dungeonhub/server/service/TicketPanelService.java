@@ -164,6 +164,22 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
             ticketPanel.setRequiresLinking(updateModel.getRequiresLinking());
         }
 
+        if(updateModel.getCloseTranscriptTarget() != null) {
+            ticketPanel.setCloseTranscriptTarget(updateModel.getCloseTranscriptTarget());
+        }
+
+        if(updateModel.getDeleteTranscriptTarget() != null) {
+            ticketPanel.setDeleteTranscriptTarget(updateModel.getDeleteTranscriptTarget());
+        }
+
+        if(updateModel.getResetUserTranscriptDm()) {
+            ticketPanel.setUserTranscriptDm(null);
+        }
+
+        if(updateModel.getUserTranscriptDm() != null) {
+            ticketPanel.setUserTranscriptDm(updateModel.getUserTranscriptDm());
+        }
+
         if(updateModel.getSupportRoles() != null) {
             ticketPanel.setSupportRoles(
                     updateModel.getSupportRoles().stream()
