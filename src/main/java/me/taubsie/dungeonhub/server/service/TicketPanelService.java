@@ -180,6 +180,10 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
             ticketPanel.setUserTranscriptDm(updateModel.getUserTranscriptDm());
         }
 
+        if(updateModel.getFormQuestions() != null) {
+            ticketPanel.setFormQuestions(updateModel.getFormQuestions());
+        }
+
         if(updateModel.getSupportRoles() != null) {
             ticketPanel.setSupportRoles(
                     updateModel.getSupportRoles().stream()

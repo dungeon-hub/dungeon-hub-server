@@ -9,11 +9,14 @@ import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import net.dungeonhub.enums.TicketState;
 import net.dungeonhub.model.ticket.TicketCreationModel;
+import net.dungeonhub.model.ticket.TicketFormResponseModel;
 import net.dungeonhub.model.ticket.TicketModel;
 import net.dungeonhub.structure.model.InitializeModel;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,6 +29,7 @@ public class TicketInitializeModel implements InitializeModel<Ticket, TicketMode
 
     private TicketState state;
     private Instant created;
+    private List<TicketFormResponseModel> formResponses;
 
     public TicketInitializeModel(DiscordChannel discordChannel, TicketPanel ticketPanel, DiscordUser user, DiscordUser claimer) {
         this.discordChannel = discordChannel;
@@ -36,7 +40,7 @@ public class TicketInitializeModel implements InitializeModel<Ticket, TicketMode
 
     @Override
     public @NonNull Ticket toEntity() {
-        return new Ticket(state, discordChannel, ticketPanel, user, claimer, created);
+        return new Ticket(state, discordChannel, ticketPanel, user, claimer, created, formResponses);
     }
 
     @Override
@@ -47,7 +51,8 @@ public class TicketInitializeModel implements InitializeModel<Ticket, TicketMode
                 user,
                 claimer,
                 ticketCreationModel.getState(),
-                Instant.now()
+                Instant.now(),
+                ticketCreationModel.getFormResponses() != null ? ticketCreationModel.getFormResponses() : Collections.emptyList()
         );
     }
 }

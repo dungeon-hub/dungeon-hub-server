@@ -9,6 +9,7 @@ import me.taubsie.dungeonhub.server.converter.PermissionsConverter;
 import net.dungeonhub.enums.TicketPermissionCandidate;
 import net.dungeonhub.enums.TicketPermissionType;
 import net.dungeonhub.enums.TranscriptTarget;
+import net.dungeonhub.model.ticket_panel.TicketPanelFormModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
@@ -16,10 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity(name = "ticket_panel")
 @Table(name = "ticket_panel", schema = "dungeon-hub")
@@ -102,6 +100,11 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @Setter
     @Column(name = "user_transcript_dm")
     private String userTranscriptDm;
+
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelForm> formQuestions = new ArrayList<>();
 
     @Getter
     @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -190,6 +193,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
             TranscriptTarget closeTranscriptTarget,
             TranscriptTarget deleteTranscriptTarget,
             String userTranscriptDm,
+            List<TicketPanelFormModel> formQuestions,
             List<DiscordRole> supportRoles,
             List<DiscordRole> additionalRoles,
             List<Long> openCategories,
@@ -222,6 +226,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.deleteTranscriptTarget = deleteTranscriptTarget;
         this.userTranscriptDm = userTranscriptDm;
 
+        this.setFormQuestions(formQuestions);
+
         this.setSupportRoles(supportRoles);
         this.setAdditionalRoles(additionalRoles);
         this.setOpenCategories(openCategories);
@@ -237,6 +243,16 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.claimerDeniedPermissions = claimerDeniedPermissions;
         this.everyoneAllowedPermissions = everyoneAllowedPermissions;
         this.everyoneDeniedPermissions = everyoneDeniedPermissions;
+    }
+
+    public void setFormQuestions(List<TicketPanelFormModel> formQuestions) {
+        if(formQuestions == null) return;
+
+        this.formQuestions.clear();
+        for(int i = 0; i < formQuestions.size(); i++) {
+            TicketPanelFormModel formModel = formQuestions.get(i);
+            this.formQuestions.add(i, new TicketPanelForm(this, formModel.getType(), formModel.getData(), i));
+        }
     }
 
     public void setSupportRoles(List<DiscordRole> supportRoles) {
@@ -299,6 +315,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 closeTranscriptTarget,
                 deleteTranscriptTarget,
                 userTranscriptDm,
+                formQuestions.stream().sorted(Comparator.comparingInt(TicketPanelForm::getOrdinal)).map(TicketPanelForm::toModel).toList(),
                 supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),
                 additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
                 openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),

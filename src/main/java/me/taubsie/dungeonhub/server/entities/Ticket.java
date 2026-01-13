@@ -5,13 +5,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.dungeonhub.enums.TicketState;
+import net.dungeonhub.model.ticket.TicketFormResponseModel;
 import net.dungeonhub.model.ticket.TicketModel;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "ticket")
 @Table(name = "ticket", schema = "dungeon-hub")
@@ -58,13 +62,29 @@ public class Ticket implements net.dungeonhub.structure.entity.Entity<TicketMode
     @Column(name = "created", nullable = false)
     private Instant created;
 
-    public Ticket(TicketState state, DiscordChannel discordChannel, TicketPanel ticketPanel, DiscordUser user, DiscordUser claimer, Instant created) {
+    @Getter
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketFormResponse> formResponses = new ArrayList<>();
+
+    public Ticket(TicketState state, DiscordChannel discordChannel, TicketPanel ticketPanel, DiscordUser user, DiscordUser claimer, Instant created, List<TicketFormResponseModel> formResponses) {
         this.state = state;
         this.discordChannel = discordChannel;
         this.ticketPanel = ticketPanel;
         this.user = user;
         this.claimer = claimer;
         this.created = created;
+
+        this.setFormResponses(formResponses);
+    }
+
+    public void setFormResponses(List<TicketFormResponseModel> formResponses) {
+        if(formResponses == null) return;
+
+        this.formResponses.clear();
+        for(TicketFormResponseModel formResponse : formResponses) {
+            this.formResponses.add(new TicketFormResponse(this, formResponse.getOrdinal(), formResponse.getCustomId(), formResponse.getValue()));
+        }
     }
 
     @Override
@@ -76,7 +96,8 @@ public class Ticket implements net.dungeonhub.structure.entity.Entity<TicketMode
                 ticketPanel.toModel(),
                 user.toModel(),
                 claimer != null ? claimer.toModel() : null,
-                created
+                created,
+                formResponses.stream().map(TicketFormResponse::toModel).toList()
         );
     }
 }

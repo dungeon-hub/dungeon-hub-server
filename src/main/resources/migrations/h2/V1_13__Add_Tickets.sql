@@ -43,6 +43,14 @@ create table ticket_panel
     everyone_denied_permissions          VARBINARY
 );
 
+create table ticket_panel_form
+(
+    ticket_panel BIGINT REFERENCES ticket_panel (id),
+    form_type    INT,
+    data         CLOB,
+    ordinal      INT
+);
+
 create table ticket_panel_support_role
 (
     ticket_panel BIGINT REFERENCES ticket_panel (id),
@@ -76,6 +84,14 @@ create table ticket
     user_id      BIGINT                NOT NULL REFERENCES discord_user (id),
     claimer      BIGINT REFERENCES discord_user (id),
     created      TIMESTAMP             NOT NULL
+);
+
+create table ticket_form_response
+(
+    ticket         BIGINT       NOT NULL REFERENCES ticket (id),
+    ordinal        INT          NOT NULL,
+    custom_id      varchar(255) NOT NULL,
+    response_value varchar(255) NOT NULL
 );
 
 alter table carry_tier

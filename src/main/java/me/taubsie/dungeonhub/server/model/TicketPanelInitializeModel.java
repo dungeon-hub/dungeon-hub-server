@@ -12,10 +12,12 @@ import net.dungeonhub.enums.TicketPermissionCandidate;
 import net.dungeonhub.enums.TicketPermissionType;
 import net.dungeonhub.enums.TranscriptTarget;
 import net.dungeonhub.model.ticket_panel.TicketPanelCreationModel;
+import net.dungeonhub.model.ticket_panel.TicketPanelFormModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
 import net.dungeonhub.structure.model.InitializeModel;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,7 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
     private TranscriptTarget closeTranscriptTarget;
     private TranscriptTarget deleteTranscriptTarget;
     private String userTranscriptDm;
+    private List<TicketPanelFormModel> formQuestions;
 
     private List<Long> openCategories;
     private List<Long> closedCategories;
@@ -72,7 +75,7 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
 
     @Override
     public @NonNull TicketPanel toEntity() {
-        return new TicketPanel(name, displayName, emoji, discordServer, closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel, ticketMessage, requiresLinking, closeTranscriptTarget, deleteTranscriptTarget, userTranscriptDm, supportRoles, additionalRoles, openCategories, closedCategories, supportTeamAllowedPermissions, supportTeamDeniedPermissions, additionalRolesAllowedPermissions, additionalRolesDeniedPermissions, creatorAllowedPermissions, creatorDeniedPermissions, claimerAllowedPermissions, claimerDeniedPermissions, everyoneAllowedPermissions, everyoneDeniedPermissions);
+        return new TicketPanel(name, displayName, emoji, discordServer, closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel, ticketMessage, requiresLinking, closeTranscriptTarget, deleteTranscriptTarget, userTranscriptDm, formQuestions, supportRoles, additionalRoles, openCategories, closedCategories, supportTeamAllowedPermissions, supportTeamDeniedPermissions, additionalRolesAllowedPermissions, additionalRolesDeniedPermissions, creatorAllowedPermissions, creatorDeniedPermissions, claimerAllowedPermissions, claimerDeniedPermissions, everyoneAllowedPermissions, everyoneDeniedPermissions);
     }
 
     @Override
@@ -109,6 +112,7 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
                 ticketPanelCreationModel.getCloseTranscriptTarget() != null ? ticketPanelCreationModel.getCloseTranscriptTarget() : TranscriptTarget.User,
                 ticketPanelCreationModel.getDeleteTranscriptTarget() != null ? ticketPanelCreationModel.getDeleteTranscriptTarget() : TranscriptTarget.TranscriptChannel,
                 ticketPanelCreationModel.getUserTranscriptDm(),
+                ticketPanelCreationModel.getFormQuestions() != null ? ticketPanelCreationModel.getFormQuestions() : new ArrayList<>(),
                 ticketPanelCreationModel.getOpenCategories(),
                 ticketPanelCreationModel.getClosedCategories(),
                 supportTeamAllowedPermissions,
