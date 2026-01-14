@@ -50,9 +50,6 @@ public class StaticMessage implements net.dungeonhub.structure.entity.Entity<Sta
     @NotNull
     private List<StaticMessageObject> staticMessageObjects = new ArrayList<>();
 
-    // TODO migrations
-    // mariadb: JSON
-    // postgres: JSONB
     @Getter
     @Setter
     @Column(name = "embed_override")

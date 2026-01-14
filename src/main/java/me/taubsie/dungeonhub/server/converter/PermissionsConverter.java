@@ -7,10 +7,6 @@ import jakarta.persistence.Converter;
 
 import java.math.BigInteger;
 
-// TODO: add entity and db columns
-// h2: VARBINARY
-// mariadb: VARBINARY(32)
-// postgres: BYTEA
 @Converter
 public class PermissionsConverter implements AttributeConverter<Permissions, Long> {
     @Override
