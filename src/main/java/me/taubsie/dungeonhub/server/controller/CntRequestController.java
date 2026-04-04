@@ -8,9 +8,11 @@ import me.taubsie.dungeonhub.server.service.CntRequestService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import net.dungeonhub.model.cnt_request.CntRequestCreationModel;
+import net.dungeonhub.model.cnt_request.CntRequestLeaderboardModel;
 import net.dungeonhub.model.cnt_request.CntRequestModel;
 import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +60,23 @@ public class CntRequestController {
         }
 
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("leaderboard")
+    public CntRequestLeaderboardModel getCntRequestLeaderboard(@PathVariable("server") long serverId,
+                                                               @RequestParam(required = false, defaultValue = "0") int page) {
+        if (page < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+        Page<CntRequestModel> requests = cntRequestService.getCntRequests(discordServer, page).map(CntRequest::toModel);
+
+        return new CntRequestLeaderboardModel(
+                requests.getPageable().getPageNumber(),
+                requests.getTotalPages(),
+                requests.getContent()
+        );
     }
 
     @PostMapping

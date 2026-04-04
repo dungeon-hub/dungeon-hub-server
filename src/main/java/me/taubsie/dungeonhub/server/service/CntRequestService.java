@@ -13,6 +13,8 @@ import net.dungeonhub.model.cnt_request.CntRequestModel;
 import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +24,8 @@ import java.util.function.Function;
 @Service
 @AllArgsConstructor
 public class CntRequestService implements EntityService<CntRequest, CntRequestModel, CntRequestCreationModel, CntRequestInitializeModel, CntRequestUpdateModel> {
+    private static final int PAGE_SIZE = 10;
+
     private final CntRequestRepository cntRequestRepository;
     private final DiscordUserRepository discordUserRepository;
 
@@ -75,6 +79,10 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
 
     public List<CntRequest> findByUser(DiscordUser user) {
         return cntRequestRepository.findByUser(user);
+    }
+
+    public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page) {
+        return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, PageRequest.of(page, PAGE_SIZE));
     }
 
     @Override
