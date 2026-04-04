@@ -8,7 +8,7 @@ import me.taubsie.dungeonhub.server.service.CntRequestService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import net.dungeonhub.model.cnt_request.CntRequestCreationModel;
-import net.dungeonhub.model.cnt_request.CntRequestLeaderboardModel;
+import net.dungeonhub.model.cnt_request.CntRequestPageModel;
 import net.dungeonhub.model.cnt_request.CntRequestModel;
 import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +62,9 @@ public class CntRequestController {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping("leaderboard")
-    public CntRequestLeaderboardModel getCntRequestLeaderboard(@PathVariable("server") long serverId,
-                                                               @RequestParam(required = false, defaultValue = "0") int page) {
+    @GetMapping("all")
+    public CntRequestPageModel getCntRequests(@PathVariable("server") long serverId,
+                                              @RequestParam(required = false, defaultValue = "0") int page) {
         if (page < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -72,7 +72,7 @@ public class CntRequestController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
         Page<CntRequestModel> requests = cntRequestService.getCntRequests(discordServer, page).map(CntRequest::toModel);
 
-        return new CntRequestLeaderboardModel(
+        return new CntRequestPageModel(
                 requests.getPageable().getPageNumber(),
                 requests.getTotalPages(),
                 requests.getContent()
