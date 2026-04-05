@@ -15,7 +15,6 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -284,7 +283,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     }
 
     @Override
-    public @NonNull TicketPanelModel toModel() {
+    public @NotNull TicketPanelModel toModel() {
         Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions = new HashMap<>();
         setPermissions(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Allowed, supportTeamAllowedPermissions);
         setPermissions(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Denied, supportTeamDeniedPermissions);

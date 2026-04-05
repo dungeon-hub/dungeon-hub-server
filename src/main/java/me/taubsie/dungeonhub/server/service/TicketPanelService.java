@@ -14,7 +14,6 @@ import net.dungeonhub.model.ticket_panel.TicketPanelModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -72,7 +71,7 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
     }
 
     @Override
-    public @Nullable Function<TicketPanelModel, TicketPanel> toEntity() {
+    public Function<TicketPanelModel, TicketPanel> toEntity() {
         return ticketPanelModel -> ticketPanelRepository.findById(ticketPanelModel.getId()).orElseThrow(() -> new EntityUnknownException(ticketPanelModel.getId()));
     }
 
