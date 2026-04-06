@@ -97,8 +97,8 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
         }
 
         if(carryTierUpdateModel.getRelatedTicketPanel() != null) {
-            ticketPanelService.loadEntityById(carryTierUpdateModel.getRelatedTicketPanel())
-                    .ifPresent(carryTier::setRelatedTicketPanel);
+            carryTier.setRelatedTicketPanel(ticketPanelService.loadEntityById(carryTierUpdateModel.getRelatedTicketPanel())
+                    .orElseThrow(() -> new IllegalArgumentException("Related TicketPanel not found for id=" + carryTierUpdateModel.getRelatedTicketPanel())));
         }
 
         if (carryTierUpdateModel.getResetCategory()) {

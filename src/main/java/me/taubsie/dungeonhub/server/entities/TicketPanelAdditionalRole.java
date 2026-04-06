@@ -23,6 +23,14 @@ public class TicketPanelAdditionalRole {
     private DiscordRole additionalRole;
 
     public TicketPanelAdditionalRole(TicketPanel ticketPanel, DiscordRole additionalRole) {
+        if(ticketPanel == null) {
+            throw new IllegalArgumentException("ticketPanel must not be null");
+        }
+
+        if(additionalRole == null) {
+            throw new IllegalArgumentException("additionalRole must not be null");
+        }
+
         this.ticketPanel = ticketPanel;
         this.additionalRole = additionalRole;
         this.id = new TicketPanelAdditionalRoleId(ticketPanel.getId(), additionalRole.getId());

@@ -40,6 +40,10 @@ public class TicketInitializeModel implements InitializeModel<Ticket, TicketMode
 
     @Override
     public @NonNull Ticket toEntity() {
+        if(state == null || created == null || formResponses == null) {
+            throw new IllegalStateException("TicketInitializeModel is not fully initialized");
+        }
+
         return new Ticket(state, discordChannel, ticketPanel, user, claimer, created, formResponses);
     }
 

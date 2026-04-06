@@ -48,6 +48,14 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
         return ticketRepository.findTicketsByTicketPanel_DiscordServer(discordServer);
     }
 
+    public List<Ticket> loadEntitiesByServerAndChannel(DiscordServer discordServer, Long channelId) {
+        if(channelId == null) {
+            return loadEntitiesByServer(discordServer);
+        }
+
+        return ticketRepository.findTicketsByTicketPanel_DiscordServerAndDiscordChannel_Id(discordServer, channelId);
+    }
+
     @Override
     public @NonNull Ticket createEntity(@NonNull TicketInitializeModel ticketInitializeModel) {
         return saveEntity(ticketInitializeModel.toEntity());

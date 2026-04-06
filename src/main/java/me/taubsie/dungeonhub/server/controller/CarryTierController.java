@@ -53,9 +53,14 @@ public class CarryTierController {
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        Optional<TicketPanel> relatedTicketPanel = Optional.ofNullable(creationModel.getRelatedTicketPanel()).flatMap(ticketPanelService::loadEntityById);
+        TicketPanel relatedTicketPanel = null;
+        if(creationModel.getRelatedTicketPanel() != null) {
+            relatedTicketPanel = ticketPanelService.loadEntityById(creationModel.getRelatedTicketPanel())
+                    .filter(ticketPanel -> ticketPanel.getDiscordServer().getId() == discordServer.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+        }
 
-        return carryTierService.create(new CarryTierInitializeModel(carryType, relatedTicketPanel.orElse(null)).fromCreationModel(creationModel));
+        return carryTierService.create(new CarryTierInitializeModel(carryType, relatedTicketPanel).fromCreationModel(creationModel));
     }
 
     @PutMapping("{id}")

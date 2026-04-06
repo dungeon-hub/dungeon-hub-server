@@ -10,4 +10,5 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findTicketsByTicketPanel(TicketPanel ticketPanel);
     List<Ticket> findTicketsByTicketPanel_DiscordServer(DiscordServer discordServer);
+    List<Ticket> findTicketsByTicketPanel_DiscordServerAndDiscordChannel_Id(DiscordServer discordServer, long channelId);
 }

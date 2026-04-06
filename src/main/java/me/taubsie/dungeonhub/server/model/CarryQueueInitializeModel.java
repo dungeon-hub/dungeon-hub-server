@@ -38,6 +38,10 @@ public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, Ca
 
     @Override
     public @NotNull CarryQueueInitializeModel fromCreationModel(CarryQueueCreationModel creationModel) {
+        if(creationModel.getAmount() <= 0) {
+            throw new IllegalArgumentException("amount must be positive");
+        }
+
         return new CarryQueueInitializeModel(creationModel.getQueueStep(), carrier, player, creationModel.getAmount(),
                 carryDifficulty, creationModel.getRelationId(), creationModel.getAttachmentLink(),
                 creationModel.getTime());

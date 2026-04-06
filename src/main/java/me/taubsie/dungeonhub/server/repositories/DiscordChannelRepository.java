@@ -12,7 +12,13 @@ public interface DiscordChannelRepository extends JpaRepository<DiscordChannel, 
 
     default DiscordChannel loadEntityOrCreate(DiscordServer discordServer, long id) {
         return findById(id)
-                .filter(discordChannel -> discordChannel.getDiscordServer().getId() == discordServer.getId())
+                .map(discordChannel -> {
+                    if(discordChannel.getDiscordServer().getId() != discordServer.getId()) {
+                        throw new IllegalStateException("Discord channel does not belong to the given server");
+                    }
+
+                    return discordChannel;
+                })
                 .orElseGet(() -> save(new DiscordChannelInitializeModel(discordServer, id, null, false).toEntity()));
     }
 }

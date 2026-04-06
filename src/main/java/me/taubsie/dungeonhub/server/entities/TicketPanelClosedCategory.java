@@ -20,6 +20,10 @@ public class TicketPanelClosedCategory {
     }
 
     public TicketPanelClosedCategory(TicketPanel ticketPanel, Long closedCategoryId) {
+        if(ticketPanel == null) {
+            throw new IllegalArgumentException("ticketPanel must not be null");
+        }
+
         this.ticketPanel = ticketPanel;
         this.id = new TicketPanelClosedCategoryId(ticketPanel.getId(), closedCategoryId);
     }

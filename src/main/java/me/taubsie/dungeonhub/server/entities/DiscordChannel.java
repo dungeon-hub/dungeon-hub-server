@@ -19,6 +19,7 @@ public class DiscordChannel implements net.dungeonhub.structure.entity.Entity<Di
     @Id
     private long id;
 
+    @Getter
     @Setter
     @Column(name = "name")
     private String name;

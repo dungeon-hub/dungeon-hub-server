@@ -220,12 +220,8 @@ public class DiscordServerController {
     public List<TicketModel> findTickets(@PathVariable("server") long serverId, @RequestParam(name = "channel", required = false) Optional<Long> channelId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        Stream<Ticket> result = ticketService.loadEntitiesByServer(discordServer).stream();
-
-        if(channelId.isPresent()) {
-            result = result.filter(ticket -> ticket.getDiscordChannel() != null && ticket.getDiscordChannel().getId() == channelId.get());
-        }
-
-        return result.map(Ticket::toModel).toList();
+        return ticketService.loadEntitiesByServerAndChannel(discordServer, channelId.orElse(null)).stream()
+                .map(Ticket::toModel)
+                .toList();
     }
 }

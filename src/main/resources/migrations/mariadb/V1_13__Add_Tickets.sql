@@ -45,54 +45,75 @@ create table ticket_panel
 
 create table ticket_panel_form
 (
-    ticket_panel BIGINT REFERENCES ticket_panel (id),
+    ticket_panel BIGINT NOT NULL,
     form_type    INT,
     data         JSON,
-    ordinal      INT
+    ordinal      INT NOT NULL,
+    PRIMARY KEY (ticket_panel, ordinal),
+    FOREIGN KEY (ticket_panel) REFERENCES ticket_panel (id)
 );
 
 create table ticket_panel_support_role
 (
-    ticket_panel BIGINT REFERENCES ticket_panel (id),
-    support_role BIGINT NOT NULL REFERENCES discord_role (id)
+    ticket_panel BIGINT NOT NULL,
+    support_role BIGINT NOT NULL,
+    PRIMARY KEY (ticket_panel, support_role),
+    FOREIGN KEY (ticket_panel) REFERENCES ticket_panel (id),
+    FOREIGN KEY (support_role) REFERENCES discord_role (id)
 );
 
 create table ticket_panel_additional_role
 (
-    ticket_panel    BIGINT REFERENCES ticket_panel (id),
-    additional_role BIGINT NOT NULL REFERENCES discord_role (id)
+    ticket_panel    BIGINT NOT NULL,
+    additional_role BIGINT NOT NULL,
+    PRIMARY KEY (ticket_panel, additional_role),
+    FOREIGN KEY (ticket_panel) REFERENCES ticket_panel (id),
+    FOREIGN KEY (additional_role) REFERENCES discord_role (id)
 );
 
 create table ticket_panel_open_category
 (
-    ticket_panel  BIGINT REFERENCES ticket_panel (id),
-    open_category BIGINT NOT NULL
+    ticket_panel  BIGINT NOT NULL,
+    open_category BIGINT NOT NULL,
+    PRIMARY KEY (ticket_panel, open_category),
+    FOREIGN KEY (ticket_panel) REFERENCES ticket_panel (id),
+    FOREIGN KEY (open_category) REFERENCES discord_channel (id)
 );
 
 create table ticket_panel_closed_category
 (
-    ticket_panel    BIGINT REFERENCES ticket_panel (id),
-    closed_category BIGINT NOT NULL
+    ticket_panel    BIGINT NOT NULL,
+    closed_category BIGINT NOT NULL,
+    PRIMARY KEY (ticket_panel, closed_category),
+    FOREIGN KEY (ticket_panel) REFERENCES ticket_panel (id),
+    FOREIGN KEY (closed_category) REFERENCES discord_channel (id)
 );
 
 create table ticket
 (
     id           BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     state        SMALLINT              NOT NULL,
-    channel      BIGINT REFERENCES discord_channel (id),
-    ticket_panel BIGINT                NOT NULL REFERENCES ticket_panel (id),
-    user_id      BIGINT                NOT NULL REFERENCES discord_user (id),
-    claimer      BIGINT REFERENCES discord_user (id),
-    created      TIMESTAMP             NOT NULL
+    channel      BIGINT,
+    ticket_panel BIGINT                NOT NULL,
+    user_id      BIGINT                NOT NULL,
+    claimer      BIGINT,
+    created      TIMESTAMP             NOT NULL,
+    FOREIGN KEY (channel) REFERENCES discord_channel (id),
+    FOREIGN KEY (ticket_panel) REFERENCES ticket_panel (id),
+    FOREIGN KEY (user_id) REFERENCES discord_user (id),
+    FOREIGN KEY (claimer) REFERENCES discord_user (id)
 );
 
 create table ticket_form_response
 (
-    ticket         BIGINT       NOT NULL REFERENCES ticket (id),
+    ticket         BIGINT       NOT NULL,
     ordinal        INT          NOT NULL,
     custom_id      varchar(255) NOT NULL,
-    response_value varchar(255) NOT NULL
+    response_value varchar(255) NOT NULL,
+    PRIMARY KEY (ticket, ordinal),
+    FOREIGN KEY (ticket) REFERENCES ticket (id)
 );
 
 alter table carry_tier
-    add column related_ticket_panel BIGINT REFERENCES ticket_panel (id);
+    add column related_ticket_panel BIGINT,
+    add FOREIGN KEY (related_ticket_panel) REFERENCES ticket_panel (id);

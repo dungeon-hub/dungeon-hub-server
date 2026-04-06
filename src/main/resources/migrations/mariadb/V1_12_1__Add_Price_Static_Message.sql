@@ -2,7 +2,7 @@ create schema if not exists `dungeon-hub`;
 use `dungeon-hub`;
 
 insert into static_message (server, channel_id, message_id, message_type)
-select distinct server, price_channel, null, 4
+select distinct ct.server, price_channel, null, 4
 from carry_tier
          join carry_type ct on ct.id = carry_tier.carry_type
 where price_channel is not null;

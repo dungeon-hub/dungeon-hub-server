@@ -17,7 +17,9 @@ public class PermissionsConverter implements AttributeConverter<Permissions, Lon
 
         BigInteger value = new BigInteger(attribute.getCode().getValue(), 10);
 
-        assert value.bitLength() <= 63 : "DiscordBitSet too large to store as BIGINT (" + value.bitLength() + " bits)";
+        if(value.bitLength() > 63) {
+            throw new IllegalArgumentException("DiscordBitSet too large to store as BIGINT (" + value.bitLength() + " bits)");
+        }
 
         return value.longValueExact();
     }

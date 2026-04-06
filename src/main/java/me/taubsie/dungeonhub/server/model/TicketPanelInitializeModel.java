@@ -82,16 +82,16 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
     public @NonNull TicketPanelInitializeModel fromCreationModel(@NonNull TicketPanelCreationModel ticketPanelCreationModel) {
         Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions = ticketPanelCreationModel.getPermissions() != null ? ticketPanelCreationModel.getPermissions() : Collections.emptyMap();
 
-        Permissions supportTeamAllowedPermissions = permissions.getOrDefault(TicketPermissionCandidate.SupportTeam, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-        Permissions supportTeamDeniedPermissions = permissions.getOrDefault(TicketPermissionCandidate.SupportTeam, Collections.emptyMap()).get(TicketPermissionType.Denied);
-        Permissions additionalRolesAllowedPermissions = permissions.getOrDefault(TicketPermissionCandidate.AdditionalRoles, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-        Permissions additionalRolesDeniedPermissions = permissions.getOrDefault(TicketPermissionCandidate.AdditionalRoles, Collections.emptyMap()).get(TicketPermissionType.Denied);
-        Permissions creatorAllowedPermissions = permissions.getOrDefault(TicketPermissionCandidate.TicketCreator, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-        Permissions creatorDeniedPermissions = permissions.getOrDefault(TicketPermissionCandidate.TicketCreator, Collections.emptyMap()).get(TicketPermissionType.Denied);
-        Permissions claimerAllowedPermissions = permissions.getOrDefault(TicketPermissionCandidate.TicketClaimer, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-        Permissions claimerDeniedPermissions = permissions.getOrDefault(TicketPermissionCandidate.TicketClaimer, Collections.emptyMap()).get(TicketPermissionType.Denied);
-        Permissions everyoneAllowedPermissions = permissions.getOrDefault(TicketPermissionCandidate.Everyone, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-        Permissions everyoneDeniedPermissions = permissions.getOrDefault(TicketPermissionCandidate.Everyone, Collections.emptyMap()).get(TicketPermissionType.Denied);
+        Permissions supportTeamAllowedPermissions = getPermission(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Allowed);
+        Permissions supportTeamDeniedPermissions = getPermission(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Denied);
+        Permissions additionalRolesAllowedPermissions = getPermission(permissions, TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Allowed);
+        Permissions additionalRolesDeniedPermissions = getPermission(permissions, TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Denied);
+        Permissions creatorAllowedPermissions = getPermission(permissions, TicketPermissionCandidate.TicketCreator, TicketPermissionType.Allowed);
+        Permissions creatorDeniedPermissions = getPermission(permissions, TicketPermissionCandidate.TicketCreator, TicketPermissionType.Denied);
+        Permissions claimerAllowedPermissions = getPermission(permissions, TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Allowed);
+        Permissions claimerDeniedPermissions = getPermission(permissions, TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Denied);
+        Permissions everyoneAllowedPermissions = getPermission(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Allowed);
+        Permissions everyoneDeniedPermissions = getPermission(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Denied);
 
         return new TicketPanelInitializeModel(
                 discordServer,
@@ -113,8 +113,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
                 ticketPanelCreationModel.getDeleteTranscriptTarget() != null ? ticketPanelCreationModel.getDeleteTranscriptTarget() : TranscriptTarget.TranscriptChannel,
                 ticketPanelCreationModel.getUserTranscriptDm(),
                 ticketPanelCreationModel.getFormQuestions() != null ? ticketPanelCreationModel.getFormQuestions() : new ArrayList<>(),
-                ticketPanelCreationModel.getOpenCategories(),
-                ticketPanelCreationModel.getClosedCategories(),
+                ticketPanelCreationModel.getOpenCategories() != null ? ticketPanelCreationModel.getOpenCategories() : new ArrayList<>(),
+                ticketPanelCreationModel.getClosedCategories() != null ? ticketPanelCreationModel.getClosedCategories() : new ArrayList<>(),
                 supportTeamAllowedPermissions,
                 supportTeamDeniedPermissions,
                 additionalRolesAllowedPermissions,
@@ -126,5 +126,11 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
                 everyoneAllowedPermissions,
                 everyoneDeniedPermissions
         );
+    }
+
+    private static Permissions getPermission(Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions,
+                                             TicketPermissionCandidate candidate,
+                                             TicketPermissionType type) {
+        return permissions.getOrDefault(candidate, Collections.emptyMap()).get(type);
     }
 }
