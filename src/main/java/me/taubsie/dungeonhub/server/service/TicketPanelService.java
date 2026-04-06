@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -71,7 +72,7 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
     }
 
     @Override
-    public Function<TicketPanelModel, TicketPanel> toEntity() {
+    public @NonNull Function<TicketPanelModel, TicketPanel> toEntity() {
         return ticketPanelModel -> ticketPanelRepository.findById(ticketPanelModel.getId()).orElseThrow(() -> new EntityUnknownException(ticketPanelModel.getId()));
     }
 
@@ -208,48 +209,28 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
         }
 
         if(updateModel.getPermissions() != null) {
-            Permissions supportTeamAllowedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.SupportTeam, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-            if(supportTeamAllowedPermissions != null) {
-                ticketPanel.setSupportTeamAllowedPermissions(supportTeamAllowedPermissions);
-            }
-            Permissions supportTeamDeniedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.SupportTeam, Collections.emptyMap()).get(TicketPermissionType.Denied);
-            if(supportTeamDeniedPermissions != null) {
-                ticketPanel.setSupportTeamDeniedPermissions(supportTeamDeniedPermissions);
-            }
-            Permissions additionalRolesAllowedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.AdditionalRoles, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-            if(additionalRolesAllowedPermissions != null) {
-                ticketPanel.setAdditionalRolesAllowedPermissions(additionalRolesAllowedPermissions);
-            }
-            Permissions additionalRolesDeniedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.AdditionalRoles, Collections.emptyMap()).get(TicketPermissionType.Denied);
-            if(additionalRolesDeniedPermissions != null) {
-                ticketPanel.setAdditionalRolesDeniedPermissions(additionalRolesDeniedPermissions);
-            }
-            Permissions creatorAllowedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.TicketCreator, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-            if(creatorAllowedPermissions != null) {
-                ticketPanel.setCreatorAllowedPermissions(creatorAllowedPermissions);
-            }
-            Permissions creatorDeniedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.TicketCreator, Collections.emptyMap()).get(TicketPermissionType.Denied);
-            if(creatorDeniedPermissions != null) {
-                ticketPanel.setCreatorDeniedPermissions(creatorDeniedPermissions);
-            }
-            Permissions claimerAllowedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.TicketClaimer, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-            if(claimerAllowedPermissions != null) {
-                ticketPanel.setClaimerAllowedPermissions(claimerAllowedPermissions);
-            }
-            Permissions claimerDeniedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.TicketClaimer, Collections.emptyMap()).get(TicketPermissionType.Denied);
-            if(claimerDeniedPermissions != null) {
-                ticketPanel.setClaimerDeniedPermissions(claimerDeniedPermissions);
-            }
-            Permissions everyoneAllowedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.Everyone, Collections.emptyMap()).get(TicketPermissionType.Allowed);
-            if(everyoneAllowedPermissions != null) {
-                ticketPanel.setEveryoneAllowedPermissions(everyoneAllowedPermissions);
-            }
-            Permissions everyoneDeniedPermissions = updateModel.getPermissions().getOrDefault(TicketPermissionCandidate.Everyone, Collections.emptyMap()).get(TicketPermissionType.Denied);
-            if(everyoneDeniedPermissions != null) {
-                ticketPanel.setEveryoneDeniedPermissions(everyoneDeniedPermissions);
-            }
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.SupportTeam, TicketPermissionType.Allowed, ticketPanel::setSupportTeamAllowedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.SupportTeam, TicketPermissionType.Denied, ticketPanel::setSupportTeamDeniedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Allowed, ticketPanel::setAdditionalRolesAllowedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Denied, ticketPanel::setAdditionalRolesDeniedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketCreator, TicketPermissionType.Allowed, ticketPanel::setCreatorAllowedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketCreator, TicketPermissionType.Denied, ticketPanel::setCreatorDeniedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Allowed, ticketPanel::setClaimerAllowedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Denied, ticketPanel::setClaimerDeniedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.Everyone, TicketPermissionType.Allowed, ticketPanel::setEveryoneAllowedPermissions);
+            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.Everyone, TicketPermissionType.Denied, ticketPanel::setEveryoneDeniedPermissions);
         }
 
         return ticketPanel;
+    }
+
+    private void applyPermissionIfPresent(Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions,
+                                          TicketPermissionCandidate candidate,
+                                          TicketPermissionType type,
+                                          Consumer<Permissions> setter) {
+        Permissions permission = permissions.getOrDefault(candidate, Collections.emptyMap()).get(type);
+        if(permission != null) {
+            setter.accept(permission);
+        }
     }
 }

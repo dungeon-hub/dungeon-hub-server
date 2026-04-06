@@ -80,7 +80,7 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
     }
 
     @Override
-    public Function<TicketModel, Ticket> toEntity() {
+    public @NonNull Function<TicketModel, Ticket> toEntity() {
         return ticketModel -> ticketRepository.findById(ticketModel.getId()).orElseThrow(() -> new EntityUnknownException(ticketModel.getId()));
     }
 
