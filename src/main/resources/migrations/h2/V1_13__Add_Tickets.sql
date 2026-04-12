@@ -45,39 +45,34 @@ create table ticket_panel
 
 create table ticket_panel_form
 (
-    ticket_panel BIGINT NOT NULL REFERENCES ticket_panel (id),
+    ticket_panel BIGINT REFERENCES ticket_panel (id),
     form_type    INT,
     data         CLOB,
-    ordinal      INT NOT NULL,
-    PRIMARY KEY (ticket_panel, ordinal)
+    ordinal      INT
 );
 
 create table ticket_panel_support_role
 (
-    ticket_panel BIGINT NOT NULL REFERENCES ticket_panel (id),
-    support_role BIGINT NOT NULL REFERENCES discord_role (id),
-    PRIMARY KEY (ticket_panel, support_role)
+    ticket_panel BIGINT REFERENCES ticket_panel (id),
+    support_role BIGINT NOT NULL REFERENCES discord_role (id)
 );
 
 create table ticket_panel_additional_role
 (
-    ticket_panel    BIGINT NOT NULL REFERENCES ticket_panel (id),
-    additional_role BIGINT NOT NULL REFERENCES discord_role (id),
-    PRIMARY KEY (ticket_panel, additional_role)
+    ticket_panel    BIGINT REFERENCES ticket_panel (id),
+    additional_role BIGINT NOT NULL REFERENCES discord_role (id)
 );
 
 create table ticket_panel_open_category
 (
-    ticket_panel  BIGINT NOT NULL REFERENCES ticket_panel (id),
-    open_category BIGINT NOT NULL REFERENCES discord_channel (id),
-    PRIMARY KEY (ticket_panel, open_category)
+    ticket_panel  BIGINT REFERENCES ticket_panel (id),
+    open_category BIGINT NOT NULL
 );
 
 create table ticket_panel_closed_category
 (
-    ticket_panel    BIGINT NOT NULL REFERENCES ticket_panel (id),
-    closed_category BIGINT NOT NULL REFERENCES discord_channel (id),
-    PRIMARY KEY (ticket_panel, closed_category)
+    ticket_panel    BIGINT REFERENCES ticket_panel (id),
+    closed_category BIGINT NOT NULL
 );
 
 create table ticket
@@ -96,8 +91,7 @@ create table ticket_form_response
     ticket         BIGINT       NOT NULL REFERENCES ticket (id),
     ordinal        INT          NOT NULL,
     custom_id      varchar(255) NOT NULL,
-    response_value varchar(255) NOT NULL,
-    PRIMARY KEY (ticket, ordinal)
+    response_value varchar(255) NOT NULL
 );
 
 alter table carry_tier
