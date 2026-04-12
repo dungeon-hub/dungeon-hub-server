@@ -97,6 +97,10 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
         }
 
         if(carryTierUpdateModel.getRelatedTicketPanel() != null) {
+            if(carryTier.getCarryType() == null) {
+                throw new IllegalStateException("Cannot set relatedTicketPanel: CarryTier has no carryType");
+            }
+
             carryTier.setRelatedTicketPanel(ticketPanelService.loadEntityById(carryTier.getCarryType().getDiscordServer(), carryTierUpdateModel.getRelatedTicketPanel())
                     .orElseThrow(() -> new IllegalArgumentException("Related TicketPanel not found for id=" + carryTierUpdateModel.getRelatedTicketPanel())));
         }

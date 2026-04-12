@@ -10,7 +10,6 @@ import net.dungeonhub.model.ticket.TicketModel;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
@@ -64,7 +63,7 @@ public class Ticket implements net.dungeonhub.structure.entity.Entity<TicketMode
 
     @Getter
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
-    @NotNull
+    @NonNull
     private List<TicketFormResponse> formResponses = new ArrayList<>();
 
     public Ticket(TicketState state, DiscordChannel discordChannel, TicketPanel ticketPanel, DiscordUser user, DiscordUser claimer, Instant created, List<TicketFormResponseModel> formResponses) {

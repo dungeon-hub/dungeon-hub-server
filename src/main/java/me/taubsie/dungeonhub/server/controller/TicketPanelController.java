@@ -69,19 +69,19 @@ public class TicketPanelController {
         Optional<DiscordChannel> transcriptChannel = Optional.ofNullable(creationModel.getTranscriptChannel())
                 .map(id -> discordChannelService.loadEntityOrCreate(discordServer, id));
 
-        Optional<List<DiscordRole>> supportRoles = Optional.ofNullable(creationModel.getSupportRoles())
-                .map(supportRoleIds -> supportRoleIds.stream()
-                        .map(supportRoleId -> discordRoleService.loadOrCreate(discordServer, supportRoleId))
-                        .toList()
-                );
+        List<DiscordRole> supportRoles = creationModel.getSupportRoles() == null
+                ? Collections.emptyList()
+                : creationModel.getSupportRoles().stream()
+                .map(supportRoleId -> discordRoleService.loadOrCreate(discordServer, supportRoleId))
+                .toList();
 
-        Optional<List<DiscordRole>> additionalRoles = Optional.ofNullable(creationModel.getAdditionalRoles())
-                .map(additionalRoleIds -> additionalRoleIds.stream()
-                        .map(additionalRoleId -> discordRoleService.loadOrCreate(discordServer, additionalRoleId))
-                        .toList()
-                );
+        List<DiscordRole> additionalRoles = creationModel.getAdditionalRoles() == null
+                ? Collections.emptyList()
+                : creationModel.getAdditionalRoles().stream()
+                .map(additionalRoleId -> discordRoleService.loadOrCreate(discordServer, additionalRoleId))
+                .toList();
 
-        return ticketPanelService.createEntity(new TicketPanelInitializeModel(discordServer, transcriptChannel.orElse(null), supportRoles.orElse(Collections.emptyList()), additionalRoles.orElse(Collections.emptyList()))
+        return ticketPanelService.createEntity(new TicketPanelInitializeModel(discordServer, transcriptChannel.orElse(null), supportRoles, additionalRoles)
                 .fromCreationModel(creationModel)).toModel();
     }
 

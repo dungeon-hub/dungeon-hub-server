@@ -175,6 +175,10 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @Column(name = "everyone_denied_permissions")
     private Permissions everyoneDeniedPermissions;
 
+    /**
+     * Main constructor used by initialize models to create a fully configured ticket panel.
+     * Collection-based arguments are passed through the dedicated setters below so relationship wiring stays consistent.
+     */
     public TicketPanel(
             String name,
             String displayName,
