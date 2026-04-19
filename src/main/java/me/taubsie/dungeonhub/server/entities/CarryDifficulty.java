@@ -92,6 +92,10 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
         this.score = score;
     }
 
+    public long calculateTotalPrice(int amount) {
+        return CarryDifficultyModel.Companion.calculateTotalPrice(amount, bulkPrice, bulkAmount, price);
+    }
+
     public CarryType getCarryType() {
         return getCarryTier().getCarryType();
     }

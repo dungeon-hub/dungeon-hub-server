@@ -11,7 +11,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
-//TODO fix the api not showing the correct data types -> use UpdateModel instead of ModifyModel
 @SpringBootApplication
 @EntityScan("me.taubsie.dungeonhub.*")
 @OpenAPIDefinition(info = @Info(title = "Dungeon Hub API", version = "v1", contact = @Contact(name = "Dungeon Hub",

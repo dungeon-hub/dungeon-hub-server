@@ -19,14 +19,15 @@ import java.util.UUID;
 public class DiscordUserInitializeModel implements InitializeModel<DiscordUser, DiscordUserModel, DiscordUserCreationModel> {
     private long id;
     private UUID minecraftId;
+    private UUID primarySkyblockProfile;
 
     @Override
     public @NotNull DiscordUser toEntity() {
-        return new DiscordUser(id, minecraftId);
+        return new DiscordUser(id, minecraftId, primarySkyblockProfile);
     }
 
     @Override
     public @NotNull DiscordUserInitializeModel fromCreationModel(DiscordUserCreationModel creationModel) {
-        return new DiscordUserInitializeModel(creationModel.getId(), creationModel.getMinecraftId());
+        return new DiscordUserInitializeModel(creationModel.getId(), creationModel.getMinecraftId(), creationModel.getPrimarySkyblockProfile());
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -45,13 +46,15 @@ public class StaticMessageController {
     public List<StaticMessageModel> findStaticMessages(
             @PathVariable("server") long serverId,
             @RequestParam(value = "staticMessageType", required = false) StaticMessageType staticMessageType,
-            @RequestParam(value = "channelId", required = false) Long channelId
+            @RequestParam(value = "channelId", required = false) Long channelId,
+            @RequestParam(value = "messageId", required = false) Long messageId
     ) {
         DiscordServer server = discordServerService.loadEntityById(serverId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Server not found"));
 
         if(staticMessageType == null && channelId == null) {
             return staticMessageService.loadEntitiesByDiscordServer(server).stream()
+                    .filter(staticMessage -> messageId == null || Objects.equals(staticMessage.getMessageId(), messageId))
                     .map(StaticMessage::toModel)
                     .toList();
         } else if(channelId != null) {
@@ -60,15 +63,18 @@ public class StaticMessageController {
             if(staticMessageType != null) {
                 return staticMessages
                         .filter(staticMessage -> staticMessage.getStaticMessageType() == staticMessageType)
+                        .filter(staticMessage -> messageId == null || Objects.equals(staticMessage.getMessageId(), messageId))
                         .map(StaticMessage::toModel)
                         .toList();
             } else {
                 return staticMessages
+                        .filter(staticMessage -> messageId == null || Objects.equals(staticMessage.getMessageId(), messageId))
                         .map(StaticMessage::toModel)
                         .toList();
             }
         } else {
             return staticMessageService.loadEntitiesByDiscordServerAndMessageType(server, staticMessageType).stream()
+                    .filter(staticMessage -> messageId == null || Objects.equals(staticMessage.getMessageId(), messageId))
                     .map(StaticMessage::toModel)
                     .toList();
         }

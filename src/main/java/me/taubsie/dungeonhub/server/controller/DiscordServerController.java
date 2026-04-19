@@ -13,6 +13,7 @@ import net.dungeonhub.model.reputation.ReputationSumModel;
 import net.dungeonhub.model.score.ScoreLeaderboardModel;
 import net.dungeonhub.model.score.ScoreModel;
 import net.dungeonhub.model.static_message.StaticMessageModel;
+import net.dungeonhub.model.ticket.TicketModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("api/v1/server")
@@ -41,6 +43,7 @@ public class DiscordServerController {
     private final CarryService carryService;
     private final ReputationService reputationService;
     private final StaticMessageService staticMessageService;
+    private final TicketService ticketService;
 
     @GetMapping("{server}")
     public DiscordServerModel getServerById(@PathVariable("server") long id) {
@@ -53,7 +56,6 @@ public class DiscordServerController {
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
-        //TODO maybe move the following code to service? service should return the models afterall imo
         List<ScoreModel> scores = new ArrayList<>(scoreService.getAllScores(carrier, discordServer)
                 .stream().map(Score::toModel)
                 .toList());
@@ -69,7 +71,6 @@ public class DiscordServerController {
                 }
             }
         }
-
 
         return scores;
     }
@@ -192,7 +193,7 @@ public class DiscordServerController {
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
                 .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
                 .filter(carry -> since.isEmpty() || since.get().isBefore(carry.getTime()))
-                .mapToLong(Carry::calculatePrice)
+                .mapToLong(Carry::calculateTotalPrice)
                 .sum();
     }
 
@@ -212,6 +213,15 @@ public class DiscordServerController {
     public List<StaticMessageModel> getStaticMessages() {
         return staticMessageService.findAllEntities().stream()
                 .map(StaticMessage::toModel)
+                .toList();
+    }
+
+    @GetMapping("{server}/ticket/find")
+    public List<TicketModel> findTickets(@PathVariable("server") long serverId, @RequestParam(name = "channel", required = false) Optional<Long> channelId) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return ticketService.loadEntitiesByServerAndChannel(discordServer, channelId.orElse(null)).stream()
+                .map(Ticket::toModel)
                 .toList();
     }
 }

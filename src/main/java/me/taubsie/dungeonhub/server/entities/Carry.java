@@ -28,17 +28,15 @@ public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel>
     private Instant time;
 
     @Column(name = "amount", nullable = false)
-    private long amount;
+    private int amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "carry_difficulty")
     private CarryDifficulty carryDifficulty;
 
-    //TODO make not nullable ?
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "player")
+    @JoinColumn(name = "player", nullable = false)
     private DiscordUser player;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,7 +54,7 @@ public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel>
     @Column(name = "attachment_link")
     private String attachmentLink;
 
-    public Carry(DiscordUser carrier, DiscordUser player, long amount, CarryDifficulty carryDifficulty,
+    public Carry(DiscordUser carrier, DiscordUser player, int amount, CarryDifficulty carryDifficulty,
                  @Nullable String attachmentLink, Instant time) {
         this.carrier = carrier;
         this.player = player;
@@ -96,15 +94,7 @@ public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel>
         return carryDifficulty.getScore();
     }
 
-    //TODO merge this method and the one from ApplicationService into common?
-    public long calculatePrice() {
-        Integer bulkPrice = carryDifficulty.getBulkPrice();
-        Integer bulkAmount = carryDifficulty.getBulkAmount();
-
-        if (bulkPrice != null && bulkAmount != null && bulkAmount <= amount) {
-            return bulkPrice;
-        }
-
-        return carryDifficulty.getPrice() * amount;
+    public long calculateTotalPrice() {
+        return carryDifficulty.calculateTotalPrice(amount);
     }
 }

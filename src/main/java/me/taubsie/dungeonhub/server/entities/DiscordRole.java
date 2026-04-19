@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor
 public class DiscordRole implements net.dungeonhub.structure.entity.Entity<DiscordRoleModel> {
     @Id
+    @Getter
     private long id;
 
     @Setter

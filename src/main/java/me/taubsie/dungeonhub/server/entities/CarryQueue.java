@@ -40,7 +40,7 @@ public class CarryQueue implements net.dungeonhub.structure.entity.Entity<CarryQ
     private DiscordUser player;
 
     @Column(name = "amount", nullable = false)
-    private long amount;
+    private int amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
@@ -60,7 +60,7 @@ public class CarryQueue implements net.dungeonhub.structure.entity.Entity<CarryQ
     private Instant time;
 
     @SuppressWarnings("java:S107")
-    public CarryQueue(QueueStep queueStep, DiscordUser carrier, DiscordUser player, long amount,
+    public CarryQueue(QueueStep queueStep, DiscordUser carrier, DiscordUser player, int amount,
                       CarryDifficulty carryDifficulty, Long relationId, String attachmentLink, Instant time) {
         this.queueStep = queueStep;
         this.carrier = carrier;

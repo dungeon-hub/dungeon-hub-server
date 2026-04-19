@@ -135,8 +135,6 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
             carryQueue.setTime(updateModel.getTime());
         }
 
-        //TODO approver?
-
         return carryQueue;
     }
 }
