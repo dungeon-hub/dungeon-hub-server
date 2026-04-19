@@ -1,3 +1,6 @@
+create schema if not exists "dungeon-hub";
+set search_path to "dungeon-hub";
+
 alter table ticket
     drop constraint if exists ticket_channel_fkey,
     drop constraint if exists ticket_ticket_panel_fkey,
