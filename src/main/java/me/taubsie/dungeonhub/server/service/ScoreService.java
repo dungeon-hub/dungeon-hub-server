@@ -2,9 +2,12 @@ package me.taubsie.dungeonhub.server.service;
 
 import com.google.common.collect.Iterables;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.ScoreRepository;
+import me.taubsie.dungeonhub.server.repositories.ScoreSumRepository;
+import net.dungeonhub.enums.ScoreResetType;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.score.ScoreResetModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -15,17 +18,20 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @NoArgsConstructor
 public class ScoreService {
     private static final int PAGE_SIZE = 10;
     private ScoreRepository scoreRepository;
+    private ScoreSumRepository scoreSumRepository;
 
     @Autowired
     @Lazy
-    public ScoreService(ScoreRepository scoreRepository) {
+    public ScoreService(ScoreRepository scoreRepository, ScoreSumRepository scoreSumRepository) {
         this.scoreRepository = scoreRepository;
+        this.scoreSumRepository = scoreSumRepository;
     }
 
     public List<Score> getAll() {
@@ -36,8 +42,17 @@ public class ScoreService {
         return scoreRepository.findScoreByCarrierAndCarryTypeAndId_ScoreType(carrier, carryType, scoreType);
     }
 
+    public Optional<ScoreSum> countTotalScoreForCarrier(DiscordUser carrier, DiscordServer discordServer, ScoreType scoreType) {
+        return scoreSumRepository.findScoreByCarrierAndServerAndId_ScoreType(carrier, discordServer, scoreType);
+    }
+
     public Page<Score> getFullLeaderboard(CarryType carryType, ScoreType scoreType) {
         return scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
+                Pageable.unpaged());
+    }
+
+    public Page<ScoreSum> getFullTotalLeaderboard(DiscordServer discordServer, ScoreType scoreType) {
+        return scoreSumRepository.findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(discordServer, scoreType,
                 Pageable.unpaged());
     }
 
@@ -46,21 +61,40 @@ public class ScoreService {
                 PageRequest.ofSize(PAGE_SIZE));
     }
 
+    public Page<ScoreSum> getTotalLeaderboard(DiscordServer discordServer, ScoreType scoreType) {
+        return scoreSumRepository.findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(discordServer, scoreType, PageRequest.ofSize(PAGE_SIZE));
+    }
+
     public Page<Score> getLeaderboard(CarryType carryType, ScoreType scoreType, int page) {
         return scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
                 PageRequest.of(page, PAGE_SIZE));
     }
 
+    public Page<ScoreSum> getTotalLeaderboard(DiscordServer discordServer, ScoreType scoreType, int page) {
+        return scoreSumRepository.findAllByServerAndId_ScoreTypeOrderByTotalScoreDesc(discordServer, scoreType,
+                PageRequest.of(page, PAGE_SIZE));
+    }
+
     public int getPosition(CarryType carryType, ScoreType scoreType, DiscordUser carrier) {
         return Iterables.indexOf(
-                scoreRepository.findAllByCarryTypeAndId_ScoreTypeOrderByScoreAmountDesc(carryType, scoreType,
-                        Pageable.unpaged()),
+                getFullLeaderboard(carryType, scoreType),
+                score -> carrier.getId() == score.getId().getId()
+        );
+    }
+
+    public int getTotalPosition(DiscordServer discordServer, ScoreType scoreType, DiscordUser carrier) {
+        return Iterables.indexOf(
+                getFullTotalLeaderboard(discordServer, scoreType),
                 score -> carrier.getId() == score.getId().getId()
         );
     }
 
     public List<Score> getAllScores(CarryType carryType) {
         return scoreRepository.findScoresByCarryType(carryType);
+    }
+
+    public List<Score> getAllNonZeroScores(CarryType carryType) {
+        return scoreRepository.findScoresByCarryTypeAndScoreAmountNotZero(carryType);
     }
 
     public List<Score> getAllScores(DiscordUser carrier, CarryType carryType) {
@@ -89,5 +123,33 @@ public class ScoreService {
         score.setScoreAmount(score.getScoreAmount() + amount);
 
         return scoreRepository.save(score);
+    }
+
+    public ScoreResetModel resetScores(CarryType carryType, ScoreResetType scoreResetType) {
+        List<Score> scores = getAllNonZeroScores(carryType);
+
+        scores = applyScoreResetType(scores, scoreResetType);
+
+        List<Score> updatedScores = scoreRepository.saveAll(scores);
+
+        return new ScoreResetModel(
+                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.Default).count(),
+                updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.Event).count()
+        );
+    }
+
+    private List<Score> applyScoreResetType(List<Score> scores, ScoreResetType scoreResetType) {
+        Stream<Score> currentScores = scores.parallelStream();
+
+        currentScores = switch (scoreResetType) {
+            case Both -> currentScores.filter(score -> score.getId().getScoreType() != ScoreType.Alltime);
+            case Event -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.Event);
+            case Default -> currentScores.filter(score -> score.getId().getScoreType() == ScoreType.Default);
+        };
+
+        return currentScores.map(score -> {
+            score.setScoreAmount(0L);
+            return score;
+        }).toList();
     }
 }

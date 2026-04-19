@@ -1,11 +1,10 @@
 package me.taubsie.dungeonhub.server.config;
 
 import lombok.Getter;
-import me.taubsie.dungeonhub.common.exceptions.ProgramStartException;
 import me.taubsie.dungeonhub.server.DungeonHubServerApplication;
+import me.taubsie.dungeonhub.server.exception.ProgramStartException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -13,23 +12,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Getter
-@Configuration
-@PropertySource(value = "file:${user.home}/dungeon-hub/config/server_config.properties")
+@Service
 public class ConfigService {
-    @Value("${db.host}")
-    private String databaseHost;
+    private final String dungeonHubDirectory;
 
-    @Value("${db.port}")
-    private int databasePort;
-
-    @Value("${db.schema}")
-    private String databaseSchema;
-
-    @Value("${db.user}")
-    private String databaseUser;
-
-    @Value("${db.password}")
-    private String databasePassword;
+    public ConfigService(@Value("${dungeon-hub.directory}") String dungeonHubDirectory) {
+        this.dungeonHubDirectory = dungeonHubDirectory;
+    }
 
     public static void ensureConfigFile() {
         Path configFile = Paths.get(System.getProperty("user.home"),
@@ -49,6 +38,7 @@ public class ConfigService {
                             + "Please contact the developer for more information.");
                 }
 
+                Files.createDirectories(configFile.getParent());
                 try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                      BufferedWriter bufferedWriter = Files.newBufferedWriter(configFile)) {
                     bufferedReader.transferTo(bufferedWriter);

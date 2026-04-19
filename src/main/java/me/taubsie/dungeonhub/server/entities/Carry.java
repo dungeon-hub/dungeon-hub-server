@@ -5,10 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.carry.CarryModel;
+import net.dungeonhub.model.carry.CarryModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -18,7 +18,7 @@ import java.time.Instant;
 @Table(name = "carry", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Carry implements EntityModelRelation<CarryModel> {
+public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -28,7 +28,7 @@ public class Carry implements EntityModelRelation<CarryModel> {
     private Instant time;
 
     @Column(name = "amount", nullable = false)
-    private long amount;
+    private int amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -36,8 +36,7 @@ public class Carry implements EntityModelRelation<CarryModel> {
     private CarryDifficulty carryDifficulty;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "player")
+    @JoinColumn(name = "player", nullable = false)
     private DiscordUser player;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,7 +54,7 @@ public class Carry implements EntityModelRelation<CarryModel> {
     @Column(name = "attachment_link")
     private String attachmentLink;
 
-    public Carry(DiscordUser carrier, DiscordUser player, long amount, CarryDifficulty carryDifficulty,
+    public Carry(DiscordUser carrier, DiscordUser player, int amount, CarryDifficulty carryDifficulty,
                  @Nullable String attachmentLink, Instant time) {
         this.carrier = carrier;
         this.player = player;
@@ -74,16 +73,17 @@ public class Carry implements EntityModelRelation<CarryModel> {
     }
 
     @Override
-    public Carry fromModel(CarryModel model) {
-        return new Carry(model.id(), model.time(), model.amount(), carryDifficulty.fromModel(model.carryDifficulty())
-                , player.fromModel(model.player()), carrier.fromModel(model.carrier()), model.approver(),
-                model.attachmentLink());
-    }
-
-    @Override
-    public CarryModel toModel() {
-        return new CarryModel(id, time, amount, carryDifficulty.toModel(), player.toModel(), carrier.toModel(),
-                approver, attachmentLink);
+    public @NotNull CarryModel toModel() {
+        return new CarryModel(
+                id,
+                amount,
+                carryDifficulty.toModel(),
+                player.toModel(),
+                carrier.toModel(),
+                approver,
+                attachmentLink,
+                time
+        );
     }
 
     public long calculateScore() {
@@ -92,5 +92,9 @@ public class Carry implements EntityModelRelation<CarryModel> {
 
     private long getScoreMultiplier() {
         return carryDifficulty.getScore();
+    }
+
+    public long calculateTotalPrice() {
+        return carryDifficulty.calculateTotalPrice(amount);
     }
 }

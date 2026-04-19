@@ -5,10 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
+import net.dungeonhub.model.score.ScoreModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Setter
@@ -16,7 +16,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "score", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Score implements EntityModelRelation<ScoreModel> {
+public class Score implements net.dungeonhub.structure.entity.Entity<ScoreModel> {
     @EmbeddedId
     private ScoreId id;
 
@@ -43,23 +43,7 @@ public class Score implements EntityModelRelation<ScoreModel> {
     }
 
     @Override
-    public Score fromModel(ScoreModel model) {
-        ScoreId scoreId = new ScoreId();
-        scoreId.setId(model.getCarrier().getId());
-        scoreId.setScoreType(model.getScoreType());
-        scoreId.setCarryType(model.getCarryType().getId());
-
-        Score score = new Score();
-        score.setId(scoreId);
-        score.setScoreAmount(model.getScoreAmount());
-        score.setCarryType(carryType.fromModel(model.getCarryType()));
-        score.setCarrier(carrier.fromModel(model.getCarrier()));
-
-        return score;
-    }
-
-    @Override
-    public ScoreModel toModel() {
+    public @NotNull ScoreModel toModel() {
         return new ScoreModel(carrier.toModel(), carryType.toModel(), id.getScoreType(), scoreAmount);
     }
 }

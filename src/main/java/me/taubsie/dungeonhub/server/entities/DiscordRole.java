@@ -3,23 +3,31 @@ package me.taubsie.dungeonhub.server.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
+import lombok.Setter;
+import net.dungeonhub.enums.RoleAction;
+import net.dungeonhub.model.discord_role.DiscordRoleModel;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 @Entity(name = "discord_role")
 @Table(name = "discord_role", schema = "dungeon-hub")
 @NoArgsConstructor
-public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
+public class DiscordRole implements net.dungeonhub.structure.entity.Entity<DiscordRoleModel> {
     @Id
+    @Getter
     private long id;
 
+    @Setter
     @Column(name = "name_schema")
     private String nameSchema;
 
-    @Column(name = "verified_role")
-    private boolean verifiedRole;
+    @Setter
+    @Column(name = "role_action", nullable = false)
+    @Enumerated
+    @ColumnDefault("0")
+    private RoleAction roleAction;
 
     @Getter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -27,21 +35,15 @@ public class DiscordRole implements EntityModelRelation<DiscordRoleModel> {
     @JoinColumn(name = "server", nullable = false)
     private DiscordServer discordServer;
 
-    public DiscordRole(long id, String nameSchema, boolean verifiedRole, DiscordServer discordServer) {
+    public DiscordRole(long id, String nameSchema, RoleAction roleAction, DiscordServer discordServer) {
         this.id = id;
         this.nameSchema = nameSchema;
-        this.verifiedRole = verifiedRole;
+        this.roleAction = roleAction;
         this.discordServer = discordServer;
     }
 
     @Override
-    public DiscordRole fromModel(DiscordRoleModel model) {
-        return new DiscordRole(model.getId(), model.getNameSchema(), model.isVerifiedRole(),
-                discordServer.fromModel(model.getDiscordServerModel()));
-    }
-
-    @Override
-    public DiscordRoleModel toModel() {
-        return new DiscordRoleModel(id, nameSchema, verifiedRole, discordServer.toModel());
+    public @NotNull DiscordRoleModel toModel() {
+        return new DiscordRoleModel(id, nameSchema, roleAction, discordServer.toModel());
     }
 }

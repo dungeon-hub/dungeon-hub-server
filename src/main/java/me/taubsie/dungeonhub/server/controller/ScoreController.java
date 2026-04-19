@@ -1,31 +1,28 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
-import me.taubsie.dungeonhub.common.model.score.LeaderboardModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreUpdateModel;
-import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.DiscordServer;
-import me.taubsie.dungeonhub.server.entities.DiscordUser;
-import me.taubsie.dungeonhub.server.entities.Score;
+import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
 import me.taubsie.dungeonhub.server.service.DiscordUserService;
 import me.taubsie.dungeonhub.server.service.ScoreService;
+import net.dungeonhub.enums.ScoreResetType;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.score.ScoreLeaderboardModel;
+import net.dungeonhub.model.score.ScoreModel;
+import net.dungeonhub.model.score.ScoreResetModel;
+import net.dungeonhub.model.score.ScoreUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@EnableMethodSecurity
 @RequestMapping("/api/v1/server/{server}/carry-type/{carry-type}/score")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 @Tag(name = "Score")
@@ -50,12 +47,12 @@ public class ScoreController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
         return scoreService.countScoreForCarrier(carrier, carryType, scoreType)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
                 .toModel();
     }
 
@@ -66,7 +63,7 @@ public class ScoreController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (id.isEmpty()) {
             return scoreService.getAllScores(carryType).stream()
@@ -88,7 +85,7 @@ public class ScoreController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(scoreUpdateModel.getId());
 
@@ -97,37 +94,67 @@ public class ScoreController {
                 .toList();
     }
 
-    @GetMapping("leaderboard")
-    public LeaderboardModel getLeaderboard(@PathVariable("server") long serverId,
+    @GetMapping(value = "total-leaderboard")
+    public ScoreLeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId,
+                                                     @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
+            false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
+            false, defaultValue = "0") int page,
+                                                     @RequestParam(value = "user", required = false) Optional<Long> userId) {
+        if (page < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        Page<ScoreModel> scores = scoreService.getTotalLeaderboard(discordServer, scoreType, page)
+                .map(ScoreSum::toScoreModel);
+
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new ScoreLeaderboardModel(
+                scores.getPageable().getPageNumber(),
+                scores.getTotalPages(),
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
+        );
+    }
+
+    @GetMapping(value = "leaderboard")
+    public ScoreLeaderboardModel getLeaderboard(@PathVariable("server") long serverId,
                                            @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
             false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
                                            @RequestParam(value = "user", required = false) Optional<Long> userId) {
         if (page < 0) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         Page<ScoreModel> scores = scoreService.getLeaderboard(carryType, scoreType, page).map(Score::toModel);
 
-        LeaderboardModel leaderboardModel = new LeaderboardModel(
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new ScoreLeaderboardModel(
                 scores.getPageable().getPageNumber(),
                 scores.getTotalPages(),
-                scores.getContent()
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getPosition(carryType, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countScoreForCarrier(userEntity, carryType, scoreType).map(Score::toModel)).orElse(null)
         );
+    }
 
-        userId.ifPresent(id -> {
-            DiscordUser user = discordUserService.loadEntityOrCreate(id);
+    @DeleteMapping
+    public ScoreResetModel resetScore(@PathVariable("server") long serverId, @PathVariable("carry-type") long carryTypeId, @RequestParam("score-type") ScoreResetType scoreResetType) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-            leaderboardModel.setPlayerPosition(scoreService.getPosition(carryType, scoreType, user));
-            scoreService.countScoreForCarrier(user, carryType, scoreType).ifPresent(score ->
-                    leaderboardModel.setPlayerScore(score.toModel()));
-        });
+        CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        return leaderboardModel;
+        return scoreService.resetScores(carryType, scoreResetType);
     }
 }

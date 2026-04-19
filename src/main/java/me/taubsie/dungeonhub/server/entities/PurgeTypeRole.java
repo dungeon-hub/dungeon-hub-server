@@ -5,15 +5,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.PurgeTypeRoleModel;
+import net.dungeonhub.model.purge_type.PurgeTypeRoleModel;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Entity(name = "purge_type_role")
 @Table(name = "purge_type_role", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class PurgeTypeRole implements EntityModelRelation<PurgeTypeRoleModel> {
+public class PurgeTypeRole implements net.dungeonhub.structure.entity.Entity<PurgeTypeRoleModel> {
     @EmbeddedId
     private PurgeTypeRoleId id;
 
@@ -29,16 +29,7 @@ public class PurgeTypeRole implements EntityModelRelation<PurgeTypeRoleModel> {
     private PurgeType purgeType;
 
     @Override
-    public PurgeTypeRole fromModel(PurgeTypeRoleModel model) {
-        PurgeTypeRoleId purgeTypeRoleId = new PurgeTypeRoleId();
-        purgeTypeRoleId.setPurgeType(model.getPurgeTypeModel().getId());
-        purgeTypeRoleId.setDiscordRole(model.getDiscordRoleModel().getId());
-
-        return new PurgeTypeRole(purgeTypeRoleId, discordRole.fromModel(model.getDiscordRoleModel()), purgeType.fromModel(model.getPurgeTypeModel()));
-    }
-
-    @Override
-    public PurgeTypeRoleModel toModel() {
-        return new PurgeTypeRoleModel(null, discordRole.toModel());
+    public @NotNull PurgeTypeRoleModel toModel() {
+        return new PurgeTypeRoleModel(purgeType.toSimpleModel(), discordRole.toModel());
     }
 }

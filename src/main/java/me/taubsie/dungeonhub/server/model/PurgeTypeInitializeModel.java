@@ -1,13 +1,15 @@
 package me.taubsie.dungeonhub.server.model;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
-import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeCreationModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.PurgeType;
+import net.dungeonhub.model.purge_type.PurgeTypeCreationModel;
+import net.dungeonhub.model.purge_type.PurgeTypeModel;
+import net.dungeonhub.structure.model.InitializeModel;
+import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
-public class PurgeTypeInitializeModel implements InitializeModel<PurgeType, PurgeTypeCreationModel> {
+public class PurgeTypeInitializeModel implements InitializeModel<PurgeType, PurgeTypeModel, PurgeTypeCreationModel> {
     private final CarryType carryType;
     private String identifier;
     private String displayName;
@@ -17,12 +19,12 @@ public class PurgeTypeInitializeModel implements InitializeModel<PurgeType, Purg
     }
 
     @Override
-    public PurgeType toEntity() {
+    public @NotNull PurgeType toEntity() {
         return new PurgeType(identifier, displayName, carryType);
     }
 
     @Override
-    public PurgeTypeInitializeModel fromCreationModel(PurgeTypeCreationModel creationModel) {
+    public @NotNull PurgeTypeInitializeModel fromCreationModel(PurgeTypeCreationModel creationModel) {
         return new PurgeTypeInitializeModel(carryType, creationModel.getIdentifier(), creationModel.getDisplayName());
     }
 }

@@ -1,35 +1,49 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierModel;
-import me.taubsie.dungeonhub.common.model.score.ScoreModel;
-import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.enums.ScoreType;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
+import net.dungeonhub.model.discord_server.DiscordServerModel;
+import net.dungeonhub.model.reputation.ReputationLeaderboardModel;
+import net.dungeonhub.model.reputation.ReputationModel;
+import net.dungeonhub.model.reputation.ReputationSumModel;
+import net.dungeonhub.model.score.ScoreLeaderboardModel;
+import net.dungeonhub.model.score.ScoreModel;
+import net.dungeonhub.model.static_message.StaticMessageModel;
+import net.dungeonhub.model.ticket.TicketModel;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @RestController
-@EnableMethodSecurity
 @RequestMapping("api/v1/server")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 @AllArgsConstructor
 public class DiscordServerController {
     private final DiscordServerService discordServerService;
     private final ScoreService scoreService;
+    private final CarryTypeService carryTypeService;
     private final CarryTierService carryTierService;
     private final CarryDifficultyService carryDifficultyService;
     private final DiscordUserService discordUserService;
+    private final CarryService carryService;
+    private final ReputationService reputationService;
+    private final StaticMessageService staticMessageService;
+    private final TicketService ticketService;
 
     @GetMapping("{server}")
     public DiscordServerModel getServerById(@PathVariable("server") long id) {
@@ -42,18 +56,30 @@ public class DiscordServerController {
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
-        return scoreService.getAllScores(carrier, discordServer)
+        List<ScoreModel> scores = new ArrayList<>(scoreService.getAllScores(carrier, discordServer)
                 .stream().map(Score::toModel)
-                .toList();
+                .toList());
+
+        for (CarryType carryType : carryTypeService.loadEntitiesByDiscordServer(discordServer)) {
+            for (ScoreType scoreType : ScoreType.getEntries()) {
+                if (scores.stream()
+                        .filter(scoreModel -> scoreModel.getScoreType() == scoreType)
+                        .filter(scoreModel -> scoreModel.getCarryType() != null)
+                        .filter(scoreModel -> scoreModel.getCarryType().getId() == carryType.getId())
+                        .findAny().isEmpty()) {
+                    scores.add(new ScoreModel(carrier.toModel(), carryType.toModel(), scoreType, 0L));
+                }
+            }
+        }
+
+        return scores;
     }
 
     @GetMapping("{server}/carry-tiers")
     public List<CarryTierModel> getAllCarryTiers(@PathVariable("server") long serverId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        //TODO own service method
-        return carryTierService.findAllEntities()
-                .stream().filter(carryTier -> carryTier.getCarryType().getDiscordServer().equals(discordServer))
+        return carryTierService.findAllEntities(discordServer)
                 .map(CarryTier::toModel)
                 .toList();
     }
@@ -62,9 +88,7 @@ public class DiscordServerController {
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
-        //TODO own service method
-        return carryDifficultyService.findAllEntities()
-                .stream().filter(carryDifficulty -> carryDifficulty.getCarryTier().getCarryType().getDiscordServer().equals(discordServer))
+        return carryDifficultyService.findAllEntities(discordServer)
                 .map(CarryDifficulty::toModel)
                 .toList();
     }
@@ -75,12 +99,129 @@ public class DiscordServerController {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
         return carryTierService.findByCategory(discordServer, categoryId)
-                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
                 .toModel();
     }
 
+    @GetMapping("{server}/reputation/{id}")
+    public ReputationModel getReputation(@PathVariable("server") long serverId, @PathVariable long id) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return reputationService.loadEntityById(discordServer, id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
+                .toModel();
+    }
+
+    @PreAuthorize("true")
     @GetMapping("all")
-    public Set<DiscordServerModel> getAllServers() {
-        return discordServerService.findAll();
+    public List<DiscordServerModel> getAllServers(Authentication authentication) {
+        List<String> permissions = Optional.ofNullable(authentication)
+                .map(Authentication::getAuthorities)
+                .orElse(List.of()).stream()
+                .map(GrantedAuthority::getAuthority).toList();
+
+        Set<DiscordServerModel> servers = discordServerService.findAll();
+
+        return servers.stream()
+                .filter(server -> permissions.contains("ROLE_admin") || permissions.contains("ROLE_bot") || permissions.contains("server_" + server.getId()))
+                .toList();
+    }
+
+    @GetMapping(value = "{server}/total-leaderboard")
+    public ScoreLeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId, @RequestParam(required =
+            false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
+            false, defaultValue = "0") int page,
+                                                @RequestParam(value = "user", required = false) Optional<Long> userId) {
+        if (page < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        Page<ScoreModel> scores = scoreService.getTotalLeaderboard(discordServer, scoreType, page)
+                .map(ScoreSum::toScoreModel);
+
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new ScoreLeaderboardModel(
+                scores.getPageable().getPageNumber(),
+                scores.getTotalPages(),
+                scores.getContent(),
+                user.map(userEntity -> scoreService.getTotalPosition(discordServer, scoreType, userEntity)).orElse(null),
+                user.flatMap(userEntity -> scoreService.countTotalScoreForCarrier(userEntity, discordServer, scoreType).map(ScoreSum::toScoreModel)).orElse(null)
+        );
+    }
+
+    @GetMapping(value = "{server}/reputation-leaderboard")
+    public ReputationLeaderboardModel getReputationLeaderboard(
+            @PathVariable("server") long serverId,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(value = "user", required = false) Optional<Long> userId
+    ) {
+        if (page < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        Page<ReputationSumModel> reputation = reputationService.getReputationLeaderboard(discordServer, page)
+                .map(ReputationSum::toReputationSumModel);
+
+        Optional<DiscordUser> user = userId.map(discordUserService::loadEntityOrCreate);
+
+        return new ReputationLeaderboardModel(
+                reputation.getPageable().getPageNumber(),
+                reputation.getTotalPages(),
+                reputation.getContent(),
+                user.map(userEntity -> reputationService.getPosition(discordServer, userEntity)).orElse(null),
+                user.map(userEntity -> reputationService.calculateReputation(discordServer, userEntity))
+                        .map(count -> new ReputationSum(user.get(), count))
+                        .map(ReputationSum::toReputationSumModel)
+                        .orElse(null)
+        );
+    }
+
+    @GetMapping("{server}/total-money-spent")
+    public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        List<Carry> carries = carryService.getCarries(discordServer);
+
+        return carries.stream()
+                .filter(carry -> userId == null || carry.getPlayer().getId() == userId)
+                .filter(carry -> carrierId == null || carry.getCarrier().getId() == carrierId)
+                .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
+                .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
+                .filter(carry -> since.isEmpty() || since.get().isBefore(carry.getTime()))
+                .mapToLong(Carry::calculateTotalPrice)
+                .sum();
+    }
+
+    @GetMapping("{server}/count-carries")
+    public long countCarries(@PathVariable("server") long serverId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return since
+                .map(instant -> carryService.getCarriesSince(discordServer, instant))
+                .orElseGet(() -> carryService.getCarries(discordServer))
+                .stream().mapToLong(Carry::getAmount)
+                .sum();
+    }
+
+    @PreAuthorize("hasAnyRole('bot', 'admin')")
+    @GetMapping("static-messages")
+    public List<StaticMessageModel> getStaticMessages() {
+        return staticMessageService.findAllEntities().stream()
+                .map(StaticMessage::toModel)
+                .toList();
+    }
+
+    @GetMapping("{server}/ticket/find")
+    public List<TicketModel> findTickets(@PathVariable("server") long serverId, @RequestParam(name = "channel", required = false) Optional<Long> channelId) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return ticketService.loadEntitiesByServerAndChannel(discordServer, channelId.orElse(null)).stream()
+                .map(Ticket::toModel)
+                .toList();
     }
 }

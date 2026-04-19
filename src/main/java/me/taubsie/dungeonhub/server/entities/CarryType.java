@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
+import lombok.Setter;
+import net.dungeonhub.model.carry_type.CarryTypeModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -15,7 +16,7 @@ import java.util.Set;
 @Entity(name = "carry_type")
 @Table(name = "carry_type", schema = "dungeon-hub")
 @NoArgsConstructor
-public class CarryType implements EntityModelRelation<CarryTypeModel> {
+public class CarryType implements net.dungeonhub.structure.entity.Entity<CarryTypeModel> {
     @Getter
     @OneToMany(mappedBy = "carryType")
     @JsonIgnore
@@ -33,19 +34,21 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
     //final
     private String identifier;
     @Getter
+    @Setter
     @Column(name = "display_name", nullable = false, length = 50)
     private String displayName;
 
     @Getter
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "server", nullable = false)
     //final
     private DiscordServer discordServer;
+    @Setter
     @Column(name = "log_channel")
     private Long logChannel;
-    @Column(name = "leaderboard_channel")
-    private Long leaderboardChannel;
+    @Setter
     @Column(name = "event_active")
     private Boolean eventActive;
 
@@ -56,24 +59,22 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
         this.discordServer = discordServer;
     }
 
-    public CarryType(String identifier, String displayName, DiscordServer discordServer, Long logChannel, Long leaderboardChannel,
+    public CarryType(String identifier, String displayName, DiscordServer discordServer, Long logChannel,
                      Boolean eventActive) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.discordServer = discordServer;
         this.logChannel = logChannel;
-        this.leaderboardChannel = leaderboardChannel;
         this.eventActive = eventActive;
     }
 
     public CarryType(long id, String identifier, String displayName, DiscordServer discordServer, Long logChannel,
-                     Long leaderboardChannel, Boolean eventActive) {
+                     Boolean eventActive) {
         this.id = id;
         this.identifier = identifier;
         this.displayName = displayName;
         this.discordServer = discordServer;
         this.logChannel = logChannel;
-        this.leaderboardChannel = leaderboardChannel;
         this.eventActive = eventActive;
     }
 
@@ -93,15 +94,8 @@ public class CarryType implements EntityModelRelation<CarryTypeModel> {
     }
 
     @Override
-    public CarryType fromModel(CarryTypeModel model) {
-        return new CarryType(model.getId(), model.getIdentifier(), model.getDisplayName(),
-                discordServer.fromModel(model.getServer()), model.getActualLogChannel(), model.getActualLeaderboardChannel(),
-                model.getEventActive());
-    }
-
-    @Override
-    public CarryTypeModel toModel() {
-        return new CarryTypeModel(id, identifier, displayName, discordServer.toModel(), logChannel, leaderboardChannel,
+    public @NotNull CarryTypeModel toModel() {
+        return new CarryTypeModel(id, identifier, displayName, discordServer.toModel(), logChannel,
                 eventActive);
     }
 }

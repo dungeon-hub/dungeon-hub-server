@@ -54,6 +54,7 @@ fi
 cygwin=false;
 darwin=false;
 mingw=false
+# shellcheck disable=SC2006
 case "`uname`" in
   CYGWIN*) cygwin=true ;;
   MINGW*) mingw=true;;
@@ -62,6 +63,7 @@ case "`uname`" in
     # See https://developer.apple.com/library/mac/qa/qa1170/_index.html
     if [ -z "$JAVA_HOME" ]; then
       if [ -x "/usr/libexec/java_home" ]; then
+        # shellcheck disable=SC2155
         export JAVA_HOME="`/usr/libexec/java_home`"
       else
         export JAVA_HOME="/Library/Java/Home"
@@ -72,6 +74,7 @@ esac
 
 if [ -z "$JAVA_HOME" ] ; then
   if [ -r /etc/gentoo-release ] ; then
+    # shellcheck disable=SC2006
     JAVA_HOME=`java-config --jre-home`
   fi
 fi
@@ -82,27 +85,35 @@ if [ -z "$M2_HOME" ] ; then
 
   # need this for relative symlinks
   while [ -h "$PRG" ] ; do
+    # shellcheck disable=SC2006
     ls=`ls -ld "$PRG"`
+    # shellcheck disable=SC2006
     link=`expr "$ls" : '.*-> \(.*\)$'`
     if expr "$link" : '/.*' > /dev/null; then
       PRG="$link"
     else
+      # shellcheck disable=SC2006
       PRG="`dirname "$PRG"`/$link"
     fi
   done
 
+  # shellcheck disable=SC2006
   saveddir=`pwd`
 
+  # shellcheck disable=SC2006
   M2_HOME=`dirname "$PRG"`/..
 
   # make it fully qualified
+  # shellcheck disable=SC2006
   M2_HOME=`cd "$M2_HOME" && pwd`
 
+  # shellcheck disable=SC2164
   cd "$saveddir"
   # echo Using m2 at $M2_HOME
 fi
 
 # For Cygwin, ensure paths are in UNIX format before anything is touched
+# shellcheck disable=SC2006
 if $cygwin ; then
   [ -n "$M2_HOME" ] &&
     M2_HOME=`cygpath --unix "$M2_HOME"`
@@ -113,6 +124,8 @@ if $cygwin ; then
 fi
 
 # For Mingw, ensure paths are in UNIX format before anything is touched
+# shellcheck disable=SC2006
+# shellcheck disable=SC2164
 if $mingw ; then
   [ -n "$M2_HOME" ] &&
     M2_HOME="`(cd "$M2_HOME"; pwd)`"
@@ -121,10 +134,14 @@ if $mingw ; then
 fi
 
 if [ -z "$JAVA_HOME" ]; then
+  # shellcheck disable=SC2006
   javaExecutable="`which javac`"
+  # shellcheck disable=SC2006
   if [ -n "$javaExecutable" ] && ! [ "`expr \"$javaExecutable\" : '\([^ ]*\)'`" = "no" ]; then
     # readlink(1) is not available as standard on Solaris 10.
+    # shellcheck disable=SC2006
     readLink=`which readlink`
+    # shellcheck disable=SC2046
     if [ ! `expr "$readLink" : '\([^ ]*\)'` = "no" ]; then
       if $darwin ; then
         javaHome="`dirname \"$javaExecutable\"`"
@@ -149,6 +166,7 @@ if [ -z "$JAVACMD" ] ; then
       JAVACMD="$JAVA_HOME/bin/java"
     fi
   else
+    # shellcheck disable=SC2006
     JAVACMD="`\\unset -f command; \\command -v java`"
   fi
 fi
@@ -163,6 +181,7 @@ if [ -z "$JAVA_HOME" ] ; then
   echo "Warning: JAVA_HOME environment variable is not set."
 fi
 
+# shellcheck disable=SC2034
 CLASSWORLDS_LAUNCHER=org.codehaus.plexus.classworlds.launcher.Launcher
 
 # traverses directory structure from process work directory to filesystem root
@@ -184,6 +203,8 @@ find_maven_basedir() {
     fi
     # workaround for JBEAP-8937 (on Solaris 10/Sparc)
     if [ -d "${wdir}" ]; then
+      # shellcheck disable=SC2006
+      # shellcheck disable=SC2164
       wdir=`cd "$wdir/.."; pwd`
     fi
     # end of workaround
@@ -194,10 +215,12 @@ find_maven_basedir() {
 # concatenates all lines of a file
 concat_lines() {
   if [ -f "$1" ]; then
+    # shellcheck disable=SC2005
     echo "$(tr -s '\n' ' ' < "$1")"
   fi
 }
 
+# shellcheck disable=SC2006
 BASE_DIR=`find_maven_basedir "$(pwd)"`
 if [ -z "$BASE_DIR" ]; then
   exit 1;
@@ -220,6 +243,7 @@ else
     else
       jarUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.1.0/maven-wrapper-3.1.0.jar"
     fi
+    # shellcheck disable=SC2162
     while IFS="=" read key value; do
       case "$key" in (wrapperUrl) jarUrl="$value"; break ;;
       esac
@@ -229,6 +253,7 @@ else
     fi
     wrapperJarPath="$BASE_DIR/.mvn/wrapper/maven-wrapper.jar"
     if $cygwin; then
+      # shellcheck disable=SC2006
       wrapperJarPath=`cygpath --path --windows "$wrapperJarPath"`
     fi
 
@@ -239,6 +264,7 @@ else
         if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
             wget "$jarUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
         else
+            # shellcheck disable=SC2086
             wget --http-user=$MVNW_USERNAME --http-password=$MVNW_PASSWORD "$jarUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
         fi
     elif command -v curl > /dev/null; then
@@ -248,6 +274,7 @@ else
         if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
             curl -o "$wrapperJarPath" "$jarUrl" -f
         else
+            # shellcheck disable=SC2086
             curl --user $MVNW_USERNAME:$MVNW_PASSWORD -o "$wrapperJarPath" "$jarUrl" -f
         fi
 
@@ -258,6 +285,7 @@ else
         javaClass="$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.java"
         # For Cygwin, switch paths to Windows format before running javac
         if $cygwin; then
+          # shellcheck disable=SC2006
           javaClass=`cygpath --path --windows "$javaClass"`
         fi
         if [ -e "$javaClass" ]; then
@@ -284,11 +312,13 @@ fi
 
 export MAVEN_PROJECTBASEDIR=${MAVEN_BASEDIR:-"$BASE_DIR"}
 if [ "$MVNW_VERBOSE" = true ]; then
+  # shellcheck disable=SC2086
   echo $MAVEN_PROJECTBASEDIR
 fi
 MAVEN_OPTS="$(concat_lines "$MAVEN_PROJECTBASEDIR/.mvn/jvm.config") $MAVEN_OPTS"
 
 # For Cygwin, switch paths to Windows format before running java
+# shellcheck disable=SC2006
 if $cygwin; then
   [ -n "$M2_HOME" ] &&
     M2_HOME=`cygpath --path --windows "$M2_HOME"`
@@ -302,11 +332,13 @@ fi
 
 # Provide a "standardized" way to retrieve the CLI args that will
 # work with both Windows and non-Windows executions.
+# shellcheck disable=SC2124
 MAVEN_CMD_LINE_ARGS="$MAVEN_CONFIG $@"
 export MAVEN_CMD_LINE_ARGS
 
 WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
 
+# shellcheck disable=SC2086
 exec "$JAVACMD" \
   $MAVEN_OPTS \
   $MAVEN_DEBUG_OPTS \

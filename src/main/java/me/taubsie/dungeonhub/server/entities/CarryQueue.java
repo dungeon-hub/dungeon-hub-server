@@ -5,11 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.enums.QueueStep;
-import me.taubsie.dungeonhub.common.model.carry_queue.CarryQueueModel;
+import net.dungeonhub.enums.QueueStep;
+import net.dungeonhub.model.carry_queue.CarryQueueModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 
@@ -19,7 +19,7 @@ import java.time.Instant;
 @Table(name = "carry_queue", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
+public class CarryQueue implements net.dungeonhub.structure.entity.Entity<CarryQueueModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -40,7 +40,7 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     private DiscordUser player;
 
     @Column(name = "amount", nullable = false)
-    private long amount;
+    private int amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
@@ -60,7 +60,7 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     private Instant time;
 
     @SuppressWarnings("java:S107")
-    public CarryQueue(QueueStep queueStep, DiscordUser carrier, DiscordUser player, long amount,
+    public CarryQueue(QueueStep queueStep, DiscordUser carrier, DiscordUser player, int amount,
                       CarryDifficulty carryDifficulty, Long relationId, String attachmentLink, Instant time) {
         this.queueStep = queueStep;
         this.carrier = carrier;
@@ -81,15 +81,7 @@ public class CarryQueue implements EntityModelRelation<CarryQueueModel> {
     }
 
     @Override
-    public CarryQueue fromModel(CarryQueueModel model) {
-        return new CarryQueue(model.getId(), model.getQueueStep(), carrier.fromModel(model.getCarrier()),
-                player.fromModel(model.getPlayer()), model.getAmount(),
-                carryDifficulty.fromModel(model.getCarryDifficulty()), model.getRelationId(),
-                model.getAttachmentLink(), model.getTime());
-    }
-
-    @Override
-    public CarryQueueModel toModel() {
+    public @NotNull CarryQueueModel toModel() {
         return new CarryQueueModel(id, queueStep, carrier.toModel(), player.toModel(), amount,
                 carryDifficulty.toModel(), relationId,
                 attachmentLink, time);

@@ -1,0 +1,101 @@
+package me.taubsie.dungeonhub.server.entities;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import net.dungeonhub.enums.WarningType;
+import net.dungeonhub.model.warning.DetailedWarningModel;
+import net.dungeonhub.model.warning.WarningModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAmount;
+import java.util.List;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "warns", schema = "dungeon-hub")
+@NoArgsConstructor
+public class Warning implements net.dungeonhub.structure.entity.Entity<WarningModel> {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private long id;
+
+    @JoinColumn(name = "server_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DiscordServer server;
+
+    @JoinColumn(name = "warned_user", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DiscordUser user;
+
+    @JoinColumn(name = "striker", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DiscordUser striker;
+
+    @Enumerated
+    @Column(name = "warning_type", nullable = false)
+    private WarningType warningType;
+
+    @Nullable
+    @Column(name = "reason")
+    private String reason;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
+    @Column(name = "time", nullable = false)
+    private Instant time;
+
+    @OneToMany(mappedBy = "warning")
+    private List<WarningEvidence> evidences;
+
+    public Warning(long id, DiscordServer server, DiscordUser user, DiscordUser striker, WarningType warningType, @Nullable String reason, boolean active, Instant time) {
+        this.id = id;
+        this.server = server;
+        this.user = user;
+        this.striker = striker;
+        this.warningType = warningType;
+        this.reason = reason;
+        this.active = active;
+        this.time = time;
+    }
+
+    public Warning(DiscordServer server, DiscordUser user, DiscordUser striker, WarningType warningType, @Nullable String reason, boolean active, Instant time) {
+        this.server = server;
+        this.user = user;
+        this.striker = striker;
+        this.warningType = warningType;
+        this.reason = reason;
+        this.active = active;
+        this.time = time;
+    }
+
+    @Override
+    public @NotNull WarningModel toModel() {
+        return new WarningModel(id, server.toModel(), user.toModel(), striker.toModel(), warningType, reason, active, time);
+    }
+
+    public @NotNull DetailedWarningModel toDetailedModel() {
+        return new DetailedWarningModel(id, server.toModel(), user.toModel(), striker.toModel(), warningType, reason, active, time, evidences.stream().map(WarningEvidence::toModel).toList());
+    }
+
+    public boolean isExpired() {
+        TemporalAmount expiration = warningType.getExpiration();
+
+        if (expiration == null) {
+            return false;
+        }
+
+        // Check if the time that the warning was issued + the expiration time is before now
+        OffsetDateTime expirationTime = time.atOffset(ZoneOffset.UTC).plus(expiration);
+
+        return expirationTime.isBefore(Instant.now().atOffset(ZoneOffset.UTC));
+    }
+}

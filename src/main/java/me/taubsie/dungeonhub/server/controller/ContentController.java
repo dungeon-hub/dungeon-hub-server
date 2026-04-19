@@ -1,28 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import io.swagger.v3.oas.annotations.Hidden;
-import me.taubsie.dungeonhub.common.DungeonHubService;
-import org.apache.tika.Tika;
-import org.apache.tika.config.TikaConfig;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.util.InMemoryResource;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -36,16 +13,45 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import me.taubsie.dungeonhub.server.config.ConfigService;
+import net.dungeonhub.service.MoshiService;
+import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.util.InMemoryResource;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 @Hidden
 @RestController
-@EnableMethodSecurity
 @RequestMapping("/cdn")
 public class ContentController {
     private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
 
-    private static String getContentFolder() {
-        return DungeonHubService.getInstance()
-                .getMainFolder() + File.separator + "cdn";
+    private final ConfigService configService;
+
+    @Autowired
+    public ContentController(ConfigService configService) {
+        this.configService = configService;
+    }
+
+    private String getContentFolder() {
+        return configService.getDungeonHubDirectory() + File.separator + "cdn";
     }
 
     public MimeType getMimeType(InputStream inputStream) throws IOException, MimeTypeException {
@@ -61,17 +67,15 @@ public class ContentController {
     @PostMapping(value = {"", "/", "{name}"})
     public ResponseEntity<String> addFile(@RequestBody Resource image, @PathVariable(required = false) Optional<String> name, Authentication authentication) throws IOException {
         if (image == null) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-
-        String username = authentication.getName();
 
         String fileExtension;
         try {
             fileExtension = getMimeType(new ByteArrayInputStream(image.getContentAsByteArray())).getExtension();
         }
         catch (MimeTypeException mimeTypeException) {
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (fileExtension == null || fileExtension.isBlank()) {
@@ -82,7 +86,7 @@ public class ContentController {
             fileExtension = ".mp4";
         }
 
-        if(name.isPresent() && name.get().endsWith(".html")) {
+        if (name.isPresent() && name.get().endsWith(".html")) {
             fileExtension = ".html";
             name = Optional.of(name.get().substring(0, name.get().length() - 5));
         }
@@ -96,8 +100,8 @@ public class ContentController {
         Path folder = Paths.get(getContentFolder());
         Files.createDirectories(folder);
         Files.write(folder.resolve(fileName), image.getContentAsByteArray());
-        if (username != null) {
-            setUploader(folder.resolve(fileName), username);
+        if (authentication != null) {
+            setUploader(folder.resolve(fileName), authentication.getName());
         }
 
         return ResponseEntity
@@ -118,8 +122,8 @@ public class ContentController {
                 return ResponseEntity
                         .status(HttpStatus.FOUND)
                         .body(new InMemoryResource(
-                                DungeonHubService.getInstance()
-                                        .getGson()
+                                MoshiService.INSTANCE.getMoshi()
+                                        .adapter(List.class)
                                         .toJson(allFiles)
                         ));
             }
@@ -182,14 +186,12 @@ public class ContentController {
 
             getUploader(content).ifPresent(s -> headers.set("X-Content-Owner", s));
 
-            ByteArrayResource image = new ByteArrayResource(Files.readAllBytes(content));
-
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .headers(headers)
-                    .contentLength(image.contentLength())
+                    .contentLength(Files.size(content))
                     .contentType(MediaType.parseMediaType(mimeType))
-                    .body(image);
+                    .body(new FileSystemResource(content));
         }
         catch (NoSuchFileException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -210,7 +212,7 @@ public class ContentController {
             return Optional.of(Charset.defaultCharset().decode(buf).toString());
         }
         catch (UnsupportedOperationException unsupportedOperationException) {
-            logger.warn("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
+            logger.error("Your file system doesn't support user-defined attributes. Please enable them for the full functionality of the cdn.");
             return Optional.empty();
         }
         catch (IOException | NullPointerException exception) {

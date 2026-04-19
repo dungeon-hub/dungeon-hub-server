@@ -1,22 +1,25 @@
 package me.taubsie.dungeonhub.server.entities;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeModel;
+import lombok.Setter;
+import net.dungeonhub.model.purge_type.PurgeTypeModel;
+import net.dungeonhub.model.purge_type.SimplePurgeTypeModel;
 import org.hibernate.annotations.OnDelete;
-
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Entity(name = "purge_type")
 @Table(name = "purge_type", schema = "dungeon-hub")
 @AllArgsConstructor
 @NoArgsConstructor
-public class PurgeType implements EntityModelRelation<PurgeTypeModel> {
+public class PurgeType implements net.dungeonhub.structure.entity.Entity<PurgeTypeModel> {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     //final
     private long id;
@@ -24,6 +27,8 @@ public class PurgeType implements EntityModelRelation<PurgeTypeModel> {
     @Column(nullable = false)
     //final
     private String identifier;
+
+    @Setter
     @Column(name = "display_name", nullable = false, length = 50)
     private String displayName;
 
@@ -50,12 +55,11 @@ public class PurgeType implements EntityModelRelation<PurgeTypeModel> {
     }
 
     @Override
-    public PurgeType fromModel(PurgeTypeModel model) {
-        return new PurgeType(model.getId(), model.getIdentifier(), model.getDisplayName(), carryType.fromModel(model.getCarryType()));
+    public @NotNull PurgeTypeModel toModel() {
+        return new PurgeTypeModel(id, identifier, displayName, carryType.toModel(), purgeTypeRoles.stream().map(PurgeTypeRole::toModel).toList());
     }
 
-    @Override
-    public PurgeTypeModel toModel() {
-        return new PurgeTypeModel(id, identifier, displayName, carryType.toModel(), purgeTypeRoles.stream().map(PurgeTypeRole::toModel).toList());
+    public @NotNull SimplePurgeTypeModel toSimpleModel() {
+        return new SimplePurgeTypeModel(id, identifier, displayName, carryType.toModel());
     }
 }
