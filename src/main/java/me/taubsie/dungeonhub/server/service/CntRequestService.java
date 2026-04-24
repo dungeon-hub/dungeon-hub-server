@@ -14,8 +14,8 @@ import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +24,6 @@ import java.util.function.Function;
 @Service
 @AllArgsConstructor
 public class CntRequestService implements EntityService<CntRequest, CntRequestModel, CntRequestCreationModel, CntRequestInitializeModel, CntRequestUpdateModel> {
-    private static final int PAGE_SIZE = 10;
 
     private final CntRequestRepository cntRequestRepository;
     private final DiscordUserRepository discordUserRepository;
@@ -82,7 +81,13 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
     }
 
     public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page, int size, String sort) {
-        return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Parseable pageable = PageRequest.of(page, size);
+        if (sort != null && !sort.isEmpty()) {
+            Sort.Direction direction = Sort.Direction.fromString(sort.split(",")[1]);
+            String field = sort.split(",")[0];
+            pageable = PageRequest.of(page, size, Sort.by(direction, field));
+        }
+        return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, pageable);
     }
 
     @Override
