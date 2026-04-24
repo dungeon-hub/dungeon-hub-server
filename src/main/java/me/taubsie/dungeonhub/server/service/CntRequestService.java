@@ -81,8 +81,8 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
         return cntRequestRepository.findByUser(user);
     }
 
-    public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page) {
-        return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, PageRequest.of(page, PAGE_SIZE));
+    public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page, int size, String sort) {
+        return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
     @Override

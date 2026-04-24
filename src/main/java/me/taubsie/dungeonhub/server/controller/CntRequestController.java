@@ -64,13 +64,15 @@ public class CntRequestController {
 
     @GetMapping("all")
     public CntRequestPageModel getCntRequests(@PathVariable("server") long serverId,
-                                              @RequestParam(required = false, defaultValue = "0") int page) {
-        if (page < 0) {
+                                              @RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "20") int size,
+                                              @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        if (page < 0 || size <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
-        Page<CntRequestModel> requests = cntRequestService.getCntRequests(discordServer, page).map(CntRequest::toModel);
+        Page<CntRequestModel> requests = cntRequestService.getCntRequests(discordServer, page, size, sort).map(CntRequest::toModel);
 
         return new CntRequestPageModel(
                 requests.getPageable().getPageNumber(),
