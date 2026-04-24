@@ -88,6 +88,14 @@ public class DiscordUserService implements EntityService<DiscordUser, DiscordUse
             discordUser.setMinecraftId(discordUserUpdateModel.getMinecraftId());
         }
 
+        if(discordUserUpdateModel.getRemovePrimarySkyblockProfile()) {
+            discordUser.setPrimarySkyblockProfile(null);
+        }
+
+        if(discordUserUpdateModel.getPrimarySkyblockProfile() != null) {
+            discordUser.setPrimarySkyblockProfile(discordUserUpdateModel.getPrimarySkyblockProfile());
+        }
+
         return discordUser;
     }
 }

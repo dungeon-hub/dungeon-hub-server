@@ -13,6 +13,6 @@ public interface DiscordUserRepository extends JpaRepository<DiscordUser, Long> 
     Optional<DiscordUser> findDiscordUserByMinecraftId(UUID minecraftId);
 
     default DiscordUser loadEntityOrCreate(long id) {
-        return findById(id).orElseGet(() -> save(new DiscordUserInitializeModel(id, null).toEntity()));
+        return findById(id).orElseGet(() -> save(new DiscordUserInitializeModel(id, null, null).toEntity()));
     }
 }
