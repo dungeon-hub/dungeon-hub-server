@@ -103,6 +103,15 @@ public class CntRequestController {
         }
     }
 
+    @GetMapping("{id}")
+    public CntRequestModel getCntRequest(@PathVariable("server") long serverId, @PathVariable long id) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        return cntRequestService.loadEntityById(discordServer, id)
+                .map(CntRequest::toModel)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
     @PostMapping
     public CntRequestModel createNewCntRequest(@PathVariable("server") long serverId,
                                                @RequestBody CntRequestCreationModel creationModel) {
