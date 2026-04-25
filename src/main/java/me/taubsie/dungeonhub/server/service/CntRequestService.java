@@ -14,8 +14,10 @@ import net.dungeonhub.model.cnt_request.CntRequestUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
@@ -80,13 +82,8 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
         return cntRequestRepository.findByUser(user);
     }
 
-    public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page, int size, String sort) {
-        Parseable pageable = PageRequest.of(page, size);
-        if (sort != null && !sort.isEmpty()) {
-            Sort.Direction direction = Sort.Direction.fromString(sort.split(",")[1]);
-            String field = sort.split(",")[0];
-            pageable = PageRequest.of(page, size, Sort.by(direction, field));
-        }
+    public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page, int size, String field, Sort.Direction direction) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, field));
         return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, pageable);
     }
 
