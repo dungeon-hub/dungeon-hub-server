@@ -115,6 +115,10 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
             cntRequest.setCompleted(cntRequestUpdateModel.getCompleted());
         }
 
+        if(cntRequestUpdateModel.getRequestType() != null) {
+            cntRequest.setRequestType(cntRequestUpdateModel.getRequestType());
+        }
+
         return cntRequest;
     }
 }
