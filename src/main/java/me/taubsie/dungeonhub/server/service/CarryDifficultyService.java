@@ -36,7 +36,7 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
 
     public Optional<CarryDifficulty> loadEntityById(CarryTier carryTier, long id) {
         return carryDifficultyRepository.findById(id)
-                .filter(carryDifficulty -> carryDifficulty.getCarryTier().equals(carryTier));
+                .filter(carryDifficulty -> carryDifficulty.getCarryTier().getId() == carryTier.getId());
     }
 
     public List<CarryDifficulty> findByCarryTier(CarryTier carryTier) {
