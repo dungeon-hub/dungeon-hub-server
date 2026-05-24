@@ -1,15 +1,9 @@
 package me.taubsie.dungeonhub.server.controller;
 
 import lombok.AllArgsConstructor;
-import me.taubsie.dungeonhub.server.entities.DiscordChannel;
-import me.taubsie.dungeonhub.server.entities.DiscordRole;
-import me.taubsie.dungeonhub.server.entities.DiscordServer;
-import me.taubsie.dungeonhub.server.entities.TicketPanel;
+import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.model.TicketPanelInitializeModel;
-import me.taubsie.dungeonhub.server.service.DiscordChannelService;
-import me.taubsie.dungeonhub.server.service.DiscordRoleService;
-import me.taubsie.dungeonhub.server.service.DiscordServerService;
-import me.taubsie.dungeonhub.server.service.TicketPanelService;
+import me.taubsie.dungeonhub.server.service.*;
 import net.dungeonhub.model.ticket_panel.TicketPanelCreationModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelUpdateModel;
@@ -31,6 +25,8 @@ public class TicketPanelController {
     private final DiscordServerService discordServerService;
     private final DiscordChannelService discordChannelService;
     private final DiscordRoleService discordRoleService;
+    private final CarryTierService carryTierService;
+    private final CarryDifficultyService carryDifficultyService;
 
     @GetMapping("{id}")
     public TicketPanelModel getById(@PathVariable("server") long serverId, @PathVariable long id) {
@@ -81,7 +77,15 @@ public class TicketPanelController {
                 .map(additionalRoleId -> discordRoleService.loadOrCreate(discordServer, additionalRoleId))
                 .toList();
 
-        return ticketPanelService.createEntity(new TicketPanelInitializeModel(discordServer, transcriptChannel.orElse(null), supportRoles, additionalRoles)
+        Optional<CarryTier> carryTier = Optional.ofNullable(creationModel.getRelatedCarryTier())
+                .flatMap(carryTierService::loadEntityById)
+                .filter(ct -> ct.getCarryType().getDiscordServer().getId() == discordServer.getId());
+
+        Optional<CarryDifficulty> carryDifficulty = Optional.ofNullable(creationModel.getRelatedCarryDifficulty())
+                .flatMap(carryDifficultyService::loadEntityById)
+                .filter(cd -> cd.getCarryTier().equals(carryTier.orElse(null)));
+
+        return ticketPanelService.createEntity(new TicketPanelInitializeModel(discordServer, transcriptChannel.orElse(null), carryTier.orElse(null), carryDifficulty.orElse(null), supportRoles, additionalRoles)
                 .fromCreationModel(creationModel)).toModel();
     }
 

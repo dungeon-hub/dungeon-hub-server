@@ -106,6 +106,20 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     private List<TicketPanelForm> formQuestions = new ArrayList<>();
 
     @Getter
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "related_carry_tier")
+    private CarryTier relatedCarryTier;
+
+    @Getter
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "related_carry_difficulty")
+    private CarryDifficulty relatedCarryDifficulty;
+
+    @Getter
     @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
     private List<TicketPanelSupportRole> supportRoles = new ArrayList<>();
@@ -319,6 +333,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 deleteTranscriptTarget,
                 userTranscriptDm,
                 formQuestions.stream().sorted(Comparator.comparingInt(TicketPanelForm::getOrdinal)).map(TicketPanelForm::toModel).toList(),
+                relatedCarryTier != null ? relatedCarryTier.toModel() : null,
+                relatedCarryDifficulty != null ? relatedCarryDifficulty.toModel() : null,
                 supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),
                 additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
                 openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),
