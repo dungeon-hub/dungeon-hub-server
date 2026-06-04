@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.dungeonhub.enums.IngameCarryType;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -64,9 +65,15 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
     @Column(name = "score", nullable = false)
     private int score;
 
+    @Getter
+    @Setter
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ingame_carry_type")
+    private IngameCarryType ingameCarryType;
+
     @SuppressWarnings("java:S107")
     public CarryDifficulty(long id, String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
-                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score) {
+                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score, IngameCarryType ingameCarryType) {
         this.id = id;
         this.identifier = identifier;
         this.displayName = displayName;
@@ -77,10 +84,11 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
         this.priceName = priceName;
         this.price = price;
         this.score = score;
+        this.ingameCarryType = ingameCarryType;
     }
 
     public CarryDifficulty(String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
-                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score) {
+                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score, IngameCarryType ingameCarryType) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.carryTier = carryTier;
@@ -90,6 +98,7 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
         this.priceName = priceName;
         this.price = price;
         this.score = score;
+        this.ingameCarryType = ingameCarryType;
     }
 
     public long calculateTotalPrice(int amount) {
@@ -131,7 +140,8 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
                 bulkAmount,
                 score,
                 thumbnailUrl,
-                priceName
+                priceName,
+                ingameCarryType
         );
     }
 }

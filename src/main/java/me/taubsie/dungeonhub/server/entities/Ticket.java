@@ -26,6 +26,7 @@ public class Ticket implements net.dungeonhub.structure.entity.Entity<TicketMode
     @Column(name = "id", nullable = false)
     private long id;
 
+    @Getter
     @Setter
     @Column(name = "state", nullable = false)
     @Enumerated

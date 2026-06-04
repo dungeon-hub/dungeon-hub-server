@@ -132,6 +132,14 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
             carryDifficulty.setScore(carryDifficultyUpdateModel.getScore());
         }
 
+        if(carryDifficultyUpdateModel.getResetIngameCarryType()) {
+            carryDifficulty.setIngameCarryType(null);
+        }
+
+        if(carryDifficultyUpdateModel.getIngameCarryType() != null) {
+            carryDifficulty.setIngameCarryType(carryDifficultyUpdateModel.getIngameCarryType());
+        }
+
         return carryDifficulty;
     }
 }

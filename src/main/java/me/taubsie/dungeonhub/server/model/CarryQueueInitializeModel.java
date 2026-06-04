@@ -17,6 +17,7 @@ public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, Ca
     private QueueStep queueStep;
     private DiscordUser carrier;
     private DiscordUser player;
+    private final boolean notified;
 
     private int amount;
     private CarryDifficulty carryDifficulty;
@@ -24,16 +25,17 @@ public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, Ca
     private String attachmentLink;
     private Instant time;
 
-    public CarryQueueInitializeModel(CarryDifficulty carryDifficulty, DiscordUser player, DiscordUser carrier) {
+    public CarryQueueInitializeModel(CarryDifficulty carryDifficulty, DiscordUser player, DiscordUser carrier, boolean notified) {
         this.carryDifficulty = carryDifficulty;
         this.player = player;
         this.carrier = carrier;
+        this.notified = notified;
     }
 
     @Override
     public @NotNull CarryQueue toEntity() {
         return new CarryQueue(queueStep, carrier, player, amount, carryDifficulty, relationId, attachmentLink,
-                time);
+                time, notified);
     }
 
     @Override
@@ -42,7 +44,7 @@ public class CarryQueueInitializeModel implements InitializeModel<CarryQueue, Ca
             throw new IllegalArgumentException("amount must be positive");
         }
 
-        return new CarryQueueInitializeModel(creationModel.getQueueStep(), carrier, player, creationModel.getAmount(),
+        return new CarryQueueInitializeModel(creationModel.getQueueStep(), carrier, player, notified, creationModel.getAmount(),
                 carryDifficulty, creationModel.getRelationId(), creationModel.getAttachmentLink(),
                 creationModel.getTime());
     }

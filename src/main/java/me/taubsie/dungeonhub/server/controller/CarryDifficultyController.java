@@ -55,6 +55,7 @@ public class CarryDifficultyController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("all")
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId, @PathVariable(
             "carry-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId) {
@@ -65,6 +66,7 @@ public class CarryDifficultyController {
                 .toList();
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("{id}")
     public CarryDifficultyModel getCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry" +
             "-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId, @PathVariable long id) {

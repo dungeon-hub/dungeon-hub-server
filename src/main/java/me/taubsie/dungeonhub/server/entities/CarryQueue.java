@@ -59,9 +59,12 @@ public class CarryQueue implements net.dungeonhub.structure.entity.Entity<CarryQ
     @Column(name = "time")
     private Instant time;
 
+    @Column(name = "notified", nullable = false)
+    private boolean notified;
+
     @SuppressWarnings("java:S107")
     public CarryQueue(QueueStep queueStep, DiscordUser carrier, DiscordUser player, int amount,
-                      CarryDifficulty carryDifficulty, Long relationId, String attachmentLink, Instant time) {
+                      CarryDifficulty carryDifficulty, Long relationId, String attachmentLink, Instant time, boolean notified) {
         this.queueStep = queueStep;
         this.carrier = carrier;
         this.player = player;
@@ -70,6 +73,7 @@ public class CarryQueue implements net.dungeonhub.structure.entity.Entity<CarryQ
         this.relationId = relationId;
         this.attachmentLink = attachmentLink;
         this.time = time;
+        this.notified = notified;
     }
 
     public CarryType getCarryType() {
