@@ -128,7 +128,7 @@ public class DiscordServerController {
 
     @GetMapping(value = "{server}/total-leaderboard")
     public ScoreLeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId, @RequestParam(required =
-            false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
+            false, defaultValue = "Default", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
                                                 @RequestParam(value = "user", required = false) Optional<Long> userId) {
         if (page < 0) {

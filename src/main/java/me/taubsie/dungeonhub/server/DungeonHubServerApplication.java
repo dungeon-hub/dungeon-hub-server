@@ -11,6 +11,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
+// TODO add auth configuration for openapi
 @SpringBootApplication
 @EntityScan("me.taubsie.dungeonhub.*")
 @OpenAPIDefinition(info = @Info(title = "Dungeon Hub API", version = "v1", contact = @Contact(name = "Dungeon Hub",
