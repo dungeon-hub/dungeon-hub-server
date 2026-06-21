@@ -110,9 +110,7 @@ public class DiscordUserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        DiscordUser discordUser = discordUserService.loadEntityOrCreate(userId);
-
-        return ticketService.findAllOpenTicketsClaimedByUser(discordUser)
+        return ticketService.findAllOpenTicketsClaimedByUser(userId)
                 .stream().map(Ticket::toModel).toList();
     }
 }

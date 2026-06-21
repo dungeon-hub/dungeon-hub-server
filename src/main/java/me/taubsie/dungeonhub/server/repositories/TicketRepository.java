@@ -1,7 +1,6 @@
 package me.taubsie.dungeonhub.server.repositories;
 
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
-import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import net.dungeonhub.enums.TicketState;
@@ -13,5 +12,5 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findTicketsByTicketPanel(TicketPanel ticketPanel);
     List<Ticket> findTicketsByTicketPanel_DiscordServer(DiscordServer discordServer);
     List<Ticket> findTicketsByTicketPanel_DiscordServerAndDiscordChannel_Id(DiscordServer discordServer, long channelId);
-    List<Ticket> findTicketsByClaimerAndState(DiscordUser claimer, TicketState state);
+    List<Ticket> findTicketsByClaimer_IdAndState(Long claimerId, TicketState state);
 }
