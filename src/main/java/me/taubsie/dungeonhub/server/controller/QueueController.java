@@ -80,7 +80,7 @@ public class QueueController {
         for(Long ticketId : ingameQueueCreationModel.getTicketIds()) {
             Ticket ticket = ticketService.loadEntityById(ticketId)
                     .filter(t -> t.getState() != TicketState.Deleted)
-                    .filter(t -> t.getClaimer().getId() == carrier.getId()) // TODO also allow additional claimers to log
+                    .filter(t -> t.getClaimer() != null && t.getClaimer().getId() == carrier.getId()) // TODO also allow additional claimers to log
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             CarryTier carryTier = ticket.getTicketPanel().getRelatedCarryTier();
