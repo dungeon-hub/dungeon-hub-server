@@ -4,12 +4,10 @@ import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
-import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.CarryTierInitializeModel;
 import me.taubsie.dungeonhub.server.service.CarryTierService;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
-import me.taubsie.dungeonhub.server.service.TicketPanelService;
 import net.dungeonhub.model.carry_tier.CarryTierCreationModel;
 import net.dungeonhub.model.carry_tier.CarryTierModel;
 import net.dungeonhub.model.carry_tier.CarryTierUpdateModel;
@@ -29,7 +27,6 @@ public class CarryTierController {
     private final DiscordServerService discordServerService;
     private final CarryTypeService carryTypeService;
     private final CarryTierService carryTierService;
-    private final TicketPanelService ticketPanelService;
 
     @GetMapping("all")
     public List<CarryTierModel> getAllCarryTiers(@PathVariable("server") long serverId,
@@ -53,14 +50,7 @@ public class CarryTierController {
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        TicketPanel relatedTicketPanel = null;
-        if(creationModel.getRelatedTicketPanel() != null) {
-            relatedTicketPanel = ticketPanelService.loadEntityById(creationModel.getRelatedTicketPanel())
-                    .filter(ticketPanel -> ticketPanel.getDiscordServer().getId() == discordServer.getId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
-        }
-
-        return carryTierService.create(new CarryTierInitializeModel(carryType, relatedTicketPanel).fromCreationModel(creationModel));
+        return carryTierService.create(new CarryTierInitializeModel(carryType).fromCreationModel(creationModel));
     }
 
     @PutMapping("{id}")

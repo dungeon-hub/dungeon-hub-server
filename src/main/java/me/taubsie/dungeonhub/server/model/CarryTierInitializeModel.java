@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import net.dungeonhub.model.carry_tier.CarryTierCreationModel;
 import net.dungeonhub.model.carry_tier.CarryTierModel;
 import net.dungeonhub.structure.model.InitializeModel;
@@ -16,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 @Setter
 public class CarryTierInitializeModel implements InitializeModel<CarryTier, CarryTierModel, CarryTierCreationModel> {
     private final CarryType carryType;
-    private final TicketPanel relatedTicketPanel;
 
     private String identifier;
     private String displayName;
@@ -26,20 +24,19 @@ public class CarryTierInitializeModel implements InitializeModel<CarryTier, Carr
     private String priceTitle;
     private String priceDescription;
 
-    public CarryTierInitializeModel(CarryType carryType, TicketPanel relatedTicketPanel) {
+    public CarryTierInitializeModel(CarryType carryType) {
         this.carryType = carryType;
-        this.relatedTicketPanel = relatedTicketPanel;
     }
 
     @Override
     public @NotNull CarryTier toEntity() {
-        return new CarryTier(identifier, displayName, carryType, relatedTicketPanel, category, descriptiveName,
+        return new CarryTier(identifier, displayName, carryType, category, descriptiveName,
                 thumbnailUrl, priceTitle, priceDescription);
     }
 
     @Override
     public @NotNull CarryTierInitializeModel fromCreationModel(CarryTierCreationModel creationModel) {
-        return new CarryTierInitializeModel(carryType, relatedTicketPanel, creationModel.getIdentifier(), creationModel.getDisplayName(),
+        return new CarryTierInitializeModel(carryType, creationModel.getIdentifier(), creationModel.getDisplayName(),
                 creationModel.getCategory(), creationModel.getDescriptiveName(),
                 creationModel.getThumbnailUrl(), creationModel.getPriceTitle(), creationModel.getPriceDescription());
     }

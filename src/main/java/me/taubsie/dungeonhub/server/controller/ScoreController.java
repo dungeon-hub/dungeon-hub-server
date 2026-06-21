@@ -42,7 +42,7 @@ public class ScoreController {
 
     @GetMapping("{id}")
     public ScoreModel getScore(@PathVariable("server") long serverId, @PathVariable("carry-type") long carryTypeId,
-                               @PathVariable long id, @RequestParam(required = false, defaultValue = "DEFAULT",
+                               @PathVariable long id, @RequestParam(required = false, defaultValue = "Default",
             value = "score-type") ScoreType scoreType) {
         DiscordServer discordServer = discordServerService.getOrCreate(serverId);
 
@@ -97,7 +97,7 @@ public class ScoreController {
     @GetMapping(value = "total-leaderboard")
     public ScoreLeaderboardModel getTotalLeaderboard(@PathVariable("server") long serverId,
                                                      @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
-            false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
+            false, defaultValue = "Default", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
                                                      @RequestParam(value = "user", required = false) Optional<Long> userId) {
         if (page < 0) {
@@ -123,7 +123,7 @@ public class ScoreController {
     @GetMapping(value = "leaderboard")
     public ScoreLeaderboardModel getLeaderboard(@PathVariable("server") long serverId,
                                            @PathVariable("carry-type") long carryTypeId, @RequestParam(required =
-            false, defaultValue = "DEFAULT", value = "score-type") ScoreType scoreType, @RequestParam(required =
+            false, defaultValue = "Default", value = "score-type") ScoreType scoreType, @RequestParam(required =
             false, defaultValue = "0") int page,
                                            @RequestParam(value = "user", required = false) Optional<Long> userId) {
         if (page < 0) {

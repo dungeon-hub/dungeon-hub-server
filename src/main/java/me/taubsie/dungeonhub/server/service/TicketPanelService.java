@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.service;
 
 import dev.kord.common.entity.Permissions;
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketPanelInitializeModel;
@@ -29,6 +30,8 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
     private final TicketPanelRepository ticketPanelRepository;
     private final DiscordChannelService discordChannelService;
     private final DiscordRoleService discordRoleService;
+    private final CarryTierService carryTierService;
+    private final CarryDifficultyService carryDifficultyService;
 
     @Override
     public @NonNull Optional<TicketPanel> loadEntityById(long id) {
@@ -183,6 +186,37 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
 
         if(updateModel.getFormQuestions() != null) {
             ticketPanel.setFormQuestions(updateModel.getFormQuestions());
+        }
+
+        if(updateModel.getResetRelatedCarryTier()) {
+            ticketPanel.setRelatedCarryTier(null);
+        }
+
+        Optional<CarryTier> carryTier = Optional.ofNullable(updateModel.getRelatedCarryTier())
+                .flatMap(carryTierService::loadEntityById)
+                .filter(ct -> ct.getCarryType().getDiscordServer().getId() == ticketPanel.getDiscordServer().getId());
+
+        if(updateModel.getRelatedCarryTier() != null) {
+            carryTier.ifPresent(ticketPanel::setRelatedCarryTier);
+        }
+
+        if(ticketPanel.getRelatedCarryDifficulty() != null) {
+            if(ticketPanel.getRelatedCarryTier() != null) {
+                if(ticketPanel.getRelatedCarryTier().getId() != ticketPanel.getRelatedCarryDifficulty().getCarryTier().getId()) {
+                    ticketPanel.setRelatedCarryDifficulty(null);
+                }
+            } else {
+                ticketPanel.setRelatedCarryDifficulty(null);
+            }
+        }
+
+        if(updateModel.getResetRelatedCarryDifficulty()) {
+            ticketPanel.setRelatedCarryDifficulty(null);
+        }
+
+        if(updateModel.getRelatedCarryDifficulty() != null && ticketPanel.getRelatedCarryTier() != null) {
+            carryDifficultyService.loadEntityById(ticketPanel.getRelatedCarryTier(), updateModel.getRelatedCarryDifficulty())
+                    .ifPresent(ticketPanel::setRelatedCarryDifficulty);
         }
 
         if(updateModel.getSupportRoles() != null) {

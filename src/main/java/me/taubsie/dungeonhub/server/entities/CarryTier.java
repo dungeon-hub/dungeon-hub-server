@@ -41,11 +41,6 @@ public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTi
     //final
     private CarryType carryType;
     @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "related_ticket_panel")
-    private TicketPanel relatedTicketPanel;
-    @Setter
     @Column(name = "category")
     private Long category;
     @Setter
@@ -61,12 +56,11 @@ public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTi
     @Column(name = "price_description", length = 200)
     private String priceDescription;
 
-    public CarryTier(String identifier, String displayName, CarryType carryType, TicketPanel relatedTicketPanel, Long category,
+    public CarryTier(String identifier, String displayName, CarryType carryType, Long category,
                      String descriptiveName, String thumbnailUrl, String priceTitle, String priceDescription) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.carryType = carryType;
-        this.relatedTicketPanel = relatedTicketPanel;
         this.category = category;
         this.descriptiveName = descriptiveName;
         this.thumbnailUrl = thumbnailUrl;
@@ -102,7 +96,6 @@ public class CarryTier implements net.dungeonhub.structure.entity.Entity<CarryTi
                 identifier,
                 displayName,
                 carryType.toModel(),
-                relatedTicketPanel == null ? null : relatedTicketPanel.toModel(),
                 category,
                 descriptiveName,
                 thumbnailUrl,

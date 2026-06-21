@@ -28,6 +28,7 @@ public class CntRequest implements net.dungeonhub.structure.entity.Entity<CntReq
     @Column(name = "message_id", nullable = false)
     private long messageId;
 
+    @Setter
     @Enumerated
     @Column(name = "request_type", nullable = false)
     private CntRequestType requestType;

@@ -39,7 +39,17 @@ public class CarryDifficultyController {
     }
 
     private CarryTier getFromArguments(long serverId, long carryTypeId, long id) {
-        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+        return getFromArguments(serverId, carryTypeId, id, false);
+    }
+
+    private CarryTier getFromArguments(long serverId, long carryTypeId, long id, boolean serverRequired) {
+        DiscordServer discordServer;
+        if(serverRequired) {
+            discordServer = discordServerService.loadEntityById(serverId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        } else {
+            discordServer = discordServerService.getOrCreate(serverId);
+        }
 
         CarryType carryType = carryTypeService.loadEntityById(discordServer, carryTypeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -49,26 +59,32 @@ public class CarryDifficultyController {
     }
 
     private CarryDifficulty getFromArguments(long serverId, long carryTypeId, long carryTierId, long id) {
-        CarryTier carryTier = getFromArguments(serverId, carryTypeId, carryTierId);
+        return getFromArguments(serverId, carryTypeId, carryTierId, id, false);
+    }
+
+    private CarryDifficulty getFromArguments(long serverId, long carryTypeId, long carryTierId, long id, boolean serverRequired) {
+        CarryTier carryTier = getFromArguments(serverId, carryTypeId, carryTierId, serverRequired);
 
         return carryDifficultyService.loadEntityById(carryTier, id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("all")
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId, @PathVariable(
             "carry-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId) {
-        CarryTier carryTier = getFromArguments(serverId, carryTypeId, carryTierId);
+        CarryTier carryTier = getFromArguments(serverId, carryTypeId, carryTierId, true);
 
         return carryDifficultyService.findByCarryTier(carryTier)
                 .stream().map(CarryDifficulty::toModel)
                 .toList();
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("{id}")
     public CarryDifficultyModel getCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry" +
             "-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId, @PathVariable long id) {
-        return getFromArguments(serverId, carryTypeId, carryTierId, id).toModel();
+        return getFromArguments(serverId, carryTypeId, carryTierId, id, true).toModel();
     }
 
     @PostMapping

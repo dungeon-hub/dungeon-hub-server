@@ -28,7 +28,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> {}) // Enable CORS with default config from CorsConfig
                 .authorizeHttpRequests(auth -> auth
+                        //CORS preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         //CDN
                         .requestMatchers(HttpMethod.GET, "/cdn/**").permitAll()
                         //API-Docs

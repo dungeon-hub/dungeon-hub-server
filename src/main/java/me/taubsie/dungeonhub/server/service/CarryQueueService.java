@@ -43,6 +43,10 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
         carryQueueRepository.deleteById(id);
     }
 
+    public List<CarryQueue> getUnnotifiesQueues() {
+        return carryQueueRepository.findCarryQueuesByNotified(false);
+    }
+
     @Override
     public @NotNull Optional<CarryQueue> loadEntityById(long id) {
         return carryQueueRepository.findById(id);
@@ -133,6 +137,10 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
 
         if (updateModel.getTime() != null) {
             carryQueue.setTime(updateModel.getTime());
+        }
+
+        if (updateModel.getNotified() != null) {
+            carryQueue.setNotified(updateModel.getNotified());
         }
 
         return carryQueue;

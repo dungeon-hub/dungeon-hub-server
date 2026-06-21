@@ -4,10 +4,7 @@ import dev.kord.common.entity.Permissions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import me.taubsie.dungeonhub.server.entities.DiscordChannel;
-import me.taubsie.dungeonhub.server.entities.DiscordRole;
-import me.taubsie.dungeonhub.server.entities.DiscordServer;
-import me.taubsie.dungeonhub.server.entities.TicketPanel;
+import me.taubsie.dungeonhub.server.entities.*;
 import net.dungeonhub.enums.TicketPermissionCandidate;
 import net.dungeonhub.enums.TicketPermissionType;
 import net.dungeonhub.enums.TranscriptTarget;
@@ -28,6 +25,8 @@ import java.util.Map;
 public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, TicketPanelModel, TicketPanelCreationModel> {
     private final DiscordServer discordServer;
     private final DiscordChannel transcriptChannel;
+    private final CarryTier relatedCarryTier;
+    private final CarryDifficulty relatedCarryDifficulty;
     private final List<DiscordRole> supportRoles;
     private final List<DiscordRole> additionalRoles;
 
@@ -64,11 +63,15 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
     public TicketPanelInitializeModel(
             DiscordServer discordServer,
             DiscordChannel transcriptChannel,
+            CarryTier relatedCarryTier,
+            CarryDifficulty relatedCarryDifficulty,
             List<DiscordRole> supportRoles,
             List<DiscordRole> additionalRoles
     ) {
         this.discordServer = discordServer;
         this.transcriptChannel = transcriptChannel;
+        this.relatedCarryTier = relatedCarryTier;
+        this.relatedCarryDifficulty = relatedCarryDifficulty;
         this.supportRoles = supportRoles;
         this.additionalRoles = additionalRoles;
     }
@@ -96,6 +99,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
         return new TicketPanelInitializeModel(
                 discordServer,
                 transcriptChannel,
+                relatedCarryTier,
+                relatedCarryDifficulty,
                 supportRoles,
                 additionalRoles,
                 ticketPanelCreationModel.getName(),

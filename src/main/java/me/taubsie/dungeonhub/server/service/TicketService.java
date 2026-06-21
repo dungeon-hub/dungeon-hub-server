@@ -6,6 +6,7 @@ import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.TicketRepository;
+import net.dungeonhub.enums.TicketState;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.ticket.TicketCreationModel;
 import net.dungeonhub.model.ticket.TicketModel;
@@ -46,6 +47,10 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
 
     public List<Ticket> loadEntitiesByServer(DiscordServer discordServer) {
         return ticketRepository.findTicketsByTicketPanel_DiscordServer(discordServer);
+    }
+
+    public List<Ticket> findAllOpenTicketsClaimedByUser(Long userId) {
+        return ticketRepository.findTicketsByClaimer_IdAndState(userId, TicketState.Open);
     }
 
     public List<Ticket> loadEntitiesByServerAndChannel(DiscordServer discordServer, Long channelId) {

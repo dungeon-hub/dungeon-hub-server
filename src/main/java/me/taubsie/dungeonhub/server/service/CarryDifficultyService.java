@@ -36,7 +36,7 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
 
     public Optional<CarryDifficulty> loadEntityById(CarryTier carryTier, long id) {
         return carryDifficultyRepository.findById(id)
-                .filter(carryDifficulty -> carryDifficulty.getCarryTier().equals(carryTier));
+                .filter(carryDifficulty -> carryDifficulty.getCarryTier().getId() == carryTier.getId());
     }
 
     public List<CarryDifficulty> findByCarryTier(CarryTier carryTier) {
@@ -130,6 +130,14 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
 
         if(carryDifficultyUpdateModel.getScore() != null) {
             carryDifficulty.setScore(carryDifficultyUpdateModel.getScore());
+        }
+
+        if(carryDifficultyUpdateModel.getResetIngameCarryType()) {
+            carryDifficulty.setIngameCarryType(null);
+        }
+
+        if(carryDifficultyUpdateModel.getIngameCarryType() != null) {
+            carryDifficulty.setIngameCarryType(carryDifficultyUpdateModel.getIngameCarryType());
         }
 
         return carryDifficulty;
