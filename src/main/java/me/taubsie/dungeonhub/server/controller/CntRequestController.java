@@ -78,6 +78,8 @@ public class CntRequestController {
         String[] sortSplit = sort.split(",", 2);
 
         String field = sortSplit[0];
+        if(field.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
         Sort.Direction direction;
         if(sortSplit.length > 1) {
             try {
