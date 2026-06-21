@@ -17,5 +17,5 @@ public interface CntRequestRepository extends JpaRepository<CntRequest, Long> {
 
     List<CntRequest> findByUser(DiscordUser user);
 
-    Page<CntRequest> findAllByDiscordServerOrderByTimeDesc(DiscordServer discordServer, Pageable pageable);
+    Page<CntRequest> findAllByDiscordServer(DiscordServer discordServer, Pageable pageable);
 }

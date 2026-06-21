@@ -84,7 +84,7 @@ public class CntRequestService implements EntityService<CntRequest, CntRequestMo
 
     public Page<CntRequest> getCntRequests(DiscordServer discordServer, int page, int size, String field, Sort.Direction direction) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, field));
-        return cntRequestRepository.findAllByDiscordServerOrderByTimeDesc(discordServer, pageable);
+        return cntRequestRepository.findAllByDiscordServer(discordServer, pageable);
     }
 
     @Override
