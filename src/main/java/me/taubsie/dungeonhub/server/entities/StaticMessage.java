@@ -55,6 +55,11 @@ public class StaticMessage implements net.dungeonhub.structure.entity.Entity<Sta
     @Column(name = "embed_override")
     private String embedOverride;
 
+    @Getter
+    @Setter
+    @Column(name = "active")
+    private boolean active;
+
     public void setObjectIds(@NotNull List<Long> objectIds) {
         this.staticMessageObjects.clear();
         this.staticMessageObjects.addAll(objectIds.stream().map(objectId -> new StaticMessageObject(this, objectId)).toList());
@@ -66,13 +71,14 @@ public class StaticMessage implements net.dungeonhub.structure.entity.Entity<Sta
         this.messageId = messageId;
         this.staticMessageType = staticMessageType;
         this.embedOverride = embedOverride;
+        this.active = true;
 
         this.setObjectIds(objectIds);
     }
 
     @Override
     public @NonNull StaticMessageModel toModel() {
-        return new StaticMessageModel(id, server.toModel(), channelId, messageId, staticMessageType, staticMessageObjects.stream().map(StaticMessageObject::getObjectId).toList(), embedOverride);
+        return new StaticMessageModel(id, server.toModel(), channelId, messageId, staticMessageType, staticMessageObjects.stream().map(StaticMessageObject::getObjectId).toList(), embedOverride, active);
     }
 }
 
