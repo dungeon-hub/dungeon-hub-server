@@ -245,8 +245,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${project.parent.version}</version>
                 <configuration>
-                    <jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
-                    <jvmArguments>-Dspring.datasource.url=jdbc:h2:mem:devdb</jvmArguments>
+                    <jvmArguments>-Dspring.application.admin.enabled=true -Dspring.datasource.url=jdbc:h2:mem:devdb</jvmArguments>
                 </configuration>
                 <executions>
                     <execution>
