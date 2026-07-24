@@ -1,0 +1,48 @@
+name: Generate OpenAPI Spec
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Generate OpenAPI Spec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: "jetbrains"
+          cache: maven
+
+      - name: Generate Spec
+        run: mvn -B verify
+
+      - name: Check out api-spec branch
+        run: |
+          git fetch origin api-spec || true
+          git checkout -B api-spec origin/api-spec || git checkout --orphan api-spec
+          git rm -rf .
+
+      - name: Update API spec
+        run: |
+          cp target/openapi.json openapi.json
+          git add openapi.json
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --cached --quiet; then
+            echo "No changes to OpenAPI spec."
+            exit 0
+          fi
+          
+          git commit -m "Update OpenAPI spec"
+          git push origin api-spec --force
