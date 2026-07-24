@@ -1,0 +1,30 @@
+name: Maven Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Maven project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: "jetbrains"
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B clean package
