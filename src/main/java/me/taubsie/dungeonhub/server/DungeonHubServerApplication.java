@@ -11,10 +11,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
-// TODO add auth configuration for openapi
 @SpringBootApplication
 @EntityScan("me.taubsie.dungeonhub.*")
-@OpenAPIDefinition(info = @Info(title = "Dungeon Hub API", version = "v1", contact = @Contact(name = "Dungeon Hub",
+@OpenAPIDefinition(info = @Info(title = "Dungeon Hub API", description = "# Authentication\n\n<!-- ReDoc-Inject: <security-definitions> -->", version = "v1", contact = @Contact(name = "Dungeon Hub",
         url = "https://discord.dungeon-hub.net", email = "contact@dungeon-hub.net"), termsOfService = "https://dungeon-hub" +
         ".net/terms-of-service", extensions = {@Extension(name = "x-logo", properties = {@ExtensionProperty(name =
         "url", value = "/cdn/static/favicon.gif"), @ExtensionProperty(name = "altText", value = "Dungeon Hub Logo"),

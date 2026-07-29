@@ -1,5 +1,6 @@
 package me.taubsie.dungeonhub.server.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.*;
@@ -111,7 +112,8 @@ public class DiscordServerController {
                 .toModel();
     }
 
-    @PreAuthorize("true")
+    @SecurityRequirements()
+    @PreAuthorize("permitAll()")
     @GetMapping("all")
     public List<DiscordServerModel> getAllServers(Authentication authentication) {
         List<String> permissions = Optional.ofNullable(authentication)
