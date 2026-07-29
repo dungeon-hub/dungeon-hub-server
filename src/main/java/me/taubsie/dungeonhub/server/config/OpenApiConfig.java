@@ -26,7 +26,7 @@ public class OpenApiConfig {
             openApi.getComponents().getSchemas().put("Permissions", permissionsSchema);
 
             openApi.getComponents().addSecuritySchemes(
-                    "DHAuth",
+                    "AccessToken",
                     new SecurityScheme()
                             .type(SecurityScheme.Type.OPENIDCONNECT)
                             .openIdConnectUrl("https://auth.dungeon-hub.net/realms/dungeon-hub/.well-known/openid-configuration")
@@ -34,7 +34,7 @@ public class OpenApiConfig {
 
             openApi.addSecurityItem(
                     new SecurityRequirement()
-                            .addList("DHAuth")
+                            .addList("AccessToken")
             );
         };
     }

@@ -1,5 +1,6 @@
 package me.taubsie.dungeonhub.server.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Ticket;
@@ -46,6 +47,7 @@ public class DiscordUserController {
         return discordUserService.findAllEntities().stream().map(DiscordUser::toModel).toList();
     }
 
+    @SecurityRequirements()
     @PreAuthorize("permitAll()")
     @GetMapping("count-linked")
     public long countLinkedUsers() {
