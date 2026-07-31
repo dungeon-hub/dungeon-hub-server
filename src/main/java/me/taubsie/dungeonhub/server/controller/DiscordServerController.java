@@ -18,8 +18,6 @@ import net.dungeonhub.model.ticket.TicketModel;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -115,17 +113,8 @@ public class DiscordServerController {
     @SecurityRequirements()
     @PreAuthorize("permitAll()")
     @GetMapping("all")
-    public List<DiscordServerModel> getAllServers(Authentication authentication) {
-        List<String> permissions = Optional.ofNullable(authentication)
-                .map(Authentication::getAuthorities)
-                .orElse(List.of()).stream()
-                .map(GrantedAuthority::getAuthority).toList();
-
-        Set<DiscordServerModel> servers = discordServerService.findAll();
-
-        return servers.stream()
-                .filter(server -> permissions.contains("ROLE_admin") || permissions.contains("ROLE_bot") || permissions.contains("server_" + server.getId()))
-                .toList();
+    public Set<DiscordServerModel> getAllServers() {
+        return discordServerService.findAll();
     }
 
     @GetMapping(value = "{server}/total-leaderboard")
@@ -182,9 +171,10 @@ public class DiscordServerController {
         );
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("{server}/total-money-spent")
     public long getTotalAmountOfMoneySpentOnServices(@PathVariable("server") long serverId, @RequestParam(required = false, value = "user") Long userId, @RequestParam(required = false, value = "carrier") Long carrierId, @RequestParam(required = false, value = "carry-type") Long carryTypeId, @RequestParam(required = false, value = "carry-tier") Long carryTierId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
-        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.loadEntityById(serverId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         List<Carry> carries = carryService.getCarries(discordServer);
 
@@ -198,9 +188,10 @@ public class DiscordServerController {
                 .sum();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("{server}/count-carries")
     public long countCarries(@PathVariable("server") long serverId, @RequestParam(required = false, value = "since") Optional<Instant> since) {
-        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+        DiscordServer discordServer = discordServerService.loadEntityById(serverId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return since
                 .map(instant -> carryService.getCarriesSince(discordServer, instant))
