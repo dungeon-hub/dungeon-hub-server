@@ -5,10 +5,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
-import me.taubsie.dungeonhub.server.service.CarryService;
-import me.taubsie.dungeonhub.server.service.DiscordServerService;
-import me.taubsie.dungeonhub.server.service.DiscordUserService;
-import me.taubsie.dungeonhub.server.service.TicketService;
+import me.taubsie.dungeonhub.server.service.*;
 import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
 import net.dungeonhub.model.discord_user.DiscordUserModel;
 import net.dungeonhub.model.discord_user.DiscordUserUpdateModel;
@@ -17,12 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -33,13 +28,21 @@ public class DiscordUserController {
     private final CarryService carryService;
     private final DiscordServerService discordServerService;
     private final TicketService ticketService;
+    private final AuthenticationService authenticationService;
 
     @Autowired
-    public DiscordUserController(DiscordUserService discordUserService, CarryService carryService, DiscordServerService discordServerService, TicketService ticketService) {
+    public DiscordUserController(
+            DiscordUserService discordUserService,
+            CarryService carryService,
+            DiscordServerService discordServerService,
+            TicketService ticketService,
+            AuthenticationService authenticationService
+    ) {
         this.discordUserService = discordUserService;
         this.carryService = carryService;
         this.discordServerService = discordServerService;
         this.ticketService = ticketService;
+        this.authenticationService = authenticationService;
     }
 
     @GetMapping("all")
@@ -103,12 +106,9 @@ public class DiscordUserController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("me/claimed-tickets")
     public List<TicketModel> getClaimedTickets(Authentication authentication) {
-        if(!(authentication.getPrincipal() instanceof Jwt jwt)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        Long userId = authenticationService.getLoggedInDiscordId(authentication);
 
-        Map<String, Object> claims = jwt.getClaims();
-        if(!(claims.get("discord-id") instanceof Long userId)) {
+        if(userId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
