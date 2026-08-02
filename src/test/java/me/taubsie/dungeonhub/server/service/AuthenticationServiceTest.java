@@ -29,6 +29,18 @@ class AuthenticationServiceTest {
         assertNull(result);
     }
 
+    @Test
+    void rejectsNonLongDiscordId() {
+        Jwt jwt = Jwt.withTokenValue("token")
+                .header("alg", "none")
+                .claim("discord-id", "123456789")
+                .build();
+
+        Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt));
+
+        assertNull(result);
+    }
+
     private JwtAuthenticationToken authenticationWithDiscordId(long discordId) {
         Jwt jwt = Jwt.withTokenValue("token")
                 .header("alg", "none")
