@@ -18,7 +18,7 @@ public class AuthenticationService {
         }
 
         Map<String, Object> claims = jwt.getClaims();
-        if(!(claims.get(DISCORD_ID_CLAIM) instanceof Long userId)) {
+        if(!(claims.get(DISCORD_ID_CLAIM) instanceof Long userId) || userId <= 0) {
             return null;
         }
 
