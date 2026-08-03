@@ -2,7 +2,14 @@ name: Generate OpenAPI Spec
 
 on:
   push:
-    branches: [ "main" ]
+    branches-ignore:
+      - "main"
+    paths-ignore:
+      - "openapi/**"
+
+concurrency:
+  group: openapi-spec-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -15,6 +22,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -26,21 +35,16 @@ jobs:
       - name: Generate Spec
         run: mvn -B verify
 
-      - name: Check out api-spec branch
-        run: |
-          git fetch origin api-spec || true
-          git checkout -B api-spec origin/api-spec || git checkout --orphan api-spec
-          git rm -rf .
-
       - name: Update API spec
         run: |
-          cp target/openapi.json openapi.json
-          git add openapi.json
+          mkdir -p openapi
+          cp target/openapi.json openapi/openapi.json
+          git add openapi/openapi.json
 
       - name: Commit and push if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+          git config user.email "actions-user@users.noreply.github.com"
           
           if git diff --cached --quiet; then
             echo "No changes to OpenAPI spec."
@@ -48,4 +52,4 @@ jobs:
           fi
           
           git commit -m "Update OpenAPI spec"
-          git push origin api-spec --force
+          git push origin "HEAD:${GITHUB_REF_NAME}"
