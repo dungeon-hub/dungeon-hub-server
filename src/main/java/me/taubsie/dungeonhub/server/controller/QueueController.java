@@ -17,12 +17,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -37,6 +39,7 @@ public class QueueController {
     private final ScoreService scoreService;
     private final DiscordUserService discordUserService;
     private final TicketService ticketService;
+    private final AuthenticationService authenticationService;
 
     @PostMapping(value = {"carry-difficulty/{carry-difficulty}"})
     @ResponseStatus(HttpStatus.CREATED)
@@ -62,12 +65,9 @@ public class QueueController {
     @PostMapping("ingame-log")
     @ResponseStatus(HttpStatus.CREATED)
     public List<CarryQueueModel> ingameLog(@RequestBody IngameQueueCreationModel ingameQueueCreationModel, Authentication authentication) {
-        if(!(authentication.getPrincipal() instanceof Jwt jwt)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        Long userId = authenticationService.getLoggedInDiscordId(authentication);
 
-        Map<String, Object> claims = jwt.getClaims();
-        if(!(claims.get("discord-id") instanceof Long userId)) {
+        if(userId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
