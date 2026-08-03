@@ -1,6 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
@@ -70,8 +69,7 @@ public class CarryDifficultyController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @SecurityRequirements()
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("authenticated()")
     @GetMapping("all")
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId, @PathVariable(
             "carry-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId) {
@@ -82,8 +80,7 @@ public class CarryDifficultyController {
                 .toList();
     }
 
-    @SecurityRequirements()
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("authenticated()")
     @GetMapping("{id}")
     public CarryDifficultyModel getCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry" +
             "-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId, @PathVariable long id) {

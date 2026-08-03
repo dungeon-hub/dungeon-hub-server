@@ -152,4 +152,8 @@ public class ScoreService {
             return score;
         }).toList();
     }
+
+    public long getTotalScore(DiscordServer discordServer) {
+        return scoreRepository.countTotalScoreByDiscordServer(discordServer);
+    }
 }

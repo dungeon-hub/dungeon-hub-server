@@ -8,6 +8,7 @@ import me.taubsie.dungeonhub.server.model.TicketInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.TicketRepository;
 import net.dungeonhub.enums.TicketState;
 import net.dungeonhub.exceptions.EntityUnknownException;
+import net.dungeonhub.model.stats.GlobalTicketStatsModel;
 import net.dungeonhub.model.ticket.TicketCreationModel;
 import net.dungeonhub.model.ticket.TicketModel;
 import net.dungeonhub.model.ticket.TicketUpdateModel;
@@ -15,6 +16,8 @@ import net.dungeonhub.structure.entity.EntityService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -59,6 +62,20 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
         }
 
         return ticketRepository.findTicketsByTicketPanel_DiscordServerAndDiscordChannel_Id(discordServer, channelId);
+    }
+
+    public GlobalTicketStatsModel getGlobalTicketStats() {
+        return new GlobalTicketStatsModel(
+                ticketRepository.count(),
+                ticketRepository.countTicketsByCreatedGreaterThanEqual(Instant.now().minus(60, ChronoUnit.DAYS)),
+                ticketRepository.countTicketsByCreatedGreaterThanEqual(Instant.now().minus(30, ChronoUnit.DAYS)),
+                ticketRepository.countTicketsByCreatedGreaterThanEqual(Instant.now().minus(14, ChronoUnit.DAYS)),
+                ticketRepository.countTicketsByCreatedGreaterThanEqual(Instant.now().minus(7, ChronoUnit.DAYS))
+        );
+    }
+
+    public long countAllTickets(DiscordServer discordServer) {
+        return ticketRepository.countTicketsByTicketPanel_DiscordServer(discordServer);
     }
 
     @Override

@@ -40,7 +40,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api-src").permitAll()
                         .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                         //Public API
-                        .requestMatchers(HttpMethod.GET, "/api/v1/discord-users/count-linked").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/stats/global").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/stats/server/*/stats").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerConfigurer -> oAuth2ResourceServerConfigurer.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthConverter)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -45,4 +46,7 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
      */
     @NotNull
     Page<Score> findAllByCarryTypeAndId_ScoreTypeAndScoreAmountGreaterThanOrderByScoreAmountDesc(CarryType carryType, ScoreType scoreType, Long greaterThan, @NotNull Pageable pageable);
+
+    @Query("select sum(s.scoreAmount) from Score s where s.id.scoreType = ScoreType.Alltime and s.carryType.discordServer = :discordServer")
+    long countTotalScoreByDiscordServer(DiscordServer discordServer);
 }

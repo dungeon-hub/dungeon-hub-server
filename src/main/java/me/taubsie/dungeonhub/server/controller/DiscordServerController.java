@@ -1,6 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.service.*;
@@ -110,8 +109,7 @@ public class DiscordServerController {
                 .toModel();
     }
 
-    @SecurityRequirements()
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("authenticated()")
     @GetMapping("all")
     public Set<DiscordServerModel> getAllServers() {
         return discordServerService.findAll();
