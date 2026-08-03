@@ -3,6 +3,7 @@ package me.taubsie.dungeonhub.server.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
@@ -37,6 +38,27 @@ class AuthenticationServiceTest {
                 .build();
 
         Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt));
+
+        assertNull(result);
+    }
+
+    @Test
+    void rejectsMissingDiscordId() {
+        Jwt jwt = Jwt.withTokenValue("token")
+                .header("alg", "none")
+                .claim("some-other", "thisisnotadiscordid")
+                .build();
+
+        Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt));
+
+        assertNull(result);
+    }
+
+    @Test
+    void rejectsNonJwtPrincipal() {
+        TestingAuthenticationToken authentication = new TestingAuthenticationToken("principal", "credentials");
+
+        Long result = authenticationService.getLoggedInDiscordId(authentication);
 
         assertNull(result);
     }
