@@ -17,7 +17,7 @@ class AuthenticationServiceTest {
     void returnsPositiveDiscordId() {
         long discordId = 123456789L;
 
-        Long result = authenticationService.getLoggedInDiscordId(authenticationWithDiscordId(discordId));
+        Long result = authenticationService.getLoggedInDiscordId(authenticationWithDiscordId(discordId)).orElse(null);
 
         assertEquals(discordId, result);
     }
@@ -25,7 +25,7 @@ class AuthenticationServiceTest {
     @ParameterizedTest
     @ValueSource(longs = {0, -1, Long.MIN_VALUE})
     void rejectsNonPositiveDiscordId(long discordId) {
-        Long result = authenticationService.getLoggedInDiscordId(authenticationWithDiscordId(discordId));
+        Long result = authenticationService.getLoggedInDiscordId(authenticationWithDiscordId(discordId)).orElse(null);
 
         assertNull(result);
     }
@@ -37,7 +37,7 @@ class AuthenticationServiceTest {
                 .claim("discord-id", "123456789")
                 .build();
 
-        Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt));
+        Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt)).orElse(null);
 
         assertNull(result);
     }
@@ -49,7 +49,7 @@ class AuthenticationServiceTest {
                 .claim("some-other", "thisisnotadiscordid")
                 .build();
 
-        Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt));
+        Long result = authenticationService.getLoggedInDiscordId(new JwtAuthenticationToken(jwt)).orElse(null);
 
         assertNull(result);
     }
@@ -58,7 +58,7 @@ class AuthenticationServiceTest {
     void rejectsNonJwtPrincipal() {
         TestingAuthenticationToken authentication = new TestingAuthenticationToken("principal", "credentials");
 
-        Long result = authenticationService.getLoggedInDiscordId(authentication);
+        Long result = authenticationService.getLoggedInDiscordId(authentication).orElse(null);
 
         assertNull(result);
     }

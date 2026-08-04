@@ -1,6 +1,5 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Ticket;
@@ -48,13 +47,6 @@ public class DiscordUserController {
     @GetMapping("all")
     public List<DiscordUserModel> getAllUsers() {
         return discordUserService.findAllEntities().stream().map(DiscordUser::toModel).toList();
-    }
-
-    @SecurityRequirements()
-    @PreAuthorize("permitAll()")
-    @GetMapping("count-linked")
-    public long countLinkedUsers() {
-        return discordUserService.countLinkedUsers();
     }
 
     @PreAuthorize("hasAuthority('linking.read') || hasAnyRole('bot', 'admin')")
@@ -106,11 +98,7 @@ public class DiscordUserController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("me/claimed-tickets")
     public List<TicketModel> getClaimedTickets(Authentication authentication) {
-        Long userId = authenticationService.getLoggedInDiscordId(authentication);
-
-        if(userId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        Long userId = authenticationService.getLoggedInDiscordId(authentication).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         return ticketService.findAllOpenTicketsClaimedByUser(userId)
                 .stream().map(Ticket::toModel).toList();

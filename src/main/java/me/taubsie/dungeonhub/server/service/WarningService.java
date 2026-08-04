@@ -109,6 +109,14 @@ public class WarningService implements EntityService<Warning, WarningModel, Warn
                 .toList();
     }
 
+    public long countActiveWarns(DiscordServer discordServer) {
+        return warningRepository.countAllByActiveIsTrueAndServer(discordServer);
+    }
+
+    public long countAllWarns(DiscordServer discordServer) {
+        return warningRepository.countAllByServer(discordServer);
+    }
+
     @Scheduled(cron = "0 0 2 * * *")
     public void removeExpiredWarnings() {
         List<Warning> warnings = Arrays.stream(WarningType.values())

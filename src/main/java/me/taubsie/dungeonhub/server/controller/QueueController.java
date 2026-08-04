@@ -65,11 +65,7 @@ public class QueueController {
     @PostMapping("ingame-log")
     @ResponseStatus(HttpStatus.CREATED)
     public List<CarryQueueModel> ingameLog(@RequestBody IngameQueueCreationModel ingameQueueCreationModel, Authentication authentication) {
-        Long userId = authenticationService.getLoggedInDiscordId(authentication);
-
-        if(userId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        Long userId = authenticationService.getLoggedInDiscordId(authentication).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         DiscordUser carrier = discordUserService.loadEntityOrCreate(userId);
 
