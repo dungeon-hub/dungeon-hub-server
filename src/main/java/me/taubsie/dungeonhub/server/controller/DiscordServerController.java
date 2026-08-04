@@ -109,7 +109,7 @@ public class DiscordServerController {
                 .toModel();
     }
 
-    @PreAuthorize("authenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("all")
     public Set<DiscordServerModel> getAllServers() {
         return discordServerService.findAll();

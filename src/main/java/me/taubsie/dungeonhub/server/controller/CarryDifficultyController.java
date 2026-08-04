@@ -69,7 +69,7 @@ public class CarryDifficultyController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @PreAuthorize("authenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("all")
     public List<CarryDifficultyModel> getAllCarryDifficulties(@PathVariable("server") long serverId, @PathVariable(
             "carry-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId) {
@@ -80,7 +80,7 @@ public class CarryDifficultyController {
                 .toList();
     }
 
-    @PreAuthorize("authenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("{id}")
     public CarryDifficultyModel getCarryDifficulty(@PathVariable("server") long serverId, @PathVariable("carry" +
             "-type") long carryTypeId, @PathVariable("carry-tier") long carryTierId, @PathVariable long id) {
