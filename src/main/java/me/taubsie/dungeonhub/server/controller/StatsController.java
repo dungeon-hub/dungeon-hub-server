@@ -30,6 +30,7 @@ public class StatsController {
     private final DiscordServerService discordServerService;
     private final ScoreService scoreService;
     private final AuthenticationService authenticationService;
+    private final WarningService warningService;
 
     @SecurityRequirements()
     @PreAuthorize("permitAll()")
@@ -39,7 +40,8 @@ public class StatsController {
                 discordUserService.countLinkedUsers(),
                 carryService.getGlobalCarryStats(),
                 ticketService.getGlobalTicketStats(),
-                carryService.getGlobalCarrierStats()
+                carryService.getGlobalCarrierStats(),
+                0 // TODO implement this
         );
     }
 
@@ -58,6 +60,8 @@ public class StatsController {
                 ticketService.countAllTickets(discordServer),
                 carryService.getCarriersByDiscordServer(discordServer),
                 scoreService.getTotalScore(discordServer),
+                warningService.countActiveWarns(discordServer),
+                warningService.countAllWarns(discordServer),
                 discordUserId.map(user ->
                         carries.stream().filter(carry -> carry.getPlayer().getId() == user).mapToLong(Carry::calculateTotalPrice).sum()
                 ).orElse(null),
