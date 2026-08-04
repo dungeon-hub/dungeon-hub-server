@@ -16,10 +16,10 @@ public interface CarryRepository extends JpaRepository<Carry, Long> {
 
     List<Carry> getCarriesByCarryDifficulty_CarryTier_CarryType_DiscordServerAndTimeGreaterThanEqual(DiscordServer server, Instant instant);
 
-    @Query("select sum(c.amount) from carry c")
+    @Query("select coalesce(sum(c.amount), 0) from carry c")
     long sumLifetimeCarries();
 
-    @Query("select sum(c.amount) from carry c where c.time >= :time")
+    @Query("select coalesce(sum(c.amount), 0) from carry c where c.time >= :time")
     long sumCarriesByTime(Instant time);
 
     @Query("select count(distinct c.carrier) from carry c")

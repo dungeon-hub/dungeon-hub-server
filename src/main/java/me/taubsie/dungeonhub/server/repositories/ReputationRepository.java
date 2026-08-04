@@ -17,11 +17,11 @@ import java.util.List;
 @Repository
 public interface ReputationRepository extends JpaRepository<Reputation, Long> {
     @Nullable
-    @Query("SELECT SUM(rep.amount) FROM reputation rep where rep.discordServer = :discordServer and rep.user = :discordUser and rep.active = true")
+    @Query("SELECT coalesce(SUM(rep.amount), 0) FROM reputation rep where rep.discordServer = :discordServer and rep.user = :discordUser and rep.active = true")
     Long sumReputation(DiscordServer discordServer, DiscordUser discordUser);
 
     @Query(
-            value = "select new me.taubsie.dungeonhub.server.entities.ReputationSum(r.user, SUM(r.amount)) from reputation r where r.discordServer = :server and r.active = true group by r.user order by sum(r.amount) desc",
+            value = "select new me.taubsie.dungeonhub.server.entities.ReputationSum(r.user, coalesce(SUM(r.amount), 0)) from reputation r where r.discordServer = :server and r.active = true group by r.user order by sum(r.amount) desc",
             countQuery = "select count(distinct r.user) from reputation r where r.discordServer = :server and r.active = true"
     )
     Page<ReputationSum> findAllReputations(@Param("server") DiscordServer discordServer, Pageable pageable);

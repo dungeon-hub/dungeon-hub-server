@@ -47,6 +47,6 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
     @NotNull
     Page<Score> findAllByCarryTypeAndId_ScoreTypeAndScoreAmountGreaterThanOrderByScoreAmountDesc(CarryType carryType, ScoreType scoreType, Long greaterThan, @NotNull Pageable pageable);
 
-    @Query("select sum(s.scoreAmount) from Score s where s.id.scoreType = ScoreType.Alltime and s.carryType.discordServer = :discordServer")
+    @Query("select coalesce(sum(s.scoreAmount), 0) from Score s where s.id.scoreType = ScoreType.Alltime and s.carryType.discordServer = :discordServer")
     long countTotalScoreByDiscordServer(DiscordServer discordServer);
 }
