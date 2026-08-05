@@ -28,6 +28,9 @@ public interface CarryRepository extends JpaRepository<Carry, Long> {
     @Query("select count(distinct c.carrier) from carry c where c.time >= :time")
     long countCarriersByTime(Instant time);
 
+    @Query("select count(distinct c.carrier) from carry c where c.time >= :after and c.time < :before")
+    long countCarriersByTimespan(Instant after, Instant before);
+
     @Query("select count(distinct c.carrier) from carry c where c.carryDifficulty.carryTier.carryType.discordServer = :discordServer")
     long countCarriersByDiscordServer(DiscordServer discordServer);
 }
