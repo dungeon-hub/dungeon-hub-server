@@ -49,9 +49,9 @@ public class CarryService {
     public GlobalCarrierStatsModel getGlobalCarrierStats() {
         return new GlobalCarrierStatsModel(
                 carryRepository.countLifetimeCarriers(),
-                carryRepository.countCarriersByTime(Instant.now().minus(60, ChronoUnit.DAYS)),
+                carryRepository.countCarriersByTimespan(Instant.now().minus(60, ChronoUnit.DAYS), Instant.now().minus(30, ChronoUnit.DAYS)),
                 carryRepository.countCarriersByTime(Instant.now().minus(30, ChronoUnit.DAYS)),
-                carryRepository.countCarriersByTime(Instant.now().minus(14, ChronoUnit.DAYS)),
+                carryRepository.countCarriersByTimespan(Instant.now().minus(14, ChronoUnit.DAYS), Instant.now().minus(7, ChronoUnit.DAYS)),
                 carryRepository.countCarriersByTime(Instant.now().minus(7, ChronoUnit.DAYS))
         );
     }
