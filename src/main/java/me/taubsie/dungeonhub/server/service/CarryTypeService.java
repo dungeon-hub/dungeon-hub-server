@@ -1,21 +1,20 @@
 package me.taubsie.dungeonhub.server.service;
 
-import com.google.errorprone.annotations.DoNotCall;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
 import me.taubsie.dungeonhub.server.entities.CarryType;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeCreationModel;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTypeInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTypeRepository;
+import net.dungeonhub.exceptions.EntityUnknownException;
+import net.dungeonhub.model.carry_type.CarryTypeCreationModel;
+import net.dungeonhub.model.carry_type.CarryTypeModel;
+import net.dungeonhub.model.carry_type.CarryTypeUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -30,7 +29,7 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
     }
 
     @Override
-    public Optional<CarryType> loadEntityById(long id) {
+    public @NotNull Optional<CarryType> loadEntityById(long id) {
         return carryTypeRepository.findById(id);
     }
 
@@ -43,23 +42,13 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
         return carryTypeRepository.findCarryTypesByDiscordServer(discordServer);
     }
 
-    public Map<Long, CarryType> getCarryTypeMap() {
-        return carryTypeRepository.getCarryTypeMap();
-    }
-
     @Override
-    @DoNotCall
-    public Optional<CarryType> loadEntityByName(String name) {
-        return carryTypeRepository.findByIdentifier(name);
-    }
-
-    @Override
-    public List<CarryType> findAllEntities() {
+    public @NotNull List<CarryType> findAllEntities() {
         return carryTypeRepository.findAll();
     }
 
     @Override
-    public CarryType createEntity(CarryTypeInitializeModel initalizationModel) {
+    public @NotNull CarryType createEntity(CarryTypeInitializeModel initalizationModel) {
         return saveEntity(initalizationModel.toEntity());
     }
 
@@ -82,12 +71,37 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
     }
 
     @Override
-    public Function<CarryType, CarryTypeModel> toModel() {
+    public @NotNull Function<CarryType, CarryTypeModel> toModel() {
         return CarryType::toModel;
     }
 
     @Override
-    public CarryType saveEntity(CarryType carryType) {
+    public @NotNull CarryType saveEntity(@NotNull CarryType carryType) {
         return carryTypeRepository.save(carryType);
+    }
+
+    @Override
+    public @NotNull CarryType updateEntity(@NotNull CarryType carryType, @NotNull CarryTypeUpdateModel carryTypeUpdateModel) {
+        if (carryTypeUpdateModel.getDisplayName() != null) {
+            carryType.setDisplayName(carryTypeUpdateModel.getDisplayName());
+        }
+
+        if(carryTypeUpdateModel.getResetLogChannel()) {
+            carryType.setLogChannel(null);
+        }
+
+        if (carryTypeUpdateModel.getLogChannel() != null) {
+            carryType.setLogChannel(carryTypeUpdateModel.getLogChannel());
+        }
+
+        if(carryTypeUpdateModel.getResetEventActive()) {
+            carryType.setEventActive(null);
+        }
+
+        if (carryTypeUpdateModel.getEventActive() != null) {
+            carryType.setEventActive(carryTypeUpdateModel.getEventActive());
+        }
+
+        return carryType;
     }
 }

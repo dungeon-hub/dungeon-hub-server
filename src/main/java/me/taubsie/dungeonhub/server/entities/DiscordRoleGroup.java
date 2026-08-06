@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.discord_role_group.DiscordRoleGroupModel;
+import net.dungeonhub.model.discord_role_group.DiscordRoleGroupModel;
 import org.jetbrains.annotations.NotNull;
 
 @Entity(name = "discord_role_group")
@@ -13,14 +12,14 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class DiscordRoleGroup implements EntityModelRelation<DiscordRoleGroupModel> {
+public class DiscordRoleGroup implements net.dungeonhub.structure.entity.Entity<DiscordRoleGroupModel> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "discord_role")
+    @JoinColumn(name = "discord_role", nullable = false)
     private DiscordRole discordRole;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -30,11 +29,6 @@ public class DiscordRoleGroup implements EntityModelRelation<DiscordRoleGroupMod
     public DiscordRoleGroup(DiscordRole discordRole, DiscordRole roleGroup) {
         this.discordRole = discordRole;
         this.roleGroup = roleGroup;
-    }
-
-    @Override
-    public @NotNull DiscordRoleGroup fromModel(@NotNull DiscordRoleGroupModel model) {
-        return new DiscordRoleGroup(model.getId(), discordRole.fromModel(model.getDiscordRole()), roleGroup.fromModel(model.getRoleGroup()));
     }
 
     @Override

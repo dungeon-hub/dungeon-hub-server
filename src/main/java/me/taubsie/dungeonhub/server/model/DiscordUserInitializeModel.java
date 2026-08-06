@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
-import me.taubsie.dungeonhub.common.model.discord_user.DiscordUserCreationModel;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
+import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
+import net.dungeonhub.model.discord_user.DiscordUserModel;
+import net.dungeonhub.structure.model.InitializeModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -14,17 +16,18 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DiscordUserInitializeModel implements InitializeModel<DiscordUser, DiscordUserCreationModel> {
+public class DiscordUserInitializeModel implements InitializeModel<DiscordUser, DiscordUserModel, DiscordUserCreationModel> {
     private long id;
     private UUID minecraftId;
+    private UUID primarySkyblockProfile;
 
     @Override
-    public DiscordUser toEntity() {
-        return new DiscordUser(id, minecraftId);
+    public @NotNull DiscordUser toEntity() {
+        return new DiscordUser(id, minecraftId, primarySkyblockProfile);
     }
 
     @Override
-    public DiscordUserInitializeModel fromCreationModel(DiscordUserCreationModel creationModel) {
-        return new DiscordUserInitializeModel(creationModel.getId(), creationModel.getMinecraftId());
+    public @NotNull DiscordUserInitializeModel fromCreationModel(DiscordUserCreationModel creationModel) {
+        return new DiscordUserInitializeModel(creationModel.getId(), creationModel.getMinecraftId(), creationModel.getPrimarySkyblockProfile());
     }
 }

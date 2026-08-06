@@ -1,17 +1,16 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeCreationModel;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeModel;
-import me.taubsie.dungeonhub.common.model.carry_type.CarryTypeUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTypeInitializeModel;
 import me.taubsie.dungeonhub.server.service.CarryTypeService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
+import net.dungeonhub.model.carry_type.CarryTypeCreationModel;
+import net.dungeonhub.model.carry_type.CarryTypeModel;
+import net.dungeonhub.model.carry_type.CarryTypeUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,8 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@EnableMethodSecurity
-@RequestMapping("/api/v1/server/{server}/carry-type/")
+@RequestMapping("/api/v1/server/{server}/carry-type")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class CarryTypeController {
     private final DiscordServerService discordServerService;

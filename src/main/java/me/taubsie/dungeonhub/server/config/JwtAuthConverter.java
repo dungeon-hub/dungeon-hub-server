@@ -20,20 +20,24 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     }
 
     private List<? extends GrantedAuthority> extractAuthorities(Jwt jwt) {
-        if (!jwt.hasClaim("groups")) {
+        if (!jwt.hasClaim("groups") && !jwt.hasClaim("permissions")) {
             return List.of();
         }
 
-        return Stream.concat(
-                        jwt.getClaimAsStringList("groups") != null
-                                ? jwt.getClaimAsStringList("groups").stream().map(groupName -> "ROLE_" + groupName)
-                                : Stream.empty(),
-                        jwt.getClaimAsStringList("permissions") != null
-                                ? jwt.getClaimAsStringList("permissions").stream()
-                                : Stream.empty()
-                )
+        return extractClaims(jwt)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
+    }
+
+    private Stream<String> extractClaims(Jwt jwt) {
+        return Stream.concat(
+                jwt.getClaimAsStringList("groups") != null
+                        ? jwt.getClaimAsStringList("groups").stream().map(groupName -> "ROLE_" + groupName)
+                        : Stream.empty(),
+                jwt.getClaimAsStringList("permissions") != null
+                        ? jwt.getClaimAsStringList("permissions").stream()
+                        : Stream.empty()
+        );
     }
 
     private String extractName(Jwt jwt) {

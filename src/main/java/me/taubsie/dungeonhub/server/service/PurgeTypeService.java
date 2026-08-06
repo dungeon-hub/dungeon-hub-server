@@ -1,15 +1,16 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.NoArgsConstructor;
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeCreationModel;
-import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeModel;
-import me.taubsie.dungeonhub.common.model.purge_type.PurgeTypeUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.PurgeType;
 import me.taubsie.dungeonhub.server.model.PurgeTypeInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.PurgeTypeRepository;
+import net.dungeonhub.exceptions.EntityUnknownException;
+import net.dungeonhub.model.purge_type.PurgeTypeCreationModel;
+import net.dungeonhub.model.purge_type.PurgeTypeModel;
+import net.dungeonhub.model.purge_type.PurgeTypeUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class PurgeTypeService implements EntityService<PurgeType, PurgeTypeModel
     }
 
     @Override
-    public Optional<PurgeType> loadEntityById(long id) {
+    public @NotNull Optional<PurgeType> loadEntityById(long id) {
         return purgeTypeRepository.findById(id);
     }
 
@@ -37,22 +38,17 @@ public class PurgeTypeService implements EntityService<PurgeType, PurgeTypeModel
                 .filter(purgeType -> purgeType.getCarryType().getId() == carryType.getId());
     }
 
-    @Override
-    public Optional<PurgeType> loadEntityByName(String name) {
-        return purgeTypeRepository.findByIdentifier(name);
-    }
-
     public List<PurgeType> loadEntitiesByCarryType(CarryType carryType) {
         return purgeTypeRepository.findPurgeTypesByCarryType(carryType);
     }
 
     @Override
-    public List<PurgeType> findAllEntities() {
+    public @NotNull List<PurgeType> findAllEntities() {
         return purgeTypeRepository.findAll();
     }
 
     @Override
-    public PurgeType createEntity(PurgeTypeInitializeModel initalizationModel) {
+    public @NotNull PurgeType createEntity(PurgeTypeInitializeModel initalizationModel) {
         return saveEntity(initalizationModel.toEntity());
     }
 
@@ -66,7 +62,7 @@ public class PurgeTypeService implements EntityService<PurgeType, PurgeTypeModel
     }
 
     @Override
-    public PurgeType saveEntity(PurgeType entity) {
+    public @NotNull PurgeType saveEntity(@NotNull PurgeType entity) {
         return purgeTypeRepository.save(entity);
     }
 
@@ -76,7 +72,16 @@ public class PurgeTypeService implements EntityService<PurgeType, PurgeTypeModel
     }
 
     @Override
-    public Function<PurgeType, PurgeTypeModel> toModel() {
+    public @NotNull Function<PurgeType, PurgeTypeModel> toModel() {
         return PurgeType::toModel;
+    }
+
+    @Override
+    public @NotNull PurgeType updateEntity(@NotNull PurgeType purgeType, @NotNull PurgeTypeUpdateModel purgeTypeUpdateModel) {
+        if(purgeTypeUpdateModel.getDisplayName() != null) {
+            purgeType.setDisplayName(purgeTypeUpdateModel.getDisplayName());
+        }
+
+        return purgeType;
     }
 }

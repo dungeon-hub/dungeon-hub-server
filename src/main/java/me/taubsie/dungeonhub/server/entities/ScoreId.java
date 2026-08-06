@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.enums.ScoreType;
+import net.dungeonhub.enums.ScoreType;
 import org.hibernate.Hibernate;
 
 import java.io.Serial;
@@ -54,6 +54,6 @@ public class ScoreId implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, carryType);
+        return Objects.hash(id, carryType, scoreType);
     }
 }

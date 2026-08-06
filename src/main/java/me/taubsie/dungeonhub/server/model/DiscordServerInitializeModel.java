@@ -3,14 +3,14 @@ package me.taubsie.dungeonhub.server.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
-import me.taubsie.dungeonhub.common.model.server.DiscordServerModel;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import net.dungeonhub.model.discord_server.DiscordServerModel;
+import net.dungeonhub.structure.model.InitializeModel;
 
 @AllArgsConstructor
 @Getter
 @Setter
-public class DiscordServerInitializeModel implements InitializeModel<DiscordServer, DiscordServerModel> {
+public class DiscordServerInitializeModel implements InitializeModel<DiscordServer, DiscordServerModel, DiscordServerModel> {
     private long id;
 
     @Override

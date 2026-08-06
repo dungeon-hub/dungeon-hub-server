@@ -1,20 +1,23 @@
 package me.taubsie.dungeonhub.server.service;
 
-import me.taubsie.dungeonhub.common.entity.EntityService;
-import me.taubsie.dungeonhub.common.exceptions.EntityUnknownException;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyCreationModel;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyUpdateModel;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
+import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
+import net.dungeonhub.exceptions.EntityUnknownException;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyCreationModel;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyUpdateModel;
+import net.dungeonhub.structure.entity.EntityService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Service
 public class CarryDifficultyService implements EntityService<CarryDifficulty, CarryDifficultyModel,
@@ -27,18 +30,13 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
     }
 
     @Override
-    public Optional<CarryDifficulty> loadEntityById(long id) {
+    public @NotNull Optional<CarryDifficulty> loadEntityById(long id) {
         return carryDifficultyRepository.findById(id);
     }
 
     public Optional<CarryDifficulty> loadEntityById(CarryTier carryTier, long id) {
         return carryDifficultyRepository.findById(id)
-                .filter(carryDifficulty -> carryDifficulty.getCarryTier().equals(carryTier));
-    }
-
-    @Override
-    public Optional<CarryDifficulty> loadEntityByName(String name) {
-        return carryDifficultyRepository.findCarryDifficultyByIdentifier(name);
+                .filter(carryDifficulty -> carryDifficulty.getCarryTier().getId() == carryTier.getId());
     }
 
     public List<CarryDifficulty> findByCarryTier(CarryTier carryTier) {
@@ -46,13 +44,22 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
     }
 
     @Override
-    public List<CarryDifficulty> findAllEntities() {
+    public @NotNull List<CarryDifficulty> findAllEntities() {
         return carryDifficultyRepository.findAll();
     }
 
+    public Stream<CarryDifficulty> findAllEntities(DiscordServer discordServer) {
+        return carryDifficultyRepository.findAll().stream()
+                .filter(carryDifficulty -> carryDifficulty.getCarryTier().getCarryType().getDiscordServer().equals(discordServer));
+    }
+
     @Override
-    public CarryDifficulty createEntity(CarryDifficultyInitializeModel initalizationModel) {
+    public @NotNull CarryDifficulty createEntity(CarryDifficultyInitializeModel initalizationModel) {
         return carryDifficultyRepository.save(initalizationModel.toEntity());
+    }
+
+    public void delete(CarryDifficulty carryDifficulty) {
+        carryDifficultyRepository.delete(carryDifficulty);
     }
 
     @Override
@@ -65,7 +72,7 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
     }
 
     @Override
-    public CarryDifficulty saveEntity(CarryDifficulty entity) {
+    public @NotNull CarryDifficulty saveEntity(@NotNull CarryDifficulty entity) {
         return carryDifficultyRepository.save(entity);
     }
 
@@ -75,7 +82,64 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
     }
 
     @Override
-    public Function<CarryDifficulty, CarryDifficultyModel> toModel() {
+    public @NotNull Function<CarryDifficulty, CarryDifficultyModel> toModel() {
         return CarryDifficulty::toModel;
+    }
+
+    @Override
+    public @NotNull CarryDifficulty updateEntity(@NotNull CarryDifficulty carryDifficulty, @NotNull CarryDifficultyUpdateModel carryDifficultyUpdateModel) {
+        if(carryDifficultyUpdateModel.getDisplayName() != null) {
+            carryDifficulty.setDisplayName(carryDifficultyUpdateModel.getDisplayName());
+        }
+
+        if(carryDifficultyUpdateModel.getResetThumbnailUrl()) {
+            carryDifficulty.setThumbnailUrl(null);
+        }
+
+        if(carryDifficultyUpdateModel.getThumbnailUrl() != null) {
+            carryDifficulty.setThumbnailUrl(carryDifficultyUpdateModel.getThumbnailUrl());
+        }
+
+        if(carryDifficultyUpdateModel.getResetBulkPrice()) {
+            carryDifficulty.setBulkPrice(null);
+        }
+
+        if(carryDifficultyUpdateModel.getBulkPrice() != null) {
+            carryDifficulty.setBulkPrice(carryDifficultyUpdateModel.getBulkPrice());
+        }
+
+        if(carryDifficultyUpdateModel.getResetBulkAmount()) {
+            carryDifficulty.setBulkAmount(null);
+        }
+
+        if(carryDifficultyUpdateModel.getBulkAmount() != null) {
+            carryDifficulty.setBulkAmount(carryDifficultyUpdateModel.getBulkAmount());
+        }
+
+        if(carryDifficultyUpdateModel.getResetPriceName()) {
+            carryDifficulty.setPriceName(null);
+        }
+
+        if(carryDifficultyUpdateModel.getPriceName() != null) {
+            carryDifficulty.setPriceName(carryDifficultyUpdateModel.getPriceName());
+        }
+
+        if(carryDifficultyUpdateModel.getPrice() != null) {
+            carryDifficulty.setPrice(carryDifficultyUpdateModel.getPrice());
+        }
+
+        if(carryDifficultyUpdateModel.getScore() != null) {
+            carryDifficulty.setScore(carryDifficultyUpdateModel.getScore());
+        }
+
+        if(carryDifficultyUpdateModel.getResetIngameCarryType()) {
+            carryDifficulty.setIngameCarryType(null);
+        }
+
+        if(carryDifficultyUpdateModel.getIngameCarryType() != null) {
+            carryDifficulty.setIngameCarryType(carryDifficultyUpdateModel.getIngameCarryType());
+        }
+
+        return carryDifficulty;
     }
 }

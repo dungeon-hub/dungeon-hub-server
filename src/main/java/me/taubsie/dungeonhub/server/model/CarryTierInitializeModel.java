@@ -3,20 +3,22 @@ package me.taubsie.dungeonhub.server.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.model.InitializeModel;
-import me.taubsie.dungeonhub.common.model.carry_tier.CarryTierCreationModel;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
+import net.dungeonhub.model.carry_tier.CarryTierCreationModel;
+import net.dungeonhub.model.carry_tier.CarryTierModel;
+import net.dungeonhub.structure.model.InitializeModel;
+import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 @Getter
 @Setter
-public class CarryTierInitializeModel implements InitializeModel<CarryTier, CarryTierCreationModel> {
+public class CarryTierInitializeModel implements InitializeModel<CarryTier, CarryTierModel, CarryTierCreationModel> {
+    private final CarryType carryType;
+
     private String identifier;
     private String displayName;
-    private CarryType carryType;
     private Long category;
-    private Long priceChannel;
     private String descriptiveName;
     private String thumbnailUrl;
     private String priceTitle;
@@ -27,15 +29,15 @@ public class CarryTierInitializeModel implements InitializeModel<CarryTier, Carr
     }
 
     @Override
-    public CarryTier toEntity() {
-        return new CarryTier(identifier, displayName, carryType, category, priceChannel, descriptiveName,
+    public @NotNull CarryTier toEntity() {
+        return new CarryTier(identifier, displayName, carryType, category, descriptiveName,
                 thumbnailUrl, priceTitle, priceDescription);
     }
 
     @Override
-    public CarryTierInitializeModel fromCreationModel(CarryTierCreationModel creationModel) {
-        return new CarryTierInitializeModel(creationModel.getIdentifier(), creationModel.getDisplayName(), carryType,
-                creationModel.getCategory(), creationModel.getPriceChannel(), creationModel.getDescriptiveName(),
+    public @NotNull CarryTierInitializeModel fromCreationModel(CarryTierCreationModel creationModel) {
+        return new CarryTierInitializeModel(carryType, creationModel.getIdentifier(), creationModel.getDisplayName(),
+                creationModel.getCategory(), creationModel.getDescriptiveName(),
                 creationModel.getThumbnailUrl(), creationModel.getPriceTitle(), creationModel.getPriceDescription());
     }
 }

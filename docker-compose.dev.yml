@@ -1,0 +1,19 @@
+# WARNING: This docker-compose file is for local development only.
+# It uses default credentials and is NOT suitable for production.
+
+services:
+  dungeon-hub-dev:
+    image: 'mariadb:latest'
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dungeon-hub
+    ports:
+      - '3306:3306'
+  dungeon-hub-test-postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: dungeon-hub
+    ports:
+      - '5432:5432'

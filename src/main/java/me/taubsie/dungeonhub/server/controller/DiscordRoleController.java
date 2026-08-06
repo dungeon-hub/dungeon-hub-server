@@ -1,17 +1,16 @@
 package me.taubsie.dungeonhub.server.controller;
 
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleCreationModel;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleModel;
-import me.taubsie.dungeonhub.common.model.discord_role.DiscordRoleUpdateModel;
 import me.taubsie.dungeonhub.server.entities.DiscordRole;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.DiscordRoleInitializeModel;
 import me.taubsie.dungeonhub.server.service.DiscordRoleService;
 import me.taubsie.dungeonhub.server.service.DiscordServerService;
+import net.dungeonhub.model.discord_role.DiscordRoleCreationModel;
+import net.dungeonhub.model.discord_role.DiscordRoleModel;
+import net.dungeonhub.model.discord_role.DiscordRoleUpdateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,8 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@EnableMethodSecurity
-@RequestMapping("/api/v1/server/{server}/roles/")
+@RequestMapping("/api/v1/server/{server}/roles")
 @PreAuthorize("hasAuthority('server_' + @requestHelper.getPathVariable('server')) || hasAnyRole('bot', 'admin')")
 public class DiscordRoleController {
     private final DiscordServerService discordServerService;

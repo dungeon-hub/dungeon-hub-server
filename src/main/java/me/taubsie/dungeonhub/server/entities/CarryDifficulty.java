@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.common.entity.EntityModelRelation;
-import me.taubsie.dungeonhub.common.model.carry_difficulty.CarryDifficultyModel;
+import net.dungeonhub.enums.IngameCarryType;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 @Entity(name = "carry_difficulty")
 @Table(name = "carry_difficulty", schema = "dungeon-hub")
 @NoArgsConstructor
-public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel> {
+public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<CarryDifficultyModel> {
     @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +27,7 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     private String identifier;
 
     @Getter
+    @Setter
     @Column(name = "display_name", nullable = false, length = 50)
     private String displayName;
 
@@ -41,9 +42,13 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     @Column(name = "thumbnail_url", length = 200)
     private String thumbnailUrl;
 
+    @Getter
+    @Setter
     @Column(name = "bulk_price")
     private Integer bulkPrice;
 
+    @Getter
+    @Setter
     @Column(name = "bulk_amount")
     private Integer bulkAmount;
 
@@ -60,9 +65,15 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     @Column(name = "score", nullable = false)
     private int score;
 
+    @Getter
+    @Setter
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ingame_carry_type")
+    private IngameCarryType ingameCarryType;
+
     @SuppressWarnings("java:S107")
     public CarryDifficulty(long id, String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
-                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score) {
+                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score, IngameCarryType ingameCarryType) {
         this.id = id;
         this.identifier = identifier;
         this.displayName = displayName;
@@ -73,18 +84,25 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
         this.priceName = priceName;
         this.price = price;
         this.score = score;
+        this.ingameCarryType = ingameCarryType;
     }
 
-    public CarryDifficulty(String identifier, String displayName, String thumbnailUrl, Integer bulkPrice,
-                           Integer bulkAmount, String priceName, int price, int score) {
+    public CarryDifficulty(String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
+                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score, IngameCarryType ingameCarryType) {
         this.identifier = identifier;
         this.displayName = displayName;
+        this.carryTier = carryTier;
         this.thumbnailUrl = thumbnailUrl;
         this.bulkPrice = bulkPrice;
         this.bulkAmount = bulkAmount;
         this.priceName = priceName;
         this.price = price;
         this.score = score;
+        this.ingameCarryType = ingameCarryType;
+    }
+
+    public long calculateTotalPrice(int amount) {
+        return CarryDifficultyModel.Companion.calculateTotalPrice(amount, bulkPrice, bulkAmount, price);
     }
 
     public CarryType getCarryType() {
@@ -111,16 +129,19 @@ public class CarryDifficulty implements EntityModelRelation<CarryDifficultyModel
     }
 
     @Override
-    public @NotNull CarryDifficulty fromModel(@NotNull CarryDifficultyModel model) {
-        return new CarryDifficulty(model.getId(), model.getIdentifier(), model.getDisplayName(),
-                carryTier.fromModel(model.getCarryTier()), model.getActualThumbnailUrl().orElse(null),
-                model.getActualBulkPrice(), model.getActualBulkAmount(), model.getActualPriceName().orElse(null),
-                model.getPrice(), model.getScore());
-    }
-
-    @Override
     public @NotNull CarryDifficultyModel toModel() {
-        return new CarryDifficultyModel(id, identifier, displayName, carryTier.toModel(), thumbnailUrl, bulkPrice,
-                bulkAmount, priceName, price, score);
+        return new CarryDifficultyModel(
+                id,
+                identifier,
+                displayName,
+                carryTier.toModel(),
+                price,
+                bulkPrice,
+                bulkAmount,
+                score,
+                thumbnailUrl,
+                priceName,
+                ingameCarryType
+        );
     }
 }

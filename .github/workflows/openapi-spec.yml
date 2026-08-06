@@ -1,0 +1,63 @@
+name: Generate OpenAPI Spec
+
+on:
+  push:
+    branches-ignore:
+      - "main"
+    paths-ignore:
+      - "openapi/**"
+
+concurrency:
+  group: openapi-spec-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Generate OpenAPI Spec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: "jetbrains"
+          cache: maven
+
+      - name: Generate Spec
+        run: mvn -B verify
+
+      - name: Update API spec
+        run: |
+          mkdir -p openapi
+          cp target/openapi.json openapi/openapi.json
+          git add openapi/openapi.json
+
+      - name: Commit if changed
+        id: commit
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions-user@users.noreply.github.com"
+          
+          if git diff --cached --quiet; then
+            echo "No changes to OpenAPI spec."
+            exit 0
+          fi
+          
+          git commit -m "Update OpenAPI spec"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push changes
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"

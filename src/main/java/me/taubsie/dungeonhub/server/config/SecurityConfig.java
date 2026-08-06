@@ -3,6 +3,7 @@ package me.taubsie.dungeonhub.server.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Profile("!dev")
 public class SecurityConfig {
     private final JwtAuthConverter jwtAuthConverter;
 
@@ -26,7 +28,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> {}) // Enable CORS with default config from CorsConfig
                 .authorizeHttpRequests(auth -> auth
+                        //CORS preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         //CDN
                         .requestMatchers(HttpMethod.GET, "/cdn/**").permitAll()
                         //API-Docs
@@ -34,6 +39,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/index.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api-src").permitAll()
                         .requestMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
+                        //Public API
+                        .requestMatchers(HttpMethod.GET, "/api/v1/stats/global").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/stats/server/*/stats").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerConfigurer -> oAuth2ResourceServerConfigurer.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthConverter)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
