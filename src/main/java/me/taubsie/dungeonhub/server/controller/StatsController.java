@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.ToLongFunction;
 
 @AllArgsConstructor
 @RestController
@@ -53,9 +54,10 @@ public class StatsController {
         Optional<Long> discordUserId = Optional.ofNullable(authentication).flatMap(authenticationService::getLoggedInDiscordId);
 
         List<Carry> carries = carryService.getCarries(discordServer);
+        ToLongFunction<Carry> priceCalculator = carryService.historicalPriceCalculator(carries);
 
         return new DiscordServerStatsModel(
-                carries.stream().mapToLong(Carry::calculateTotalPrice).sum(),
+                carries.stream().mapToLong(priceCalculator).sum(),
                 carries.stream().mapToLong(Carry::getAmount).sum(),
                 ticketService.countAllTickets(discordServer),
                 carryService.getCarriersByDiscordServer(discordServer),
@@ -63,10 +65,10 @@ public class StatsController {
                 warningService.countActiveWarns(discordServer),
                 warningService.countAllWarns(discordServer),
                 discordUserId.map(user ->
-                        carries.stream().filter(carry -> carry.getPlayer().getId() == user).mapToLong(Carry::calculateTotalPrice).sum()
+                        carries.stream().filter(carry -> carry.getPlayer().getId() == user).mapToLong(priceCalculator).sum()
                 ).orElse(null),
                 discordUserId.map(user ->
-                        carries.stream().filter(carry -> carry.getCarrier().getId() == user).mapToLong(Carry::calculateTotalPrice).sum()
+                        carries.stream().filter(carry -> carry.getCarrier().getId() == user).mapToLong(priceCalculator).sum()
                 ).orElse(null),
                 discordUserId.map(user ->
                         carries.stream().filter(carry -> carry.getCarrier().getId() == user).mapToLong(Carry::getAmount).sum()

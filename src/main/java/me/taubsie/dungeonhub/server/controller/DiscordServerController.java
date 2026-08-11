@@ -175,6 +175,7 @@ public class DiscordServerController {
         DiscordServer discordServer = discordServerService.loadEntityById(serverId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         List<Carry> carries = carryService.getCarries(discordServer);
+        var priceCalculator = carryService.historicalPriceCalculator(carries);
 
         return carries.stream()
                 .filter(carry -> userId == null || carry.getPlayer().getId() == userId)
@@ -182,7 +183,7 @@ public class DiscordServerController {
                 .filter(carry -> carryTypeId == null || carry.getCarryType().getId() == carryTypeId)
                 .filter(carry -> carryTierId == null || carry.getCarryTier().getId() == carryTierId)
                 .filter(carry -> since.isEmpty() || since.get().isBefore(carry.getTime()))
-                .mapToLong(Carry::calculateTotalPrice)
+                .mapToLong(priceCalculator)
                 .sum();
     }
 
