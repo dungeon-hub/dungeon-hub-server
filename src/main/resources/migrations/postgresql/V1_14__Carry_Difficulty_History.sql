@@ -6,8 +6,8 @@ create table carry_difficulty_history
     bulk_price       BIGINT,
     bulk_amount      BIGINT,
     score            BIGINT    NOT NULL,
-    date_from        TIMESTAMP NOT NULL,
-    date_to          TIMESTAMP NOT NULL
+    date_from        TIMESTAMPTZ NOT NULL,
+    date_to          TIMESTAMPTZ NOT NULL
 );
 
 create index idx_carry_difficulty_history_period
