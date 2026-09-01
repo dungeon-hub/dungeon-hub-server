@@ -3,14 +3,14 @@
 
 services:
   dungeon-hub-dev:
-    image: 'mariadb:latest'
+    image: 'docker.io/library/mariadb:latest'
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: dungeon-hub
     ports:
       - '3306:3306'
   dungeon-hub-test-postgres:
-    image: 'postgres:latest'
+    image: 'docker.io/library/postgres:latest'
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
