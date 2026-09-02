@@ -32,6 +32,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -71,6 +72,10 @@ public class ContentController {
     ) {
         this.configService = configService;
         if(encryptionEnabled) {
+            if(encryptionKey == null || encryptionKey.isBlank()) {
+                throw new ProgramStartException("The encryption key is empty, even tho you enabled encryption! Please set a key.");
+            }
+
             this.secretKey = loadKey(encryptionKey);
         } else {
             this.secretKey = null;
@@ -103,7 +108,7 @@ public class ContentController {
         return buffer.array();
     }
 
-    public byte[] decrypt(byte[] encryptedData) throws GeneralSecurityException {
+    public byte[] decrypt(byte[] encryptedData) throws GeneralSecurityException, BufferUnderflowException {
         ByteBuffer buffer = ByteBuffer.wrap(encryptedData);
         byte[] iv = new byte[IV_LENGTH_BYTES];
         buffer.get(iv);
@@ -292,6 +297,9 @@ public class ContentController {
         }
         catch (NoSuchFileException noSuchFileException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        catch (BufferUnderflowException bufferUnderflowException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
