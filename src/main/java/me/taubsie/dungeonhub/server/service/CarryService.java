@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CarryService {
@@ -25,6 +27,18 @@ public class CarryService {
 
     public int countCarries(DiscordServer server, DiscordUser user) {
         return carryRepository.countCarryByCarryDifficulty_CarryTier_CarryType_DiscordServerAndCarrier(server, user);
+    }
+
+    /**
+     * @return the summed carry amount per carry type id; carry types without carries are not included
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, Long> countCarriesByType(DiscordServer server, DiscordUser user) {
+        return carryRepository.sumCarriesByCarryType(server, user).stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> ((Number) row[1]).longValue()
+                ));
     }
 
     @Transactional(readOnly = true)

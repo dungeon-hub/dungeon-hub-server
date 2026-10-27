@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -79,6 +80,14 @@ public class DiscordUserController {
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
         return carryService.countCarries(server, carrier);
+    }
+
+    @GetMapping("{id}/carries/{server}/by-type")
+    public Map<Long, Long> getCarryCountsByType(@PathVariable long id, @PathVariable("server") long serverId) {
+        DiscordServer server = discordServerService.getOrCreate(serverId);
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+
+        return carryService.countCarriesByType(server, carrier);
     }
 
     @PostMapping
