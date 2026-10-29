@@ -1,14 +1,11 @@
 package me.taubsie.dungeonhub.server.service;
 
-import dev.kord.common.entity.Permissions;
 import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketPanelInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.TicketPanelRepository;
-import net.dungeonhub.enums.TicketPermissionCandidate;
-import net.dungeonhub.enums.TicketPermissionType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.ticket_panel.TicketPanelCreationModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
@@ -17,11 +14,8 @@ import net.dungeonhub.structure.entity.EntityService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -244,28 +238,9 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
         }
 
         if(updateModel.getPermissions() != null) {
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.SupportTeam, TicketPermissionType.Allowed, ticketPanel::setSupportTeamAllowedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.SupportTeam, TicketPermissionType.Denied, ticketPanel::setSupportTeamDeniedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Allowed, ticketPanel::setAdditionalRolesAllowedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Denied, ticketPanel::setAdditionalRolesDeniedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketCreator, TicketPermissionType.Allowed, ticketPanel::setCreatorAllowedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketCreator, TicketPermissionType.Denied, ticketPanel::setCreatorDeniedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Allowed, ticketPanel::setClaimerAllowedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Denied, ticketPanel::setClaimerDeniedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.Everyone, TicketPermissionType.Allowed, ticketPanel::setEveryoneAllowedPermissions);
-            applyPermissionIfPresent(updateModel.getPermissions(), TicketPermissionCandidate.Everyone, TicketPermissionType.Denied, ticketPanel::setEveryoneDeniedPermissions);
+            ticketPanel.setPermissions(updateModel.getPermissions().resolved());
         }
 
         return ticketPanel;
-    }
-
-    private void applyPermissionIfPresent(Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions,
-                                          TicketPermissionCandidate candidate,
-                                          TicketPermissionType type,
-                                          Consumer<Permissions> setter) {
-        Permissions permission = permissions.getOrDefault(candidate, Collections.emptyMap()).get(type);
-        if(permission != null) {
-            setter.accept(permission);
-        }
     }
 }

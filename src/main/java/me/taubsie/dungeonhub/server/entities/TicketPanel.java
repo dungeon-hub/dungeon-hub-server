@@ -1,16 +1,14 @@
 package me.taubsie.dungeonhub.server.entities;
 
-import dev.kord.common.entity.Permissions;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.server.converter.PermissionsConverter;
-import net.dungeonhub.enums.TicketPermissionCandidate;
-import net.dungeonhub.enums.TicketPermissionType;
+import me.taubsie.dungeonhub.server.converter.TicketPanelPermissionsConverter;
 import net.dungeonhub.enums.TranscriptTarget;
 import net.dungeonhub.model.ticket_panel.TicketPanelFormModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
+import net.dungeonhub.model.ticket_panel.TicketPanelPermissionsModel;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -139,55 +137,13 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @NotNull
     private List<TicketPanelClosedCategory> closedCategories = new ArrayList<>();
 
+    /**
+     * The resolved permissions of this panel. {@code null} means that the defaults are used.
+     */
     @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "support_team_allowed_permissions")
-    private Permissions supportTeamAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "support_team_denied_permissions")
-    private Permissions supportTeamDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "additional_roles_allowed_permissions")
-    private Permissions additionalRolesAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "additional_roles_denied_permissions")
-    private Permissions additionalRolesDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "creator_allowed_permissions")
-    private Permissions creatorAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "creator_denied_permissions")
-    private Permissions creatorDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "claimer_allowed_permissions")
-    private Permissions claimerAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "claimer_denied_permissions")
-    private Permissions claimerDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "everyone_allowed_permissions")
-    private Permissions everyoneAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "everyone_denied_permissions")
-    private Permissions everyoneDeniedPermissions;
+    @Convert(converter = TicketPanelPermissionsConverter.class)
+    @Column(name = "permissions")
+    private TicketPanelPermissionsModel permissions;
 
     /**
      * Main constructor used by initialize models to create a fully configured ticket panel.
@@ -215,16 +171,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
             List<DiscordRole> additionalRoles,
             List<Long> openCategories,
             List<Long> closedCategories,
-            Permissions supportTeamAllowedPermissions,
-            Permissions supportTeamDeniedPermissions,
-            Permissions additionalRolesAllowedPermissions,
-            Permissions additionalRolesDeniedPermissions,
-            Permissions creatorAllowedPermissions,
-            Permissions creatorDeniedPermissions,
-            Permissions claimerAllowedPermissions,
-            Permissions claimerDeniedPermissions,
-            Permissions everyoneAllowedPermissions,
-            Permissions everyoneDeniedPermissions
+            TicketPanelPermissionsModel permissions
     ) {
         this.name = name;
         this.displayName = displayName;
@@ -250,16 +197,7 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.setOpenCategories(openCategories);
         this.setClosedCategories(closedCategories);
 
-        this.supportTeamAllowedPermissions = supportTeamAllowedPermissions;
-        this.supportTeamDeniedPermissions = supportTeamDeniedPermissions;
-        this.additionalRolesAllowedPermissions = additionalRolesAllowedPermissions;
-        this.additionalRolesDeniedPermissions = additionalRolesDeniedPermissions;
-        this.creatorAllowedPermissions = creatorAllowedPermissions;
-        this.creatorDeniedPermissions = creatorDeniedPermissions;
-        this.claimerAllowedPermissions = claimerAllowedPermissions;
-        this.claimerDeniedPermissions = claimerDeniedPermissions;
-        this.everyoneAllowedPermissions = everyoneAllowedPermissions;
-        this.everyoneDeniedPermissions = everyoneDeniedPermissions;
+        this.permissions = permissions;
     }
 
     public void setFormQuestions(List<TicketPanelFormModel> formQuestions) {
@@ -302,18 +240,6 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
 
     @Override
     public @NotNull TicketPanelModel toModel() {
-        Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions = new HashMap<>();
-        setPermissions(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Allowed, supportTeamAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Denied, supportTeamDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Allowed, additionalRolesAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Denied, additionalRolesDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketCreator, TicketPermissionType.Allowed, creatorAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketCreator, TicketPermissionType.Denied, creatorDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Allowed, claimerAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Denied, claimerDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Allowed, everyoneAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Denied, everyoneDeniedPermissions);
-
         return new TicketPanelModel(
                 id,
                 name,
@@ -339,13 +265,11 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
                 openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),
                 closedCategories.stream().map(TicketPanelClosedCategory::getClosedCategoryId).toList(),
-                permissions
+                getResolvedPermissions()
         );
     }
 
-    private void setPermissions(Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions, TicketPermissionCandidate permissionCandidate, TicketPermissionType permissionType, Permissions permission) {
-        if(permission == null) return;
-
-        permissions.computeIfAbsent(permissionCandidate, k -> new HashMap<>()).put(permissionType, permission);
+    public TicketPanelPermissionsModel getResolvedPermissions() {
+        return permissions != null ? permissions.resolved() : TicketPanelPermissionsModel.Companion.getDEFAULT();
     }
 }
