@@ -45,7 +45,7 @@ class TicketPanelPermissionsTest {
 
         TicketPanel ticketPanel = initializeModel().fromCreationModel(creationModel).toEntity();
 
-        assertEquals(DEFAULT, ticketPanel.getResolvedPermissions());
+        assertEquals(DEFAULT, ticketPanel.getPermissions());
     }
 
     @Test
@@ -76,7 +76,7 @@ class TicketPanelPermissionsTest {
 
     @Test
     void entityWithoutPermissionsUsesDefaults() {
-        assertEquals(DEFAULT, new TicketPanel().getResolvedPermissions());
+        assertEquals(DEFAULT, new TicketPanel().getPermissions());
     }
 
     @Test
@@ -88,7 +88,7 @@ class TicketPanelPermissionsTest {
         TicketPanelUpdateModel updateModel = gson.fromJson("{\"name\":\"renamed\"}", TicketPanelUpdateModel.class);
         ticketPanelService.updateEntity(ticketPanel, updateModel);
 
-        assertEquals(stored, ticketPanel.getResolvedPermissions());
+        assertEquals(stored, ticketPanel.getPermissions());
     }
 
     @Test
@@ -103,7 +103,7 @@ class TicketPanelPermissionsTest {
         );
         ticketPanelService.updateEntity(ticketPanel, updateModel);
 
-        TicketPanelPermissionsModel permissions = ticketPanel.getResolvedPermissions();
+        TicketPanelPermissionsModel permissions = ticketPanel.getPermissions();
 
         assertEquals(DEFAULT.getOpen(), permissions.getOpen());
         assertEquals(Map.of(), permissions.getClosed().get(TicketPermissionCandidate.Everyone).getChannel());

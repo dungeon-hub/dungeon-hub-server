@@ -238,7 +238,7 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
         }
 
         if(updateModel.getPermissions() != null) {
-            ticketPanel.setPermissions(updateModel.getPermissions().resolved());
+            ticketPanel.setPermissions(updateModel.getPermissions());
         }
 
         return ticketPanel;
