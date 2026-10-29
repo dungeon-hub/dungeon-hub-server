@@ -188,6 +188,22 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
             ticketPanel.setFormQuestions(updateModel.getFormQuestions());
         }
 
+        if(updateModel.getResetOpenTicketLimit()) {
+            ticketPanel.setOpenTicketLimit(null);
+        }
+
+        if(updateModel.getOpenTicketLimit() != null) {
+            ticketPanel.setOpenTicketLimit(updateModel.getOpenTicketLimit());
+        }
+
+        if(updateModel.getResetClosedTicketLimit()) {
+            ticketPanel.setClosedTicketLimit(null);
+        }
+
+        if(updateModel.getClosedTicketLimit() != null) {
+            ticketPanel.setClosedTicketLimit(updateModel.getClosedTicketLimit());
+        }
+
         if(updateModel.getResetRelatedCarryTier()) {
             ticketPanel.setRelatedCarryTier(null);
         }
