@@ -5,6 +5,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.model.carry.CarryCountsModel;
 import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
 import net.dungeonhub.model.discord_user.DiscordUserModel;
 import net.dungeonhub.model.discord_user.DiscordUserUpdateModel;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -82,12 +82,12 @@ public class DiscordUserController {
         return carryService.countCarries(server, carrier);
     }
 
-    @GetMapping("{id}/carries/{server}/by-type")
-    public Map<Long, Long> getCarryCountsByType(@PathVariable long id, @PathVariable("server") long serverId) {
+    @GetMapping("{id}/carries/{server}/summary")
+    public CarryCountsModel getCarryCounts(@PathVariable long id, @PathVariable("server") long serverId) {
         DiscordServer server = discordServerService.getOrCreate(serverId);
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
-        return carryService.countCarriesByType(server, carrier);
+        return carryService.getCarryCounts(server, carrier);
     }
 
     @PostMapping

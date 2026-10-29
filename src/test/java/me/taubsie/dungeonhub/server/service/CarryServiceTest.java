@@ -3,6 +3,7 @@ package me.taubsie.dungeonhub.server.service;
 import me.taubsie.dungeonhub.server.DungeonHubServerApplication;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.CarryRepository;
+import net.dungeonhub.model.carry.CarryCountsModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ class CarryServiceTest {
     }
 
     @Test
-    void countCarriesByType_sumsAmountPerCarryType() {
+    void getCarryCounts_sumsAmountPerCarryType() {
         CarryType dungeons = entityManager.persist(new CarryType("dungeons", "Dungeons", server, null, null));
         CarryType slayer = entityManager.persist(new CarryType("slayer", "Slayer", server, null, null));
         CarryType unused = entityManager.persist(new CarryType("kuudra", "Kuudra", server, null, null));
@@ -67,14 +68,22 @@ class CarryServiceTest {
 
         entityManager.flush();
 
-        assertEquals(Map.of(dungeons.getId(), 7L, slayer.getId(), 3L), carryService.countCarriesByType(server, carrier));
+        CarryCountsModel carryCounts = carryService.getCarryCounts(server, carrier);
+
+        assertEquals(3, carryCounts.getLogCount());
+        assertEquals(10, carryCounts.getCarryCount());
+        assertEquals(Map.of(dungeons.getId(), 7L, slayer.getId(), 3L), carryCounts.getByType());
         // the existing total still counts carry logs, not amounts
         assertEquals(3, carryService.countCarries(server, carrier));
     }
 
     @Test
-    void countCarriesByType_returnsEmptyMapWithoutCarries() {
-        assertTrue(carryService.countCarriesByType(server, carrier).isEmpty());
+    void getCarryCounts_returnsZeroWithoutCarries() {
+        CarryCountsModel carryCounts = carryService.getCarryCounts(server, carrier);
+
+        assertEquals(0, carryCounts.getLogCount());
+        assertEquals(0, carryCounts.getCarryCount());
+        assertTrue(carryCounts.getByType().isEmpty());
     }
 
     private CarryDifficulty createDifficulty(CarryType carryType, String identifier) {
