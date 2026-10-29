@@ -3,80 +3,118 @@ package me.taubsie.dungeonhub.server.service;
 import me.taubsie.dungeonhub.server.entities.Carry;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistory;
+import me.taubsie.dungeonhub.server.repositories.CarryDifficultyHistoryRepository;
+import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import me.taubsie.dungeonhub.server.repositories.CarryRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.function.ToLongFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CarryServiceTest {
-    @Test
-    void historicalCalculatorLoadsHistoryOnceAndReusesIt() {
-        CarryRepository carryRepository = mock(CarryRepository.class);
-        CarryDifficultyService difficultyService = mock(CarryDifficultyService.class);
-        CarryService service = new CarryService(carryRepository, difficultyService);
-        CarryDifficulty difficulty = mock(CarryDifficulty.class);
-        Carry first = mock(Carry.class);
-        Carry second = mock(Carry.class);
-        Carry current = mock(Carry.class);
-        Instant changedAt = Instant.parse("2025-02-01T00:00:00Z");
-        CarryDifficultyHistory oldPrice = new CarryDifficultyHistory(
-                difficulty, 100, null, null, 1, Instant.parse("2025-01-01T00:00:00Z"), changedAt);
-        CarryDifficultyHistory newPrice = new CarryDifficultyHistory(
-                difficulty, 200, null, null, 1, changedAt, changedAt.plusSeconds(100));
-        when(first.getCarryDifficulty()).thenReturn(difficulty);
-        when(second.getCarryDifficulty()).thenReturn(difficulty);
-        when(current.getCarryDifficulty()).thenReturn(difficulty);
-        when(first.getTime()).thenReturn(changedAt.minusSeconds(1));
-        when(second.getTime()).thenReturn(changedAt);
-        when(current.getTime()).thenReturn(changedAt.plusSeconds(101));
-        when(first.calculateTotalPrice(oldPrice)).thenReturn(100L);
-        when(second.calculateTotalPrice(newPrice)).thenReturn(200L);
-        when(current.calculateTotalPrice()).thenReturn(300L);
-        when(difficultyService.loadPriceHistory(List.of(difficulty))).thenReturn(List.of(newPrice, oldPrice));
+    private static final Instant JANUARY = Instant.parse("2025-01-01T00:00:00Z");
+    private static final Instant FEBRUARY = Instant.parse("2025-02-01T00:00:00Z");
+    private static final Instant MARCH = Instant.parse("2025-03-01T00:00:00Z");
 
-        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(List.of(first, second, current));
+    private CarryDifficultyHistoryRepository historyRepository;
+    private CarryService service;
 
-        assertEquals(100, calculator.applyAsLong(first));
-        assertEquals(200, calculator.applyAsLong(second));
-        assertEquals(300, calculator.applyAsLong(current));
-        verify(difficultyService, times(1)).loadPriceHistory(List.of(difficulty));
+    @BeforeEach
+    void setUp() {
+        historyRepository = mock(CarryDifficultyHistoryRepository.class);
+        CarryDifficultyService difficultyService =
+                new CarryDifficultyService(mock(CarryDifficultyRepository.class), historyRepository);
+        service = new CarryService(mock(CarryRepository.class), difficultyService);
     }
 
     @Test
-    void carryWithoutTimestampUsesCurrentPrice() {
-        CarryDifficultyService difficultyService = mock(CarryDifficultyService.class);
-        CarryService service = new CarryService(mock(CarryRepository.class), difficultyService);
-        CarryDifficulty difficulty = mock(CarryDifficulty.class);
-        Carry carry = mock(Carry.class);
-        CarryDifficultyHistory history = new CarryDifficultyHistory(difficulty, 100, null, null, 1,
-                Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-02-01T00:00:00Z"));
-        when(carry.getCarryDifficulty()).thenReturn(difficulty);
-        when(carry.getTime()).thenReturn(null);
-        when(carry.calculateTotalPrice()).thenReturn(250L);
-        when(difficultyService.loadPriceHistory(List.of(difficulty))).thenReturn(List.of(history));
+    void carriesArePricedWithTheValuesValidAtTheirTime() {
+        CarryDifficulty difficulty = difficulty(1, 300);
+        when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L))).thenReturn(List.of(
+                new CarryDifficultyHistory(difficulty, 100, null, null, 1, JANUARY, FEBRUARY),
+                new CarryDifficultyHistory(difficulty, 200, null, null, 1, FEBRUARY, MARCH)));
+        Carry inJanuary = carry(difficulty, 2, FEBRUARY.minusSeconds(1));
+        Carry atChange = carry(difficulty, 2, FEBRUARY);
+        Carry afterLastChange = carry(difficulty, 2, MARCH);
 
-        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(List.of(carry));
+        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(List.of(inJanuary, atChange, afterLastChange));
 
-        assertEquals(250, calculator.applyAsLong(carry));
-        verify(carry, never()).calculateTotalPrice(history);
+        assertEquals(200, calculator.applyAsLong(inJanuary));
+        assertEquals(400, calculator.applyAsLong(atChange));
+        assertEquals(600, calculator.applyAsLong(afterLastChange));
     }
 
     @Test
-    void emptyCarryListLoadsEmptyHistoryOnceAndProducesCurrentPriceFallback() {
-        CarryDifficultyService difficultyService = mock(CarryDifficultyService.class);
-        CarryService service = new CarryService(mock(CarryRepository.class), difficultyService);
-        when(difficultyService.loadPriceHistory(List.of())).thenReturn(List.of());
-        Carry carry = mock(Carry.class);
-        when(carry.calculateTotalPrice()).thenReturn(75L);
+    void historicalBulkPricingIsApplied() {
+        CarryDifficulty difficulty = difficulty(1, 300);
+        when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L))).thenReturn(List.of(
+                new CarryDifficultyHistory(difficulty, 100, 80, 5, 1, JANUARY, FEBRUARY)));
+        Carry belowBulkAmount = carry(difficulty, 4, JANUARY);
+        Carry aboveBulkAmount = carry(difficulty, 10, JANUARY);
 
-        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(List.of());
+        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(List.of(belowBulkAmount, aboveBulkAmount));
 
-        assertEquals(75, calculator.applyAsLong(carry));
-        verify(difficultyService).loadPriceHistory(List.of());
+        assertEquals(400, calculator.applyAsLong(belowBulkAmount));
+        assertEquals(800, calculator.applyAsLong(aboveBulkAmount));
+    }
+
+    @Test
+    void historyOfOneDifficultyIsNotUsedForAnother() {
+        CarryDifficulty withHistory = difficulty(1, 300);
+        CarryDifficulty withoutHistory = difficulty(2, 50);
+        when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L, 2L))).thenReturn(List.of(
+                new CarryDifficultyHistory(withHistory, 100, null, null, 1, JANUARY, FEBRUARY)));
+        Carry carry = carry(withoutHistory, 1, JANUARY);
+
+        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(
+                List.of(carry, carry(withHistory, 1, JANUARY)));
+
+        assertEquals(50, calculator.applyAsLong(carry));
+    }
+
+    @Test
+    void carryWithoutTimestampUsesTheCurrentPrice() {
+        CarryDifficulty difficulty = difficulty(1, 300);
+        when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L))).thenReturn(List.of(
+                new CarryDifficultyHistory(difficulty, 100, null, null, 1, JANUARY, FEBRUARY)));
+        Carry carry = carry(difficulty, 1, null);
+
+        assertEquals(300, service.historicalPriceCalculator(List.of(carry)).applyAsLong(carry));
+    }
+
+    @Test
+    void historyIsLoadedOnceForAllCarries() {
+        CarryDifficulty first = difficulty(1, 100);
+        CarryDifficulty second = difficulty(2, 100);
+        List<Carry> carries = List.of(carry(first, 1, JANUARY), carry(first, 1, FEBRUARY), carry(second, 1, MARCH));
+
+        ToLongFunction<Carry> calculator = service.historicalPriceCalculator(carries);
+        carries.forEach(calculator::applyAsLong);
+
+        verify(historyRepository, times(1)).findAllByCarryDifficulty_IdIn(Set.of(1L, 2L));
+        verifyNoMoreInteractions(historyRepository);
+    }
+
+    @Test
+    void noCarriesDoNotQueryHistory() {
+        service.historicalPriceCalculator(List.of());
+
+        verify(historyRepository, never()).findAllByCarryDifficulty_IdIn(any());
+    }
+
+    private static CarryDifficulty difficulty(long id, int price) {
+        return new CarryDifficulty(id, "difficulty-" + id, "Difficulty " + id, null, null, null, null, null, price, 1,
+                null);
+    }
+
+    private static Carry carry(CarryDifficulty difficulty, int amount, Instant time) {
+        return new Carry(null, null, amount, difficulty, null, time);
     }
 }

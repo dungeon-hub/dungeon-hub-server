@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CarryDifficultyHistoryRepository extends JpaRepository<CarryDifficultyHistory, Long> {
-    List<CarryDifficultyHistory> findAllByCarryDifficultyInOrderByDateFromDesc(Collection<CarryDifficulty> difficulties);
+    List<CarryDifficultyHistory> findAllByCarryDifficulty_IdIn(Collection<Long> carryDifficultyIds);
 
     Optional<CarryDifficultyHistory> findFirstByCarryDifficultyOrderByDateToDesc(CarryDifficulty carryDifficulty);
 }

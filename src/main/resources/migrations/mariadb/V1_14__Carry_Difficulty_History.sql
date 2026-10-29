@@ -1,3 +1,6 @@
+create schema if not exists `dungeon-hub`;
+use `dungeon-hub`;
+
 create table carry_difficulty_history
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,

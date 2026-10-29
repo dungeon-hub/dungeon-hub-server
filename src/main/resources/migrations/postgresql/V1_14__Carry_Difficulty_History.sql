@@ -1,3 +1,6 @@
+create schema if not exists "dungeon-hub";
+set search_path to "dungeon-hub";
+
 create table carry_difficulty_history
 (
     id               BIGSERIAL PRIMARY KEY,

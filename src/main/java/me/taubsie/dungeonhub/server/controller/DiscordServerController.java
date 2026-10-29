@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 
 @RestController
 @RequestMapping("api/v1/server")
@@ -175,7 +176,7 @@ public class DiscordServerController {
         DiscordServer discordServer = discordServerService.loadEntityById(serverId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         List<Carry> carries = carryService.getCarries(discordServer);
-        var priceCalculator = carryService.historicalPriceCalculator(carries);
+        ToLongFunction<Carry> priceCalculator = carryService.historicalPriceCalculator(carries);
 
         return carries.stream()
                 .filter(carry -> userId == null || carry.getPlayer().getId() == userId)

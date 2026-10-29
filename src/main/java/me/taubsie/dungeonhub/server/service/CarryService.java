@@ -16,6 +16,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
@@ -72,38 +75,38 @@ public class CarryService {
     }
 
     /**
-     * Builds a reusable calculator that prices carries with the values that were valid when each carry occurred.
+     * Builds a function that prices carries with the values that were valid at the time of each carry.
      *
-     * <p>The method extracts the distinct difficulties from {@code carries} and loads their complete price histories
-     * in one repository call. The returned function closes over that in-memory history map, so applying it repeatedly
-     * during one endpoint request does not execute additional history queries. Callers should therefore create the
-     * calculator once, before starting their aggregations, and reuse the same instance for every sum or filtered sum
-     * derived from that carry list.</p>
-     *
-     * <p>History periods use an inclusive {@code dateFrom} and exclusive {@code dateTo}. When a carry has no timestamp,
-     * or its timestamp is not covered by a closed history period, the current values on its {@link CarryDifficulty}
-     * are used. This fallback is intentional: the current values have no history row until they are replaced.</p>
-     *
-     * @param carries all carries that may be passed to the returned calculator; passing additional carries later may
-     *                fall back to current pricing because their difficulty history was not preloaded
-     * @return a request-local function suitable for {@link java.util.stream.LongStream} aggregations via
-     *         {@code carries.stream().mapToLong(calculator)}
+     * <p>The history of all difficulties used by {@code carries} is loaded once up front, so the returned function can
+     * be applied to every carry of the list without additional queries. Carries without a timestamp, or with a
+     * timestamp that is not covered by the history, are priced with the current values of their difficulty.</p>
      */
     @Transactional(readOnly = true)
     public ToLongFunction<Carry> historicalPriceCalculator(List<Carry> carries) {
-        List<CarryDifficulty> difficulties = carries.stream()
+        Set<Long> carryDifficultyIds = carries.stream()
                 .map(Carry::getCarryDifficulty)
-                .distinct()
-                .toList();
-        Map<CarryDifficulty, List<CarryDifficultyHistory>> histories = carryDifficultyService
-                .loadPriceHistory(difficulties)
-                .stream()
-                .collect(Collectors.groupingBy(CarryDifficultyHistory::getCarryDifficulty));
+                .filter(Objects::nonNull)
+                .map(CarryDifficulty::getId)
+                .collect(Collectors.toSet());
 
-        return carry -> histories.getOrDefault(carry.getCarryDifficulty(), List.of()).stream()
-                .filter(history -> carry.getTime() != null && history.includes(carry.getTime()))
-                .findFirst()
-                .map(carry::calculateTotalPrice)
+        Map<Long, List<CarryDifficultyHistory>> historyByDifficulty = carryDifficultyService
+                .loadPriceHistory(carryDifficultyIds)
+                .stream()
+                .collect(Collectors.groupingBy(history -> history.getCarryDifficulty().getId()));
+
+        return carry -> findHistoryAtTimeOfCarry(historyByDifficulty, carry)
+                .map(history -> history.calculateTotalPrice(carry.getAmount()))
                 .orElseGet(carry::calculateTotalPrice);
+    }
+
+    private static Optional<CarryDifficultyHistory> findHistoryAtTimeOfCarry(
+            Map<Long, List<CarryDifficultyHistory>> historyByDifficulty, Carry carry) {
+        if (carry.getTime() == null || carry.getCarryDifficulty() == null) {
+            return Optional.empty();
+        }
+
+        return historyByDifficulty.getOrDefault(carry.getCarryDifficulty().getId(), List.of()).stream()
+                .filter(history -> history.includes(carry.getTime()))
+                .findFirst();
     }
 }

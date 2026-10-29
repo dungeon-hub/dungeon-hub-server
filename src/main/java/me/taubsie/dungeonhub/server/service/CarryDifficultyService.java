@@ -5,8 +5,8 @@ import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistory;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
-import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyHistoryRepository;
+import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyCreationModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -28,7 +27,12 @@ import java.util.stream.Stream;
 @Service
 public class CarryDifficultyService implements EntityService<CarryDifficulty, CarryDifficultyModel,
         CarryDifficultyCreationModel, CarryDifficultyInitializeModel, CarryDifficultyUpdateModel> {
+    /**
+     * Start of the first history period of every difficulty. It is the smallest value a MariaDB {@code TIMESTAMP}
+     * column can hold, so the first period covers every carry that happened before the first pricing change.
+     */
     private static final Instant HISTORY_START = Instant.parse("1970-01-01T00:00:01Z");
+
     private final CarryDifficultyRepository carryDifficultyRepository;
     private final CarryDifficultyHistoryRepository carryDifficultyHistoryRepository;
 
@@ -64,21 +68,14 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
     }
 
     /**
-     * Loads the closed price and score periods for all supplied difficulties in one query.
-     *
-     * <p>This method is intended to support request-local calculations such as
-     * {@link CarryService#historicalPriceCalculator(List)}. Prefer one bulk call over loading history separately for
-     * every carry. An empty collection is handled without accessing the repository.</p>
-     *
-     * @param carryDifficulties distinct or repeated difficulties whose history is required
-     * @return history ordered by descending start time, or an immutable empty list when no difficulties were supplied
+     * Loads the pricing history of all given difficulties in a single query.
      */
-    public List<CarryDifficultyHistory> loadPriceHistory(Collection<CarryDifficulty> carryDifficulties) {
-        if (carryDifficulties.isEmpty()) {
+    public List<CarryDifficultyHistory> loadPriceHistory(Collection<Long> carryDifficultyIds) {
+        if (carryDifficultyIds.isEmpty()) {
             return List.of();
         }
-        return carryDifficultyHistoryRepository
-                .findAllByCarryDifficultyInOrderByDateFromDesc(carryDifficulties);
+
+        return carryDifficultyHistoryRepository.findAllByCarryDifficulty_IdIn(carryDifficultyIds);
     }
 
     @Override
@@ -114,13 +111,20 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
         return CarryDifficulty::toModel;
     }
 
+    /**
+     * Applies the update and saves the difficulty. Runs in one transaction, so the history entry written by
+     * {@link #updateEntity} is only persisted together with the changed difficulty.
+     */
     @Override
     @Transactional
+    public @NotNull CarryDifficulty update(@NotNull CarryDifficulty carryDifficulty, @NotNull CarryDifficultyUpdateModel carryDifficultyUpdateModel) {
+        return saveEntity(updateEntity(carryDifficulty, carryDifficultyUpdateModel));
+    }
+
+    @Override
     public @NotNull CarryDifficulty updateEntity(@NotNull CarryDifficulty carryDifficulty, @NotNull CarryDifficultyUpdateModel carryDifficultyUpdateModel) {
-        int oldPrice = carryDifficulty.getPrice();
-        Integer oldBulkPrice = carryDifficulty.getBulkPrice();
-        Integer oldBulkAmount = carryDifficulty.getBulkAmount();
-        int oldScore = carryDifficulty.getScore();
+        Pricing previousPricing = Pricing.of(carryDifficulty);
+
         if(carryDifficultyUpdateModel.getDisplayName() != null) {
             carryDifficulty.setDisplayName(carryDifficultyUpdateModel.getDisplayName());
         }
@@ -173,20 +177,35 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
             carryDifficulty.setIngameCarryType(carryDifficultyUpdateModel.getIngameCarryType());
         }
 
-        if (oldPrice != carryDifficulty.getPrice()
-                || !Objects.equals(oldBulkPrice, carryDifficulty.getBulkPrice())
-                || !Objects.equals(oldBulkAmount, carryDifficulty.getBulkAmount())
-                || oldScore != carryDifficulty.getScore()) {
-            Instant changedAt = Instant.now();
-            Instant dateFrom = carryDifficultyHistoryRepository
-                    .findFirstByCarryDifficultyOrderByDateToDesc(carryDifficulty)
-                    .map(CarryDifficultyHistory::getDateTo)
-                    .orElse(HISTORY_START);
-            carryDifficultyHistoryRepository.save(new CarryDifficultyHistory(carryDifficulty, oldPrice,
-                    oldBulkPrice, oldBulkAmount, oldScore, dateFrom, changedAt));
+        if (!previousPricing.equals(Pricing.of(carryDifficulty))) {
+            recordReplacedPricing(carryDifficulty, previousPricing);
         }
 
         return carryDifficulty;
     }
 
+    /**
+     * Stores the replaced pricing as a closed period. The period starts where the previous one ended, so the history
+     * of a difficulty has no gaps, and ends now, which is when the new pricing becomes valid.
+     */
+    private void recordReplacedPricing(CarryDifficulty carryDifficulty, Pricing replacedPricing) {
+        Instant validFrom = carryDifficultyHistoryRepository
+                .findFirstByCarryDifficultyOrderByDateToDesc(carryDifficulty)
+                .map(CarryDifficultyHistory::getDateTo)
+                .orElse(HISTORY_START);
+
+        carryDifficultyHistoryRepository.save(new CarryDifficultyHistory(carryDifficulty, replacedPricing.price(),
+                replacedPricing.bulkPrice(), replacedPricing.bulkAmount(), replacedPricing.score(), validFrom,
+                Instant.now()));
+    }
+
+    /**
+     * The values of a difficulty that are tracked in its history.
+     */
+    private record Pricing(int price, Integer bulkPrice, Integer bulkAmount, int score) {
+        static Pricing of(CarryDifficulty carryDifficulty) {
+            return new Pricing(carryDifficulty.getPrice(), carryDifficulty.getBulkPrice(),
+                    carryDifficulty.getBulkAmount(), carryDifficulty.getScore());
+        }
+    }
 }

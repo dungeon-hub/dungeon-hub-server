@@ -3,12 +3,20 @@ package me.taubsie.dungeonhub.server.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 
+/**
+ * The pricing values a {@link CarryDifficulty} had during a closed period of time.
+ *
+ * <p>A row is written whenever the price, bulk price, bulk amount or score of a difficulty changes. It stores the
+ * replaced values together with the period they were valid in. The values that are currently valid are not part of
+ * the history; they live on the {@link CarryDifficulty} itself.</p>
+ */
 @Getter
 @Entity(name = "carry_difficulty_history")
 @Table(name = "carry_difficulty_history", schema = "dungeon-hub")
@@ -55,7 +63,14 @@ public class CarryDifficultyHistory {
         this.dateTo = dateTo;
     }
 
+    /**
+     * @return whether {@code instant} lies in this period; {@code dateFrom} is inclusive, {@code dateTo} is exclusive
+     */
     public boolean includes(Instant instant) {
         return !instant.isBefore(dateFrom) && instant.isBefore(dateTo);
+    }
+
+    public long calculateTotalPrice(int amount) {
+        return CarryDifficultyModel.Companion.calculateTotalPrice(amount, bulkPrice, bulkAmount, price);
     }
 }

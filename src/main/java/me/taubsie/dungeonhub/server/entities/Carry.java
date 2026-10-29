@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.dungeonhub.model.carry.CarryModel;
-import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
@@ -97,10 +96,5 @@ public class Carry implements net.dungeonhub.structure.entity.Entity<CarryModel>
 
     public long calculateTotalPrice() {
         return carryDifficulty.calculateTotalPrice(amount);
-    }
-
-    public long calculateTotalPrice(CarryDifficultyHistory history) {
-        return CarryDifficultyModel.Companion.calculateTotalPrice(
-                amount, history.getBulkPrice(), history.getBulkAmount(), history.getPrice());
     }
 }
