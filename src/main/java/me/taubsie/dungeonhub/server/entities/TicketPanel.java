@@ -101,6 +101,14 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     private String userTranscriptDm;
 
     @Getter
+    @Column(name = "open_ticket_limit")
+    private Integer openTicketLimit;
+
+    @Getter
+    @Column(name = "closed_ticket_limit")
+    private Integer closedTicketLimit;
+
+    @Getter
     @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
     private List<TicketPanelForm> formQuestions = new ArrayList<>();
@@ -211,6 +219,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
             TranscriptTarget deleteTranscriptTarget,
             String userTranscriptDm,
             List<TicketPanelFormModel> formQuestions,
+            Integer openTicketLimit,
+            Integer closedTicketLimit,
             List<DiscordRole> supportRoles,
             List<DiscordRole> additionalRoles,
             List<Long> openCategories,
@@ -242,6 +252,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.closeTranscriptTarget = closeTranscriptTarget;
         this.deleteTranscriptTarget = deleteTranscriptTarget;
         this.userTranscriptDm = userTranscriptDm;
+        this.setOpenTicketLimit(openTicketLimit);
+        this.setClosedTicketLimit(closedTicketLimit);
 
         this.setFormQuestions(formQuestions);
 
@@ -260,6 +272,20 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.claimerDeniedPermissions = claimerDeniedPermissions;
         this.everyoneAllowedPermissions = everyoneAllowedPermissions;
         this.everyoneDeniedPermissions = everyoneDeniedPermissions;
+    }
+
+    /**
+     * Limits below 1 don't make sense, so they're treated as "no limit".
+     */
+    public void setOpenTicketLimit(Integer openTicketLimit) {
+        this.openTicketLimit = openTicketLimit != null && openTicketLimit > 0 ? openTicketLimit : null;
+    }
+
+    /**
+     * Limits below 1 don't make sense, so they're treated as "no limit".
+     */
+    public void setClosedTicketLimit(Integer closedTicketLimit) {
+        this.closedTicketLimit = closedTicketLimit != null && closedTicketLimit > 0 ? closedTicketLimit : null;
     }
 
     public void setFormQuestions(List<TicketPanelFormModel> formQuestions) {
@@ -333,6 +359,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 deleteTranscriptTarget,
                 userTranscriptDm,
                 formQuestions.stream().sorted(Comparator.comparingInt(TicketPanelForm::getOrdinal)).map(TicketPanelForm::toModel).toList(),
+                openTicketLimit,
+                closedTicketLimit,
                 relatedCarryTier != null ? relatedCarryTier.toModel() : null,
                 relatedCarryDifficulty != null ? relatedCarryDifficulty.toModel() : null,
                 supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),

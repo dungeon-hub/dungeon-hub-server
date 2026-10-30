@@ -45,6 +45,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
     private TranscriptTarget deleteTranscriptTarget;
     private String userTranscriptDm;
     private List<TicketPanelFormModel> formQuestions;
+    private Integer openTicketLimit;
+    private Integer closedTicketLimit;
 
     private List<Long> openCategories;
     private List<Long> closedCategories;
@@ -78,7 +80,7 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
 
     @Override
     public @NonNull TicketPanel toEntity() {
-        return new TicketPanel(name, displayName, emoji, discordServer, closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel, ticketMessage, requiresLinking, closeTranscriptTarget, deleteTranscriptTarget, userTranscriptDm, formQuestions, supportRoles, additionalRoles, openCategories, closedCategories, supportTeamAllowedPermissions, supportTeamDeniedPermissions, additionalRolesAllowedPermissions, additionalRolesDeniedPermissions, creatorAllowedPermissions, creatorDeniedPermissions, claimerAllowedPermissions, claimerDeniedPermissions, everyoneAllowedPermissions, everyoneDeniedPermissions);
+        return new TicketPanel(name, displayName, emoji, discordServer, closeable, closeConfirmation, claimable, openChannelName, claimedChannelName, closedChannelName, transcriptChannel, ticketMessage, requiresLinking, closeTranscriptTarget, deleteTranscriptTarget, userTranscriptDm, formQuestions, openTicketLimit, closedTicketLimit, supportRoles, additionalRoles, openCategories, closedCategories, supportTeamAllowedPermissions, supportTeamDeniedPermissions, additionalRolesAllowedPermissions, additionalRolesDeniedPermissions, creatorAllowedPermissions, creatorDeniedPermissions, claimerAllowedPermissions, claimerDeniedPermissions, everyoneAllowedPermissions, everyoneDeniedPermissions);
     }
 
     @Override
@@ -118,6 +120,8 @@ public class TicketPanelInitializeModel implements InitializeModel<TicketPanel, 
                 ticketPanelCreationModel.getDeleteTranscriptTarget() != null ? ticketPanelCreationModel.getDeleteTranscriptTarget() : TranscriptTarget.TranscriptChannel,
                 ticketPanelCreationModel.getUserTranscriptDm(),
                 ticketPanelCreationModel.getFormQuestions() != null ? ticketPanelCreationModel.getFormQuestions() : new ArrayList<>(),
+                ticketPanelCreationModel.getOpenTicketLimit(),
+                ticketPanelCreationModel.getClosedTicketLimit(),
                 ticketPanelCreationModel.getOpenCategories() != null ? ticketPanelCreationModel.getOpenCategories() : new ArrayList<>(),
                 ticketPanelCreationModel.getClosedCategories() != null ? ticketPanelCreationModel.getClosedCategories() : new ArrayList<>(),
                 supportTeamAllowedPermissions,

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.model.TicketInitializeModel;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.enums.TicketState;
 import net.dungeonhub.model.ticket.TicketCreationModel;
 import net.dungeonhub.model.ticket.TicketModel;
 import net.dungeonhub.model.ticket.TicketUpdateModel;
@@ -48,6 +49,16 @@ public class TicketController {
         return ticketService.loadEntitiesByTicketPanel(ticketPanel).stream()
                 .map(Ticket::toModel)
                 .toList();
+    }
+
+    @GetMapping("count")
+    public long countTicketsByUser(@PathVariable("server") long serverId, @PathVariable("ticket-panel") long ticketPanelId, @RequestParam("user") long userId, @RequestParam("state") TicketState state) {
+        DiscordServer discordServer = discordServerService.getOrCreate(serverId);
+
+        TicketPanel ticketPanel = ticketPanelService.loadEntityById(discordServer, ticketPanelId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        return ticketService.countTicketsByUser(ticketPanel, userId, state);
     }
 
     @PostMapping
