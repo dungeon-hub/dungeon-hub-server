@@ -1,11 +1,15 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTierInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTierRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_tier.CarryTierCreationModel;
 import net.dungeonhub.model.carry_tier.CarryTierModel;
@@ -23,6 +27,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class CarryTierService implements EntityService<CarryTier, CarryTierModel, CarryTierCreationModel, CarryTierInitializeModel, CarryTierUpdateModel> {
     private final CarryTierRepository carryTierRepository;
+    private final ChangePublisher changePublisher;
 
     @Override
     public @NotNull Optional<CarryTier> loadEntityById(long id) {
@@ -49,25 +54,35 @@ public class CarryTierService implements EntityService<CarryTier, CarryTierModel
 
     @Override
     public @NotNull CarryTier createEntity(CarryTierInitializeModel initalizationModel) {
-        return carryTierRepository.save(initalizationModel.toEntity());
+        return saveEntity(initalizationModel.toEntity());
     }
 
     public void delete(CarryTier carryTier) {
+        CarryTierModel model = carryTier.toModel();
         carryTierRepository.delete(carryTier);
+        publishChange(ChangeAction.Deleted, model);
     }
 
     @Override
     public boolean delete(long id) {
         return carryTierRepository.findById(id).map(entity ->
         {
-            carryTierRepository.delete(entity);
+            delete(entity);
             return true;
         }).orElse(false);
     }
 
     @Override
     public @NotNull CarryTier saveEntity(@NotNull CarryTier entity) {
-        return carryTierRepository.save(entity);
+        boolean created = entity.getId() == 0;
+        CarryTier carryTier = carryTierRepository.save(entity);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, carryTier.toModel());
+        return carryTier;
+    }
+
+    private void publishChange(ChangeAction action, CarryTierModel carryTier) {
+        long serverId = carryTier.getCarryType().getServer().getId();
+        changePublisher.publish(ChangeEventType.CarryTier, action, serverId, carryTier, ChangeAudience.server(serverId));
     }
 
     @Override

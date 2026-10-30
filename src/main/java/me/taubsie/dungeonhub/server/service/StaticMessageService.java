@@ -1,10 +1,14 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.StaticMessage;
 import me.taubsie.dungeonhub.server.model.StaticMessageInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.StaticMessageRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.enums.StaticMessageType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.static_message.StaticMessageCreationModel;
@@ -23,6 +27,7 @@ import java.util.function.Function;
 @AllArgsConstructor
 public class StaticMessageService implements EntityService<StaticMessage, StaticMessageModel, StaticMessageCreationModel, StaticMessageInitializeModel, StaticMessageUpdateModel> {
     private final StaticMessageRepository staticMessageRepository;
+    private final ChangePublisher changePublisher;
 
     @Override
     public @NonNull Optional<StaticMessage> loadEntityById(long id) {
@@ -60,18 +65,28 @@ public class StaticMessageService implements EntityService<StaticMessage, Static
     public boolean delete(long id) {
         return staticMessageRepository.findById(id).map(entity ->
         {
-            staticMessageRepository.delete(entity);
+            delete(entity);
             return true;
         }).orElse(false);
     }
 
     public void delete(StaticMessage staticMessage) {
+        StaticMessageModel model = staticMessage.toModel();
         staticMessageRepository.delete(staticMessage);
+        publishChange(ChangeAction.Deleted, model);
     }
 
     @Override
     public @NonNull StaticMessage saveEntity(@NonNull StaticMessage staticMessage) {
-        return staticMessageRepository.save(staticMessage);
+        boolean created = staticMessage.getId() == 0;
+        StaticMessage savedStaticMessage = staticMessageRepository.save(staticMessage);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, savedStaticMessage.toModel());
+        return savedStaticMessage;
+    }
+
+    private void publishChange(ChangeAction action, StaticMessageModel staticMessage) {
+        long serverId = staticMessage.getServer().getId();
+        changePublisher.publish(ChangeEventType.StaticMessage, action, serverId, staticMessage, ChangeAudience.server(serverId));
     }
 
     @Override

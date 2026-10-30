@@ -2,9 +2,13 @@ package me.taubsie.dungeonhub.server.service;
 
 import com.google.common.collect.Iterables;
 import lombok.NoArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.repositories.ScoreRepository;
 import me.taubsie.dungeonhub.server.repositories.ScoreSumRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.enums.ScoreResetType;
 import net.dungeonhub.enums.ScoreType;
 import net.dungeonhub.model.score.ScoreResetModel;
@@ -26,12 +30,14 @@ public class ScoreService {
     private static final int PAGE_SIZE = 10;
     private ScoreRepository scoreRepository;
     private ScoreSumRepository scoreSumRepository;
+    private ChangePublisher changePublisher;
 
     @Autowired
     @Lazy
-    public ScoreService(ScoreRepository scoreRepository, ScoreSumRepository scoreSumRepository) {
+    public ScoreService(ScoreRepository scoreRepository, ScoreSumRepository scoreSumRepository, ChangePublisher changePublisher) {
         this.scoreRepository = scoreRepository;
         this.scoreSumRepository = scoreSumRepository;
+        this.changePublisher = changePublisher;
     }
 
     public List<Score> getAll() {
@@ -112,17 +118,20 @@ public class ScoreService {
     }
 
     public Score updateScore(DiscordUser carrier, CarryType carryType, ScoreType scoreType, long amount) {
-        Score score = scoreRepository.findScoreByCarrierAndCarryTypeAndId_ScoreType(carrier, carryType, scoreType)
-                .orElseGet(() -> new Score(
-                        new ScoreId(carrier.getId(), carryType.getId(), scoreType),
-                        carryType,
-                        carrier,
-                        0L
-                ));
+        Optional<Score> existingScore = scoreRepository.findScoreByCarrierAndCarryTypeAndId_ScoreType(carrier, carryType, scoreType);
+
+        Score score = existingScore.orElseGet(() -> new Score(
+                new ScoreId(carrier.getId(), carryType.getId(), scoreType),
+                carryType,
+                carrier,
+                0L
+        ));
 
         score.setScoreAmount(score.getScoreAmount() + amount);
 
-        return scoreRepository.save(score);
+        Score savedScore = scoreRepository.save(score);
+        publishChange(existingScore.isPresent() ? ChangeAction.Updated : ChangeAction.Created, savedScore);
+        return savedScore;
     }
 
     public ScoreResetModel resetScores(CarryType carryType, ScoreResetType scoreResetType) {
@@ -131,6 +140,7 @@ public class ScoreService {
         scores = applyScoreResetType(scores, scoreResetType);
 
         List<Score> updatedScores = scoreRepository.saveAll(scores);
+        updatedScores.forEach(score -> publishChange(ChangeAction.Updated, score));
 
         return new ScoreResetModel(
                 updatedScores.stream().filter(score -> score.getId().getScoreType() == ScoreType.Default).count(),
@@ -151,6 +161,11 @@ public class ScoreService {
             score.setScoreAmount(0L);
             return score;
         }).toList();
+    }
+
+    private void publishChange(ChangeAction action, Score score) {
+        long serverId = score.getCarryType().getDiscordServer().getId();
+        changePublisher.publish(ChangeEventType.Score, action, serverId, score.toModel(), ChangeAudience.server(serverId));
     }
 
     public long getTotalScore(DiscordServer discordServer) {

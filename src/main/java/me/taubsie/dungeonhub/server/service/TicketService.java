@@ -1,11 +1,15 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.TicketRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.enums.TicketState;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.stats.GlobalTicketStatsModel;
@@ -14,10 +18,12 @@ import net.dungeonhub.model.ticket.TicketModel;
 import net.dungeonhub.model.ticket.TicketUpdateModel;
 import net.dungeonhub.structure.entity.EntityService;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -28,6 +34,7 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
     private final TicketRepository ticketRepository;
     private final DiscordChannelService discordChannelService;
     private final DiscordUserService discordUserService;
+    private final ChangePublisher changePublisher;
 
     @Override
     public @NonNull Optional<Ticket> loadEntityById(long id) {
@@ -87,18 +94,45 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
     public boolean delete(long id) {
         return ticketRepository.findById(id).map(entity ->
         {
-            ticketRepository.delete(entity);
+            delete(entity);
             return true;
         }).orElse(false);
     }
 
     public void delete(Ticket ticket) {
+        TicketModel model = ticket.toModel();
         ticketRepository.delete(ticket);
+        publishChange(ChangeAction.Deleted, model, null);
     }
 
     @Override
     public @NonNull Ticket saveEntity(@NonNull Ticket ticket) {
-        return ticketRepository.save(ticket);
+        return saveEntity(ticket, null);
+    }
+
+    /**
+     * Overridden to also inform the previous claimer of the ticket, so they know that the ticket isn't claimed by them anymore.
+     */
+    @Override
+    public @NonNull Ticket update(@NonNull Ticket ticket, @NonNull TicketUpdateModel ticketUpdateModel) {
+        Long previousClaimerId = ticket.getClaimer() != null ? ticket.getClaimer().getId() : null;
+
+        return saveEntity(updateEntity(ticket, ticketUpdateModel), previousClaimerId);
+    }
+
+    private Ticket saveEntity(Ticket ticket, @Nullable Long previousClaimerId) {
+        boolean created = ticket.getId() == 0;
+        Ticket savedTicket = ticketRepository.save(ticket);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, savedTicket.toModel(), previousClaimerId);
+        return savedTicket;
+    }
+
+    private void publishChange(ChangeAction action, TicketModel ticket, @Nullable Long previousClaimerId) {
+        long serverId = ticket.getTicketPanel().getDiscordServer().getId();
+        Long claimerId = ticket.getClaimer() != null ? ticket.getClaimer().getId() : null;
+
+        changePublisher.publish(ChangeEventType.Ticket, action, serverId, ticket,
+                ChangeAudience.server(serverId).withUsers(Arrays.asList(claimerId, previousClaimerId)));
     }
 
     @Override

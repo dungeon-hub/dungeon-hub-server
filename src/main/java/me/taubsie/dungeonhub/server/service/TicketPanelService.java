@@ -2,11 +2,15 @@ package me.taubsie.dungeonhub.server.service;
 
 import dev.kord.common.entity.Permissions;
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.TicketPanel;
 import me.taubsie.dungeonhub.server.model.TicketPanelInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.TicketPanelRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.enums.TicketPermissionCandidate;
 import net.dungeonhub.enums.TicketPermissionType;
 import net.dungeonhub.exceptions.EntityUnknownException;
@@ -32,6 +36,7 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
     private final DiscordRoleService discordRoleService;
     private final CarryTierService carryTierService;
     private final CarryDifficultyService carryDifficultyService;
+    private final ChangePublisher changePublisher;
 
     @Override
     public @NonNull Optional<TicketPanel> loadEntityById(long id) {
@@ -61,18 +66,28 @@ public class TicketPanelService implements EntityService<TicketPanel, TicketPane
     public boolean delete(long id) {
         return ticketPanelRepository.findById(id).map(entity ->
         {
-            ticketPanelRepository.delete(entity);
+            delete(entity);
             return true;
         }).orElse(false);
     }
 
     public void delete(TicketPanel ticketPanel) {
+        TicketPanelModel model = ticketPanel.toModel();
         ticketPanelRepository.delete(ticketPanel);
+        publishChange(ChangeAction.Deleted, model);
     }
 
     @Override
     public @NonNull TicketPanel saveEntity(@NonNull TicketPanel ticketPanel) {
-        return ticketPanelRepository.save(ticketPanel);
+        boolean created = ticketPanel.getId() == 0;
+        TicketPanel savedTicketPanel = ticketPanelRepository.save(ticketPanel);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, savedTicketPanel.toModel());
+        return savedTicketPanel;
+    }
+
+    private void publishChange(ChangeAction action, TicketPanelModel ticketPanel) {
+        long serverId = ticketPanel.getDiscordServer().getId();
+        changePublisher.publish(ChangeEventType.TicketPanel, action, serverId, ticketPanel, ChangeAudience.server(serverId));
     }
 
     @Override

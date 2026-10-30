@@ -1,10 +1,14 @@
 package me.taubsie.dungeonhub.server.service;
 
 import lombok.NoArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.CarryType;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryTypeInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryTypeRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_type.CarryTypeCreationModel;
 import net.dungeonhub.model.carry_type.CarryTypeModel;
@@ -22,10 +26,12 @@ import java.util.function.Function;
 @NoArgsConstructor
 public class CarryTypeService implements EntityService<CarryType, CarryTypeModel, CarryTypeCreationModel, CarryTypeInitializeModel, CarryTypeUpdateModel> {
     private CarryTypeRepository carryTypeRepository;
+    private ChangePublisher changePublisher;
 
     @Autowired
-    public CarryTypeService(CarryTypeRepository carryTypeRepository) {
+    public CarryTypeService(CarryTypeRepository carryTypeRepository, ChangePublisher changePublisher) {
         this.carryTypeRepository = carryTypeRepository;
+        this.changePublisher = changePublisher;
     }
 
     @Override
@@ -56,13 +62,15 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
     public boolean delete(long id) {
         return carryTypeRepository.findById(id).map(entity ->
         {
-            carryTypeRepository.delete(entity);
+            delete(entity);
             return true;
         }).orElse(false);
     }
 
     public void delete(CarryType carryType) {
+        CarryTypeModel model = carryType.toModel();
         carryTypeRepository.delete(carryType);
+        publishChange(ChangeAction.Deleted, model);
     }
 
     @Override
@@ -77,7 +85,15 @@ public class CarryTypeService implements EntityService<CarryType, CarryTypeModel
 
     @Override
     public @NotNull CarryType saveEntity(@NotNull CarryType carryType) {
-        return carryTypeRepository.save(carryType);
+        boolean created = carryType.getId() == 0;
+        CarryType savedCarryType = carryTypeRepository.save(carryType);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, savedCarryType.toModel());
+        return savedCarryType;
+    }
+
+    private void publishChange(ChangeAction action, CarryTypeModel carryType) {
+        long serverId = carryType.getServer().getId();
+        changePublisher.publish(ChangeEventType.CarryType, action, serverId, carryType, ChangeAudience.server(serverId));
     }
 
     @Override

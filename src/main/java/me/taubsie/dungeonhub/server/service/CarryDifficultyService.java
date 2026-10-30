@@ -1,10 +1,14 @@
 package me.taubsie.dungeonhub.server.service;
 
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyCreationModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
@@ -23,10 +27,12 @@ import java.util.stream.Stream;
 public class CarryDifficultyService implements EntityService<CarryDifficulty, CarryDifficultyModel,
         CarryDifficultyCreationModel, CarryDifficultyInitializeModel, CarryDifficultyUpdateModel> {
     private final CarryDifficultyRepository carryDifficultyRepository;
+    private final ChangePublisher changePublisher;
 
     @Autowired
-    public CarryDifficultyService(CarryDifficultyRepository carryDifficultyRepository) {
+    public CarryDifficultyService(CarryDifficultyRepository carryDifficultyRepository, ChangePublisher changePublisher) {
         this.carryDifficultyRepository = carryDifficultyRepository;
+        this.changePublisher = changePublisher;
     }
 
     @Override
@@ -55,25 +61,35 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
 
     @Override
     public @NotNull CarryDifficulty createEntity(CarryDifficultyInitializeModel initalizationModel) {
-        return carryDifficultyRepository.save(initalizationModel.toEntity());
+        return saveEntity(initalizationModel.toEntity());
     }
 
     public void delete(CarryDifficulty carryDifficulty) {
+        CarryDifficultyModel model = carryDifficulty.toModel();
         carryDifficultyRepository.delete(carryDifficulty);
+        publishChange(ChangeAction.Deleted, model);
     }
 
     @Override
     public boolean delete(long id) {
         return carryDifficultyRepository.findById(id).map(entity ->
         {
-            carryDifficultyRepository.delete(entity);
+            delete(entity);
             return true;
         }).orElse(false);
     }
 
     @Override
     public @NotNull CarryDifficulty saveEntity(@NotNull CarryDifficulty entity) {
-        return carryDifficultyRepository.save(entity);
+        boolean created = entity.getId() == 0;
+        CarryDifficulty carryDifficulty = carryDifficultyRepository.save(entity);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, carryDifficulty.toModel());
+        return carryDifficulty;
+    }
+
+    private void publishChange(ChangeAction action, CarryDifficultyModel carryDifficulty) {
+        long serverId = carryDifficulty.getCarryTier().getCarryType().getServer().getId();
+        changePublisher.publish(ChangeEventType.CarryDifficulty, action, serverId, carryDifficulty, ChangeAudience.server(serverId));
     }
 
     @Override

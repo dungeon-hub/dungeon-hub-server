@@ -2,12 +2,16 @@ package me.taubsie.dungeonhub.server.service;
 
 import com.google.common.collect.Iterables;
 import lombok.AllArgsConstructor;
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Reputation;
 import me.taubsie.dungeonhub.server.entities.ReputationSum;
 import me.taubsie.dungeonhub.server.model.ReputationInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.ReputationRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.reputation.ReputationCreationModel;
 import net.dungeonhub.model.reputation.ReputationModel;
@@ -29,6 +33,7 @@ import java.util.function.Function;
 public class ReputationService implements EntityService<Reputation, ReputationModel, ReputationCreationModel, ReputationInitializeModel, ReputationUpdateModel> {
     private static final int PAGE_SIZE = 10;
     private final ReputationRepository reputationRepository;
+    private final ChangePublisher changePublisher;
 
     @NotNull
     @Override
@@ -62,7 +67,9 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
     public boolean delete(long id) {
         return reputationRepository.findById(id).map(entity ->
         {
+            ReputationModel model = entity.toModel();
             reputationRepository.delete(entity);
+            publishChange(ChangeAction.Deleted, entity.getDiscordServer().getId(), model);
             return true;
         }).orElse(false);
     }
@@ -70,7 +77,14 @@ public class ReputationService implements EntityService<Reputation, ReputationMo
     @NotNull
     @Override
     public Reputation saveEntity(@NotNull Reputation reputation) {
-        return reputationRepository.save(reputation);
+        boolean created = reputation.getId() == null;
+        Reputation savedReputation = reputationRepository.save(reputation);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, savedReputation.getDiscordServer().getId(), savedReputation.toModel());
+        return savedReputation;
+    }
+
+    private void publishChange(ChangeAction action, long serverId, ReputationModel reputation) {
+        changePublisher.publish(ChangeEventType.Reputation, action, serverId, reputation, ChangeAudience.server(serverId));
     }
 
     @Nullable
