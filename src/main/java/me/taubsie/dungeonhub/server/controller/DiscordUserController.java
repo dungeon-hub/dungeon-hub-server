@@ -5,6 +5,7 @@ import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.entities.Ticket;
 import me.taubsie.dungeonhub.server.model.DiscordUserInitializeModel;
 import me.taubsie.dungeonhub.server.service.*;
+import net.dungeonhub.model.carry.CarryCountsModel;
 import net.dungeonhub.model.discord_user.DiscordUserCreationModel;
 import net.dungeonhub.model.discord_user.DiscordUserModel;
 import net.dungeonhub.model.discord_user.DiscordUserUpdateModel;
@@ -79,6 +80,14 @@ public class DiscordUserController {
         DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
 
         return carryService.countCarries(server, carrier);
+    }
+
+    @GetMapping("{id}/carries/{server}/summary")
+    public CarryCountsModel getCarryCounts(@PathVariable long id, @PathVariable("server") long serverId) {
+        DiscordServer server = discordServerService.getOrCreate(serverId);
+        DiscordUser carrier = discordUserService.loadEntityOrCreate(id);
+
+        return carryService.getCarryCounts(server, carrier);
     }
 
     @PostMapping
