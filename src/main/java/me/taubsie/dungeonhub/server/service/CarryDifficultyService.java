@@ -1,6 +1,7 @@
 package me.taubsie.dungeonhub.server.service;
 
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
+import me.taubsie.dungeonhub.server.entities.CarryDifficultyBulkPrice;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
@@ -100,20 +101,8 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
             carryDifficulty.setThumbnailUrl(carryDifficultyUpdateModel.getThumbnailUrl());
         }
 
-        if(carryDifficultyUpdateModel.getResetBulkPrice()) {
-            carryDifficulty.setBulkPrice(null);
-        }
-
-        if(carryDifficultyUpdateModel.getBulkPrice() != null) {
-            carryDifficulty.setBulkPrice(carryDifficultyUpdateModel.getBulkPrice());
-        }
-
-        if(carryDifficultyUpdateModel.getResetBulkAmount()) {
-            carryDifficulty.setBulkAmount(null);
-        }
-
-        if(carryDifficultyUpdateModel.getBulkAmount() != null) {
-            carryDifficulty.setBulkAmount(carryDifficultyUpdateModel.getBulkAmount());
+        if(carryDifficultyUpdateModel.getBulkPrices() != null) {
+            carryDifficulty.setBulkPrices(CarryDifficultyBulkPrice.fromModels(carryDifficultyUpdateModel.getBulkPrices()));
         }
 
         if(carryDifficultyUpdateModel.getResetPriceName()) {
