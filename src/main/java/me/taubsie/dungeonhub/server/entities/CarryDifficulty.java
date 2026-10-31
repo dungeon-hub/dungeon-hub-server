@@ -102,11 +102,10 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
     }
 
     public void setBulkPrices(List<CarryDifficultyBulkPrice> bulkPrices) {
-        this.bulkPrices.clear();
+        List<CarryDifficultyBulkPrice> newBulkPrices = bulkPrices == null ? List.of() : List.copyOf(bulkPrices);
 
-        if (bulkPrices != null) {
-            this.bulkPrices.addAll(bulkPrices);
-        }
+        this.bulkPrices.clear();
+        this.bulkPrices.addAll(newBulkPrices);
     }
 
     private List<BulkPriceModel> getBulkPriceModels() {
