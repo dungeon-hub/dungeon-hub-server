@@ -12,6 +12,7 @@ import net.dungeonhub.enums.ChangeAction;
 import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.enums.TicketState;
 import net.dungeonhub.exceptions.EntityUnknownException;
+import net.dungeonhub.exceptions.InvalidUpdateException;
 import net.dungeonhub.model.stats.GlobalTicketStatsModel;
 import net.dungeonhub.model.ticket.TicketCreationModel;
 import net.dungeonhub.model.ticket.TicketModel;
@@ -117,7 +118,14 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
     public @NonNull Ticket update(@NonNull Ticket ticket, @NonNull TicketUpdateModel ticketUpdateModel) {
         Long previousClaimerId = ticket.getClaimer() != null ? ticket.getClaimer().getId() : null;
 
-        return saveEntity(updateEntity(ticket, ticketUpdateModel), previousClaimerId);
+        // the same exception handling as in EntityService#update
+        try {
+            return saveEntity(updateEntity(ticket, ticketUpdateModel), previousClaimerId);
+        } catch (NumberFormatException exception) {
+            throw new InvalidUpdateException("Invalid numeric value in update model", exception);
+        } catch (UnsupportedOperationException exception) {
+            throw new InvalidUpdateException("Unsupported operation in update model", exception);
+        }
     }
 
     private Ticket saveEntity(Ticket ticket, @Nullable Long previousClaimerId) {

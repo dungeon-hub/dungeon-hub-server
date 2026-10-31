@@ -177,6 +177,46 @@ class ChangeStreamIntegrationTest {
     }
 
     @Test
+    void reconnectingClientsReceiveTheChangesTheyMissed() throws Exception {
+        EventStream stream = connect("manager", "");
+        String staticMessagePath = "/api/v1/server/" + SERVER_ID + "/static-message";
+
+        request("POST", staticMessagePath, """
+                {"channelId": 6, "staticMessageType": "TicketPanel", "objectIds": [], "embedOverride": null}""");
+        Event received = stream.next();
+        assertNotNull(received.id());
+        stream.close();
+
+        // changes while the client is disconnected, including one it isn't allowed to see
+        request("POST", "/api/v1/server/" + OTHER_SERVER_ID + "/static-message", """
+                {"channelId": 7, "staticMessageType": "TicketPanel", "objectIds": [], "embedOverride": null}""");
+        JsonObject missed = request("POST", staticMessagePath, """
+                {"channelId": 8, "staticMessageType": "TicketPanel", "objectIds": [], "embedOverride": null}""");
+
+        EventStream resumed = connect("manager", "", received.id(), true);
+
+        Event replayed = resumed.next();
+        assertEquals(missed, replayed.data().getAsJsonObject("data"));
+        resumed.assertNoEvent();
+    }
+
+    @Test
+    void unknownEventIdsCantBeResumed() throws Exception {
+        connect("bot", "", "some-old-server:5", false);
+        connect("bot", "", "garbage", false);
+    }
+
+    @Test
+    void unknownTypesAreRejected() throws Exception {
+        HttpResponse<Void> response = httpClient.send(HttpRequest.newBuilder(uri("/api/v1/changes?types=SomeFutureType"))
+                .header("Authorization", "Bearer bot")
+                .header("Accept", "text/event-stream")
+                .build(), HttpResponse.BodyHandlers.discarding());
+
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
     void heartbeatsKeepTheConnectionAlive() throws Exception {
         EventStream stream = connect("bot", "");
 
@@ -186,19 +226,29 @@ class ChangeStreamIntegrationTest {
     }
 
     private EventStream connect(String token, String query) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(uri("/api/v1/changes" + query))
-                .header("Authorization", "Bearer " + token)
-                .header("Accept", "text/event-stream")
-                .build();
+        return connect(token, query, null, false);
+    }
 
-        HttpResponse<Stream<String>> response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
+    private EventStream connect(String token, String query, String lastEventId, boolean expectResumed) throws Exception {
+        HttpRequest.Builder request = HttpRequest.newBuilder(uri("/api/v1/changes" + query))
+                .header("Authorization", "Bearer " + token)
+                .header("Accept", "text/event-stream");
+
+        if (lastEventId != null) {
+            request.header("Last-Event-ID", lastEventId);
+        }
+
+        HttpResponse<Stream<String>> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofLines());
         assertEquals(200, response.statusCode());
         assertTrue(response.headers().firstValue("Content-Type").orElseThrow().startsWith("text/event-stream"));
 
         EventStream stream = new EventStream(response.body());
         streams.add(stream);
-        // the initial comment marks the point from which on all changes are received
-        assertEquals(":connected", stream.nextLine(line -> line.startsWith(":")));
+        // the connected event marks the point from which on all changes are received
+        Event connected = stream.next();
+        assertEquals("Connected", connected.name());
+        assertNull(connected.id());
+        assertEquals(expectResumed, connected.data().get("resumed").getAsBoolean());
         return stream;
     }
 
@@ -231,7 +281,7 @@ class ChangeStreamIntegrationTest {
                 .build();
     }
 
-    private record Event(String name, JsonObject data) {
+    private record Event(String id, String name, JsonObject data) {
     }
 
     /**
@@ -257,11 +307,27 @@ class ChangeStreamIntegrationTest {
             reader.start();
         }
 
+        /**
+         * Reads the next event, skipping comments like heartbeats and the empty lines between events.
+         */
         Event next() throws InterruptedException {
-            String name = nextLine(line -> line.startsWith("event:")).substring("event:".length());
-            String data = nextLine(line -> line.startsWith("data:")).substring("data:".length());
+            String id = null;
+            String name = null;
 
-            return new Event(name, JsonParser.parseString(data).getAsJsonObject());
+            String line = nextLine(candidate -> !candidate.isEmpty() && !candidate.startsWith(":"));
+            while (!line.startsWith("data:")) {
+                if (line.startsWith("id:")) {
+                    id = line.substring("id:".length());
+                } else if (line.startsWith("event:")) {
+                    name = line.substring("event:".length());
+                } else {
+                    fail("Unexpected line: " + line);
+                }
+
+                line = nextLine(candidate -> !candidate.isEmpty() && !candidate.startsWith(":"));
+            }
+
+            return new Event(id, name, JsonParser.parseString(line.substring("data:".length())).getAsJsonObject());
         }
 
         String nextLine(java.util.function.Predicate<String> filter) throws InterruptedException {
