@@ -1,5 +1,7 @@
 package me.taubsie.dungeonhub.server.service;
 
+import me.taubsie.dungeonhub.server.changes.ChangeAudience;
+import me.taubsie.dungeonhub.server.changes.ChangePublisher;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryQueue;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
@@ -7,6 +9,8 @@ import me.taubsie.dungeonhub.server.model.CarryQueueInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import me.taubsie.dungeonhub.server.repositories.CarryQueueRepository;
 import me.taubsie.dungeonhub.server.repositories.DiscordUserRepository;
+import net.dungeonhub.enums.ChangeAction;
+import net.dungeonhub.enums.ChangeEventType;
 import net.dungeonhub.exceptions.EntityUnknownException;
 import net.dungeonhub.model.carry_queue.CarryQueueCreationModel;
 import net.dungeonhub.model.carry_queue.CarryQueueModel;
@@ -27,12 +31,14 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
     private final CarryQueueRepository carryQueueRepository;
     private final DiscordUserRepository discordUserRepository;
     private final CarryDifficultyRepository carryDifficultyRepository;
+    private final ChangePublisher changePublisher;
 
     @Autowired
-    public CarryQueueService(CarryQueueRepository carryQueueRepository, DiscordUserRepository discordUserRepository, CarryDifficultyRepository carryDifficultyRepository) {
+    public CarryQueueService(CarryQueueRepository carryQueueRepository, DiscordUserRepository discordUserRepository, CarryDifficultyRepository carryDifficultyRepository, ChangePublisher changePublisher) {
         this.carryQueueRepository = carryQueueRepository;
         this.discordUserRepository = discordUserRepository;
         this.carryDifficultyRepository = carryDifficultyRepository;
+        this.changePublisher = changePublisher;
     }
 
     public CarryQueue getCarryQueue(Long id) {
@@ -40,7 +46,13 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
     }
 
     public void deleteCarryQueue(Long id) {
-        carryQueueRepository.deleteById(id);
+        delete(id);
+    }
+
+    public void delete(CarryQueue carryQueue) {
+        CarryQueueModel model = carryQueue.toModel();
+        carryQueueRepository.delete(carryQueue);
+        publishChange(ChangeAction.Deleted, model);
     }
 
     public List<CarryQueue> getUnnotifiesQueues() {
@@ -66,14 +78,23 @@ public class CarryQueueService implements EntityService<CarryQueue, CarryQueueMo
     public boolean delete(long id) {
         return carryQueueRepository.findById(id).map(carryQueue ->
         {
-            carryQueueRepository.delete(carryQueue);
+            delete(carryQueue);
             return true;
         }).orElse(false);
     }
 
     @Override
     public @NotNull CarryQueue saveEntity(@NotNull CarryQueue entity) {
-        return carryQueueRepository.save(entity);
+        boolean created = entity.getId() == 0;
+        CarryQueue carryQueue = carryQueueRepository.save(entity);
+        publishChange(created ? ChangeAction.Created : ChangeAction.Updated, carryQueue.toModel());
+        return carryQueue;
+    }
+
+    // queues are only accessible for privileged clients through the REST API, so the same applies to their changes
+    private void publishChange(ChangeAction action, CarryQueueModel carryQueue) {
+        long serverId = carryQueue.getCarryType().getServer().getId();
+        changePublisher.publish(ChangeEventType.CarryQueue, action, serverId, carryQueue, ChangeAudience.privileged());
     }
 
     @Override
