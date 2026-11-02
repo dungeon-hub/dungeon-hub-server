@@ -30,24 +30,6 @@
             <name>Maven Central</name>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
-
-        <repository>
-            <id>kordex-snapshots</id>
-            <name>KordEx (Snapshots)</name>
-            <url>https://repo.kordex.dev/snapshots</url>
-        </repository>
-
-        <repository>
-            <id>kordex-releases</id>
-            <name>KordEx (Releases)</name>
-            <url>https://repo.kordex.dev/releases</url>
-        </repository>
-
-        <repository>
-            <id>sonatype-snapshots-legacy</id>
-            <name>Sonatype Snapshots (Legacy)</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -122,7 +104,7 @@
         <dependency>
             <groupId>net.dungeon-hub.api</groupId>
             <artifactId>model</artifactId>
-            <version>0.7.2</version>
+            <version>0.8.0</version>
         </dependency>
 
         <!-- TODO find a way to just use the implementation of api model -->
@@ -202,20 +184,6 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>3.2.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>dev.kordex</groupId>
-            <artifactId>kord-extensions</artifactId>
-            <version>2.4.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>dev.kordex.i18n</groupId>
-            <artifactId>i18n</artifactId>
-            <version>1.1.1</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
