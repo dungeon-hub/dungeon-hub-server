@@ -78,6 +78,10 @@ public class TicketService implements EntityService<Ticket, TicketModel, TicketC
         return ticketRepository.countTicketsByTicketPanel_DiscordServer(discordServer);
     }
 
+    public long countTicketsByUser(TicketPanel ticketPanel, long userId, TicketState state) {
+        return ticketRepository.countTicketsByTicketPanelAndUser_IdAndState(ticketPanel, userId, state);
+    }
+
     @Override
     public @NonNull Ticket createEntity(@NonNull TicketInitializeModel ticketInitializeModel) {
         return saveEntity(ticketInitializeModel.toEntity());
