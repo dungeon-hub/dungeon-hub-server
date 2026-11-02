@@ -6,6 +6,7 @@ import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistory;
 import me.taubsie.dungeonhub.server.entities.DiscordServer;
 import me.taubsie.dungeonhub.server.entities.DiscordUser;
 import me.taubsie.dungeonhub.server.repositories.CarryRepository;
+import net.dungeonhub.model.carry.CarryCountsModel;
 import net.dungeonhub.model.stats.GlobalCarrierStatsModel;
 import net.dungeonhub.model.stats.GlobalCarryStatsModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,21 @@ public class CarryService {
 
     public int countCarries(DiscordServer server, DiscordUser user) {
         return carryRepository.countCarryByCarryDifficulty_CarryTier_CarryType_DiscordServerAndCarrier(server, user);
+    }
+
+    @Transactional(readOnly = true)
+    public CarryCountsModel getCarryCounts(DiscordServer server, DiscordUser user) {
+        Map<Long, Long> carriesByType = carryRepository.sumCarriesByCarryType(server, user).stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> ((Number) row[1]).longValue()
+                ));
+
+        return new CarryCountsModel(
+                countCarries(server, user),
+                carriesByType.values().stream().mapToLong(Long::longValue).sum(),
+                carriesByType
+        );
     }
 
     @Transactional(readOnly = true)
