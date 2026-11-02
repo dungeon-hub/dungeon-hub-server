@@ -1,16 +1,18 @@
 package me.taubsie.dungeonhub.server.entities;
 
-import dev.kord.common.entity.Permissions;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.taubsie.dungeonhub.server.converter.PermissionsConverter;
+import net.dungeonhub.enums.DiscordChannelPermission;
+import net.dungeonhub.enums.TicketAction;
 import net.dungeonhub.enums.TicketPermissionCandidate;
-import net.dungeonhub.enums.TicketPermissionType;
+import net.dungeonhub.enums.TicketPhase;
 import net.dungeonhub.enums.TranscriptTarget;
+import net.dungeonhub.model.ticket_panel.TicketCandidatePermissionsModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelFormModel;
 import net.dungeonhub.model.ticket_panel.TicketPanelModel;
+import net.dungeonhub.model.ticket_panel.TicketPanelPermissionsModel;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -101,6 +103,14 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     private String userTranscriptDm;
 
     @Getter
+    @Column(name = "open_ticket_limit")
+    private Integer openTicketLimit;
+
+    @Getter
+    @Column(name = "closed_ticket_limit")
+    private Integer closedTicketLimit;
+
+    @Getter
     @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
     private List<TicketPanelForm> formQuestions = new ArrayList<>();
@@ -139,55 +149,15 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
     @NotNull
     private List<TicketPanelClosedCategory> closedCategories = new ArrayList<>();
 
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "support_team_allowed_permissions")
-    private Permissions supportTeamAllowedPermissions;
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelActionPermission> actionPermissions = new ArrayList<>();
 
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "support_team_denied_permissions")
-    private Permissions supportTeamDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "additional_roles_allowed_permissions")
-    private Permissions additionalRolesAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "additional_roles_denied_permissions")
-    private Permissions additionalRolesDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "creator_allowed_permissions")
-    private Permissions creatorAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "creator_denied_permissions")
-    private Permissions creatorDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "claimer_allowed_permissions")
-    private Permissions claimerAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "claimer_denied_permissions")
-    private Permissions claimerDeniedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "everyone_allowed_permissions")
-    private Permissions everyoneAllowedPermissions;
-
-    @Setter
-    @Convert(converter = PermissionsConverter.class)
-    @Column(name = "everyone_denied_permissions")
-    private Permissions everyoneDeniedPermissions;
+    @Getter
+    @OneToMany(mappedBy = "ticketPanel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private List<TicketPanelChannelPermission> channelPermissions = new ArrayList<>();
 
     /**
      * Main constructor used by initialize models to create a fully configured ticket panel.
@@ -211,20 +181,13 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
             TranscriptTarget deleteTranscriptTarget,
             String userTranscriptDm,
             List<TicketPanelFormModel> formQuestions,
+            Integer openTicketLimit,
+            Integer closedTicketLimit,
             List<DiscordRole> supportRoles,
             List<DiscordRole> additionalRoles,
             List<Long> openCategories,
             List<Long> closedCategories,
-            Permissions supportTeamAllowedPermissions,
-            Permissions supportTeamDeniedPermissions,
-            Permissions additionalRolesAllowedPermissions,
-            Permissions additionalRolesDeniedPermissions,
-            Permissions creatorAllowedPermissions,
-            Permissions creatorDeniedPermissions,
-            Permissions claimerAllowedPermissions,
-            Permissions claimerDeniedPermissions,
-            Permissions everyoneAllowedPermissions,
-            Permissions everyoneDeniedPermissions
+            TicketPanelPermissionsModel permissions
     ) {
         this.name = name;
         this.displayName = displayName;
@@ -242,6 +205,8 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.closeTranscriptTarget = closeTranscriptTarget;
         this.deleteTranscriptTarget = deleteTranscriptTarget;
         this.userTranscriptDm = userTranscriptDm;
+        this.setOpenTicketLimit(openTicketLimit);
+        this.setClosedTicketLimit(closedTicketLimit);
 
         this.setFormQuestions(formQuestions);
 
@@ -250,16 +215,21 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
         this.setOpenCategories(openCategories);
         this.setClosedCategories(closedCategories);
 
-        this.supportTeamAllowedPermissions = supportTeamAllowedPermissions;
-        this.supportTeamDeniedPermissions = supportTeamDeniedPermissions;
-        this.additionalRolesAllowedPermissions = additionalRolesAllowedPermissions;
-        this.additionalRolesDeniedPermissions = additionalRolesDeniedPermissions;
-        this.creatorAllowedPermissions = creatorAllowedPermissions;
-        this.creatorDeniedPermissions = creatorDeniedPermissions;
-        this.claimerAllowedPermissions = claimerAllowedPermissions;
-        this.claimerDeniedPermissions = claimerDeniedPermissions;
-        this.everyoneAllowedPermissions = everyoneAllowedPermissions;
-        this.everyoneDeniedPermissions = everyoneDeniedPermissions;
+        this.setPermissions(permissions);
+    }
+
+    /**
+     * Limits below 1 don't make sense, so they're treated as "no limit".
+     */
+    public void setOpenTicketLimit(Integer openTicketLimit) {
+        this.openTicketLimit = openTicketLimit != null && openTicketLimit > 0 ? openTicketLimit : null;
+    }
+
+    /**
+     * Limits below 1 don't make sense, so they're treated as "no limit".
+     */
+    public void setClosedTicketLimit(Integer closedTicketLimit) {
+        this.closedTicketLimit = closedTicketLimit != null && closedTicketLimit > 0 ? closedTicketLimit : null;
     }
 
     public void setFormQuestions(List<TicketPanelFormModel> formQuestions) {
@@ -302,18 +272,6 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
 
     @Override
     public @NotNull TicketPanelModel toModel() {
-        Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions = new HashMap<>();
-        setPermissions(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Allowed, supportTeamAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.SupportTeam, TicketPermissionType.Denied, supportTeamDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Allowed, additionalRolesAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.AdditionalRoles, TicketPermissionType.Denied, additionalRolesDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketCreator, TicketPermissionType.Allowed, creatorAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketCreator, TicketPermissionType.Denied, creatorDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Allowed, claimerAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.TicketClaimer, TicketPermissionType.Denied, claimerDeniedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Allowed, everyoneAllowedPermissions);
-        setPermissions(permissions, TicketPermissionCandidate.Everyone, TicketPermissionType.Denied, everyoneDeniedPermissions);
-
         return new TicketPanelModel(
                 id,
                 name,
@@ -333,19 +291,102 @@ public class TicketPanel implements net.dungeonhub.structure.entity.Entity<Ticke
                 deleteTranscriptTarget,
                 userTranscriptDm,
                 formQuestions.stream().sorted(Comparator.comparingInt(TicketPanelForm::getOrdinal)).map(TicketPanelForm::toModel).toList(),
+                openTicketLimit,
+                closedTicketLimit,
                 relatedCarryTier != null ? relatedCarryTier.toModel() : null,
                 relatedCarryDifficulty != null ? relatedCarryDifficulty.toModel() : null,
                 supportRoles.stream().map(TicketPanelSupportRole::getSupportRole).map(DiscordRole::toModel).toList(),
                 additionalRoles.stream().map(TicketPanelAdditionalRole::getAdditionalRole).map(DiscordRole::toModel).toList(),
                 openCategories.stream().map(TicketPanelOpenCategory::getOpenCategoryId).toList(),
                 closedCategories.stream().map(TicketPanelClosedCategory::getClosedCategoryId).toList(),
-                permissions
+                getPermissions()
         );
     }
 
-    private void setPermissions(Map<TicketPermissionCandidate, Map<TicketPermissionType, Permissions>> permissions, TicketPermissionCandidate permissionCandidate, TicketPermissionType permissionType, Permissions permission) {
-        if(permission == null) return;
+    /**
+     * Stores the given permissions with the defaults filled in.
+     * Existing rows are updated in place, so only changed permissions cause writes.
+     */
+    public void setPermissions(TicketPanelPermissionsModel permissions) {
+        TicketPanelPermissionsModel resolvedPermissions = permissions.resolved();
 
-        permissions.computeIfAbsent(permissionCandidate, k -> new HashMap<>()).put(permissionType, permission);
+        Map<PermissionKey<TicketAction>, Boolean> actions = new HashMap<>();
+        Map<PermissionKey<DiscordChannelPermission>, Boolean> channel = new HashMap<>();
+
+        for(TicketPhase phase : TicketPhase.values()) {
+            resolvedPermissions.forPhase(phase).forEach((candidate, candidatePermissions) -> {
+                candidatePermissions.getActions().forEach((action, allowed) ->
+                        actions.put(new PermissionKey<>(phase, candidate, action), allowed));
+                candidatePermissions.getChannel().forEach((channelPermission, allowed) ->
+                        channel.put(new PermissionKey<>(phase, candidate, channelPermission), allowed));
+            });
+        }
+
+        actionPermissions.removeIf(row -> {
+            Boolean allowed = actions.remove(new PermissionKey<>(row.getPhase(), row.getCandidate(), row.getAction()));
+            if(allowed == null) return true;
+
+            row.setAllowed(allowed);
+            return false;
+        });
+        actions.forEach((key, allowed) ->
+                actionPermissions.add(new TicketPanelActionPermission(this, key.phase(), key.candidate(), key.permission(), allowed)));
+
+        channelPermissions.removeIf(row -> {
+            Boolean allowed = channel.remove(new PermissionKey<>(row.getPhase(), row.getCandidate(), row.getPermission()));
+            if(allowed == null) return true;
+
+            row.setAllowed(allowed);
+            return false;
+        });
+        channel.forEach((key, allowed) ->
+                channelPermissions.add(new TicketPanelChannelPermission(this, key.phase(), key.candidate(), key.permission(), allowed)));
+    }
+
+    /**
+     * @return the stored permissions, with the defaults filled in for everything that isn't stored
+     */
+    public TicketPanelPermissionsModel getPermissions() {
+        Map<TicketPhase, Map<TicketPermissionCandidate, Map<TicketAction, Boolean>>> actions = new EnumMap<>(TicketPhase.class);
+        Map<TicketPhase, Map<TicketPermissionCandidate, Map<DiscordChannelPermission, Boolean>>> channel = new EnumMap<>(TicketPhase.class);
+
+        for(TicketPanelActionPermission row : actionPermissions) {
+            actions.computeIfAbsent(row.getPhase(), phase -> new EnumMap<>(TicketPermissionCandidate.class))
+                    .computeIfAbsent(row.getCandidate(), candidate -> new EnumMap<>(TicketAction.class))
+                    .put(row.getAction(), row.isAllowed());
+        }
+
+        for(TicketPanelChannelPermission row : channelPermissions) {
+            channel.computeIfAbsent(row.getPhase(), phase -> new EnumMap<>(TicketPermissionCandidate.class))
+                    .computeIfAbsent(row.getCandidate(), candidate -> new EnumMap<>(DiscordChannelPermission.class))
+                    .put(row.getPermission(), row.isAllowed());
+        }
+
+        return new TicketPanelPermissionsModel(
+                phasePermissions(actions.getOrDefault(TicketPhase.Open, Map.of()), channel.getOrDefault(TicketPhase.Open, Map.of())),
+                phasePermissions(actions.getOrDefault(TicketPhase.Closed, Map.of()), channel.getOrDefault(TicketPhase.Closed, Map.of()))
+        ).resolved();
+    }
+
+    private static Map<TicketPermissionCandidate, TicketCandidatePermissionsModel> phasePermissions(
+            Map<TicketPermissionCandidate, Map<TicketAction, Boolean>> actions,
+            Map<TicketPermissionCandidate, Map<DiscordChannelPermission, Boolean>> channel
+    ) {
+        Map<TicketPermissionCandidate, TicketCandidatePermissionsModel> permissions = new EnumMap<>(TicketPermissionCandidate.class);
+
+        // a candidate without any rows is left out, so it falls back to its defaults
+        for(TicketPermissionCandidate candidate : TicketPermissionCandidate.values()) {
+            if(!actions.containsKey(candidate) && !channel.containsKey(candidate)) continue;
+
+            permissions.put(candidate, new TicketCandidatePermissionsModel(
+                    actions.getOrDefault(candidate, Map.of()),
+                    channel.getOrDefault(candidate, Map.of())
+            ));
+        }
+
+        return permissions;
+    }
+
+    private record PermissionKey<P>(TicketPhase phase, TicketPermissionCandidate candidate, P permission) {
     }
 }

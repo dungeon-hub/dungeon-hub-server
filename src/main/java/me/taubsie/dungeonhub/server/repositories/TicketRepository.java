@@ -18,4 +18,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     long countTicketsByCreatedGreaterThanEqual(Instant instant);
 
     long countTicketsByTicketPanel_DiscordServer(DiscordServer discordServer);
+
+    long countTicketsByTicketPanelAndUser_IdAndState(TicketPanel ticketPanel, long userId, TicketState state);
 }
