@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.*;
 import net.dungeonhub.enums.DiscordChannelPermission;
@@ -30,7 +31,7 @@ public class TicketPanelChannelPermissionId implements Serializable {
     @Column(name = "candidate", nullable = false)
     private TicketPermissionCandidate candidate;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(name = "channel_permission", nullable = false)
     private DiscordChannelPermission permission;
 }

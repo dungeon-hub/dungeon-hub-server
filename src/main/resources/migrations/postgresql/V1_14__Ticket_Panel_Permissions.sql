@@ -27,10 +27,10 @@ create table ticket_panel_action_permission
 
 create table ticket_panel_channel_permission
 (
-    ticket_panel       BIGINT  NOT NULL REFERENCES ticket_panel (id) ON DELETE CASCADE,
-    phase              INT     NOT NULL,
-    candidate          INT     NOT NULL,
-    channel_permission INT     NOT NULL,
-    allowed            BOOLEAN NOT NULL,
+    ticket_panel       BIGINT      NOT NULL REFERENCES ticket_panel (id) ON DELETE CASCADE,
+    phase              INT         NOT NULL,
+    candidate          INT         NOT NULL,
+    channel_permission VARCHAR(64) NOT NULL,
+    allowed            BOOLEAN     NOT NULL,
     PRIMARY KEY (ticket_panel, phase, candidate, channel_permission)
 );
