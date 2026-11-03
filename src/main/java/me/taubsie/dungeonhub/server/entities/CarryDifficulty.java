@@ -5,10 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.dungeonhub.enums.IngameCarryType;
+import net.dungeonhub.model.carry_difficulty.BulkPriceModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 @Entity(name = "carry_difficulty")
 @Table(name = "carry_difficulty", schema = "dungeon-hub")
@@ -43,14 +48,11 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
     private String thumbnailUrl;
 
     @Getter
-    @Setter
-    @Column(name = "bulk_price")
-    private Integer bulkPrice;
-
-    @Getter
-    @Setter
-    @Column(name = "bulk_amount")
-    private Integer bulkAmount;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "carry_difficulty_bulk_price", schema = "dungeon-hub",
+            joinColumns = @JoinColumn(name = "carry_difficulty", nullable = false))
+    @OrderBy("amount")
+    private List<CarryDifficultyBulkPrice> bulkPrices = new ArrayList<>();
 
     @Setter
     @Column(name = "price_name", length = 75)
@@ -73,14 +75,13 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
 
     @SuppressWarnings("java:S107")
     public CarryDifficulty(long id, String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
-                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score, IngameCarryType ingameCarryType) {
+                           List<CarryDifficultyBulkPrice> bulkPrices, String priceName, int price, int score, IngameCarryType ingameCarryType) {
         this.id = id;
         this.identifier = identifier;
         this.displayName = displayName;
         this.carryTier = carryTier;
         this.thumbnailUrl = thumbnailUrl;
-        this.bulkPrice = bulkPrice;
-        this.bulkAmount = bulkAmount;
+        setBulkPrices(bulkPrices);
         this.priceName = priceName;
         this.price = price;
         this.score = score;
@@ -88,21 +89,34 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
     }
 
     public CarryDifficulty(String identifier, String displayName, CarryTier carryTier, String thumbnailUrl,
-                           Integer bulkPrice, Integer bulkAmount, String priceName, int price, int score, IngameCarryType ingameCarryType) {
+                           List<CarryDifficultyBulkPrice> bulkPrices, String priceName, int price, int score, IngameCarryType ingameCarryType) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.carryTier = carryTier;
         this.thumbnailUrl = thumbnailUrl;
-        this.bulkPrice = bulkPrice;
-        this.bulkAmount = bulkAmount;
+        setBulkPrices(bulkPrices);
         this.priceName = priceName;
         this.price = price;
         this.score = score;
         this.ingameCarryType = ingameCarryType;
     }
 
+    public void setBulkPrices(List<CarryDifficultyBulkPrice> bulkPrices) {
+        List<CarryDifficultyBulkPrice> newBulkPrices = bulkPrices == null ? List.of() : List.copyOf(bulkPrices);
+
+        this.bulkPrices.clear();
+        this.bulkPrices.addAll(newBulkPrices);
+    }
+
+    private List<BulkPriceModel> getBulkPriceModels() {
+        return bulkPrices.stream()
+                .sorted(Comparator.comparingInt(CarryDifficultyBulkPrice::getAmount))
+                .map(CarryDifficultyBulkPrice::toModel)
+                .toList();
+    }
+
     public long calculateTotalPrice(int amount) {
-        return CarryDifficultyModel.Companion.calculateTotalPrice(amount, bulkPrice, bulkAmount, price);
+        return CarryDifficultyModel.Companion.calculateTotalPrice(amount, getBulkPriceModels(), price);
     }
 
     public CarryType getCarryType() {
@@ -136,8 +150,7 @@ public class CarryDifficulty implements net.dungeonhub.structure.entity.Entity<C
                 displayName,
                 carryTier.toModel(),
                 price,
-                bulkPrice,
-                bulkAmount,
+                getBulkPriceModels(),
                 score,
                 thumbnailUrl,
                 priceName,

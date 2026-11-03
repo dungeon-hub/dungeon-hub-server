@@ -1,0 +1,42 @@
+create schema if not exists `dungeon-hub`;
+use `dungeon-hub`;
+
+create table carry_difficulty_bulk_price
+(
+    carry_difficulty BIGINT NOT NULL REFERENCES carry_difficulty (id) on delete cascade on update cascade,
+    amount           INT    NOT NULL,
+    price            INT    NOT NULL,
+    PRIMARY KEY (carry_difficulty, amount)
+);
+
+insert into carry_difficulty_bulk_price (carry_difficulty, amount, price)
+select id, bulk_amount, bulk_price
+from carry_difficulty
+where bulk_amount > 0
+  and bulk_price > 0;
+
+alter table carry_difficulty
+    drop column bulk_price;
+
+alter table carry_difficulty
+    drop column bulk_amount;
+
+create table carry_difficulty_history_bulk_price
+(
+    carry_difficulty_history BIGINT NOT NULL REFERENCES carry_difficulty_history (id) on delete cascade on update cascade,
+    amount                   INT    NOT NULL,
+    price                    INT    NOT NULL,
+    PRIMARY KEY (carry_difficulty_history, amount)
+);
+
+insert into carry_difficulty_history_bulk_price (carry_difficulty_history, amount, price)
+select id, bulk_amount, bulk_price
+from carry_difficulty_history
+where bulk_amount > 0
+  and bulk_price > 0;
+
+alter table carry_difficulty_history
+drop column bulk_price;
+
+alter table carry_difficulty_history
+drop column bulk_amount;

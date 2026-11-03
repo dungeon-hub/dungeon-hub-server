@@ -33,4 +33,9 @@ public interface CarryRepository extends JpaRepository<Carry, Long> {
 
     @Query("select count(distinct c.carrier) from carry c where c.carryDifficulty.carryTier.carryType.discordServer = :discordServer")
     long countCarriersByDiscordServer(DiscordServer discordServer);
+
+    @Query("select c.carryDifficulty.carryTier.carryType.id, coalesce(sum(c.amount), 0) from carry c " +
+            "where c.carryDifficulty.carryTier.carryType.discordServer = :server and c.carrier = :carrier " +
+            "group by c.carryDifficulty.carryTier.carryType.id")
+    List<Object[]> sumCarriesByCarryType(DiscordServer server, DiscordUser carrier);
 }

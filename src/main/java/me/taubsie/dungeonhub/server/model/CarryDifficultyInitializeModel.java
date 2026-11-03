@@ -4,12 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
+import me.taubsie.dungeonhub.server.entities.CarryDifficultyBulkPrice;
 import me.taubsie.dungeonhub.server.entities.CarryTier;
 import net.dungeonhub.enums.IngameCarryType;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyCreationModel;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyModel;
 import net.dungeonhub.structure.model.InitializeModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Getter
@@ -19,8 +22,7 @@ public class CarryDifficultyInitializeModel implements InitializeModel<CarryDiff
     private String displayName;
     private CarryTier carryTier;
     private String thumbnailUrl;
-    private Integer bulkPrice;
-    private Integer bulkAmount;
+    private List<CarryDifficultyBulkPrice> bulkPrices;
     private String priceName;
     private Integer price;
     private Integer score;
@@ -32,7 +34,7 @@ public class CarryDifficultyInitializeModel implements InitializeModel<CarryDiff
 
     @Override
     public @NotNull CarryDifficulty toEntity() {
-        return new CarryDifficulty(identifier, displayName, carryTier, thumbnailUrl, bulkPrice, bulkAmount, priceName, price,
+        return new CarryDifficulty(identifier, displayName, carryTier, thumbnailUrl, bulkPrices, priceName, price,
                 score, ingameCarryType);
     }
 
@@ -40,7 +42,7 @@ public class CarryDifficultyInitializeModel implements InitializeModel<CarryDiff
     public @NotNull CarryDifficultyInitializeModel fromCreationModel(CarryDifficultyCreationModel creationModel) {
         return new CarryDifficultyInitializeModel(creationModel.getIdentifier(), creationModel.getDisplayName(),
                 carryTier, creationModel.getThumbnailUrl(),
-                creationModel.getBulkPrice(), creationModel.getBulkAmount(), creationModel.getPriceName(),
+                CarryDifficultyBulkPrice.fromModels(creationModel.getBulkPrices()), creationModel.getPriceName(),
                 creationModel.getPrice(), creationModel.getScore(), creationModel.getIngameCarryType());
     }
 }
