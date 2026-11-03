@@ -2,6 +2,7 @@ package me.taubsie.dungeonhub.server.repositories;
 
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
 import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistory;
+import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistoryBulkPrice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Runs the H2 migrations and checks the history mapping and queries against the resulting schema.
@@ -68,7 +69,7 @@ class CarryDifficultyHistoryRepositoryTest {
 
     @Test
     void historyIsStoredAndLoadedWithAllValues() {
-        historyRepository.save(new CarryDifficultyHistory(first, 100, 80, 5, 3, JANUARY, FEBRUARY));
+        historyRepository.save(new CarryDifficultyHistory(first, 100, List.of(new CarryDifficultyHistoryBulkPrice(5, 80), new CarryDifficultyHistoryBulkPrice(10, 70)), 3, JANUARY, FEBRUARY));
         entityManager.flush();
         entityManager.clear();
 
@@ -76,8 +77,8 @@ class CarryDifficultyHistoryRepositoryTest {
 
         assertEquals(1L, loaded.getCarryDifficulty().getId());
         assertEquals(100, loaded.getPrice());
-        assertEquals(80, loaded.getBulkPrice());
-        assertEquals(5, loaded.getBulkAmount());
+        assertEquals(List.of(new CarryDifficultyHistoryBulkPrice(5, 80), new CarryDifficultyHistoryBulkPrice(10, 70)),
+                loaded.getBulkPrices());
         assertEquals(3, loaded.getScore());
         assertEquals(JANUARY, loaded.getDateFrom());
         assertEquals(FEBRUARY, loaded.getDateTo());
@@ -86,8 +87,8 @@ class CarryDifficultyHistoryRepositoryTest {
     @Test
     void historyIsLoadedOnlyForTheRequestedDifficulties() {
         historyRepository.saveAll(List.of(
-                new CarryDifficultyHistory(first, 100, null, null, 1, JANUARY, FEBRUARY),
-                new CarryDifficultyHistory(second, 200, null, null, 1, JANUARY, FEBRUARY)));
+                new CarryDifficultyHistory(first, 100, List.of(), 1, JANUARY, FEBRUARY),
+                new CarryDifficultyHistory(second, 200, List.of(), 1, JANUARY, FEBRUARY)));
 
         List<CarryDifficultyHistory> history = historyRepository.findAllByCarryDifficulty_IdIn(Set.of(2L));
 
@@ -98,9 +99,9 @@ class CarryDifficultyHistoryRepositoryTest {
     @Test
     void latestPeriodIsTheOneThatEndedLast() {
         historyRepository.saveAll(List.of(
-                new CarryDifficultyHistory(first, 200, null, null, 1, FEBRUARY, MARCH),
-                new CarryDifficultyHistory(first, 100, null, null, 1, JANUARY, FEBRUARY),
-                new CarryDifficultyHistory(second, 300, null, null, 1, MARCH, MARCH.plusSeconds(60))));
+                new CarryDifficultyHistory(first, 200, List.of(), 1, FEBRUARY, MARCH),
+                new CarryDifficultyHistory(first, 100, List.of(), 1, JANUARY, FEBRUARY),
+                new CarryDifficultyHistory(second, 300, List.of(), 1, MARCH, MARCH.plusSeconds(60))));
 
         CarryDifficultyHistory latest = historyRepository.findFirstByCarryDifficultyOrderByDateToDesc(first).orElseThrow();
 
@@ -109,13 +110,19 @@ class CarryDifficultyHistoryRepositoryTest {
     }
 
     @Test
-    void historyIsDeletedTogetherWithItsDifficulty() {
-        historyRepository.save(new CarryDifficultyHistory(first, 100, null, null, 1, JANUARY, FEBRUARY));
+    void historyAndItsBulkPricesAreDeletedTogetherWithTheDifficulty() {
+        historyRepository.save(new CarryDifficultyHistory(first, 100,
+                List.of(new CarryDifficultyHistoryBulkPrice(5, 80), new CarryDifficultyHistoryBulkPrice(10, 70)), 1,
+                JANUARY, FEBRUARY));
         entityManager.flush();
+        assertEquals(2, jdbcTemplate.queryForObject(
+                "select count(*) from \"dungeon-hub\".carry_difficulty_history_bulk_price", Integer.class));
 
         jdbcTemplate.update("delete from \"dungeon-hub\".carry_difficulty where id = 1");
 
         assertEquals(0, jdbcTemplate.queryForObject(
                 "select count(*) from \"dungeon-hub\".carry_difficulty_history", Integer.class));
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "select count(*) from \"dungeon-hub\".carry_difficulty_history_bulk_price", Integer.class));
     }
 }
