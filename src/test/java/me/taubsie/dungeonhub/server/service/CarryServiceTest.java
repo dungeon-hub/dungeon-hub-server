@@ -105,8 +105,8 @@ class CarryServiceTest {
     void carriesArePricedWithTheValuesValidAtTheirTime() {
         CarryDifficulty difficulty = difficulty(1, 300);
         when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L))).thenReturn(List.of(
-                new CarryDifficultyHistory(difficulty, 100, null, null, 1, JANUARY, FEBRUARY),
-                new CarryDifficultyHistory(difficulty, 200, null, null, 1, FEBRUARY, MARCH)));
+                new CarryDifficultyHistory(difficulty, 100, List.of(), 1, JANUARY, FEBRUARY),
+                new CarryDifficultyHistory(difficulty, 200, List.of(), 1, FEBRUARY, MARCH)));
         Carry inJanuary = carry(difficulty, 2, FEBRUARY.minusSeconds(1));
         Carry atChange = carry(difficulty, 2, FEBRUARY);
         Carry afterLastChange = carry(difficulty, 2, MARCH);
@@ -122,7 +122,7 @@ class CarryServiceTest {
     void historicalBulkPricingIsApplied() {
         CarryDifficulty difficulty = difficulty(1, 300);
         when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L))).thenReturn(List.of(
-                new CarryDifficultyHistory(difficulty, 100, 80, 5, 1, JANUARY, FEBRUARY)));
+                new CarryDifficultyHistory(difficulty, 100, List.of(new CarryDifficultyHistoryBulkPrice(5, 80)), 1, JANUARY, FEBRUARY)));
         Carry belowBulkAmount = carry(difficulty, 4, JANUARY);
         Carry aboveBulkAmount = carry(difficulty, 10, JANUARY);
 
@@ -137,7 +137,7 @@ class CarryServiceTest {
         CarryDifficulty withHistory = difficulty(1, 300);
         CarryDifficulty withoutHistory = difficulty(2, 50);
         when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L, 2L))).thenReturn(List.of(
-                new CarryDifficultyHistory(withHistory, 100, null, null, 1, JANUARY, FEBRUARY)));
+                new CarryDifficultyHistory(withHistory, 100, List.of(), 1, JANUARY, FEBRUARY)));
         Carry carry = carry(withoutHistory, 1, JANUARY);
 
         ToLongFunction<Carry> calculator = carryService.historicalPriceCalculator(
@@ -150,7 +150,7 @@ class CarryServiceTest {
     void carryWithoutTimestampUsesTheCurrentPrice() {
         CarryDifficulty difficulty = difficulty(1, 300);
         when(historyRepository.findAllByCarryDifficulty_IdIn(Set.of(1L))).thenReturn(List.of(
-                new CarryDifficultyHistory(difficulty, 100, null, null, 1, JANUARY, FEBRUARY)));
+                new CarryDifficultyHistory(difficulty, 100, List.of(), 1, JANUARY, FEBRUARY)));
         Carry carry = carry(difficulty, 1, null);
 
         assertEquals(300, carryService.historicalPriceCalculator(List.of(carry)).applyAsLong(carry));
@@ -178,7 +178,7 @@ class CarryServiceTest {
 
     private CarryDifficulty createDifficulty(CarryType carryType, String identifier) {
         CarryTier carryTier = entityManager.persist(new CarryTier(identifier, identifier, carryType, null, null, null, null, null));
-        return entityManager.persist(new CarryDifficulty(identifier, identifier, carryTier, null, null, null, null, 0, 1, null));
+        return entityManager.persist(new CarryDifficulty(identifier, identifier, carryTier, null, null, null, 0, 1, null));
     }
 
     private void logCarry(DiscordUser carryCarrier, CarryDifficulty carryDifficulty, int amount) {
@@ -186,7 +186,7 @@ class CarryServiceTest {
     }
 
     private static CarryDifficulty difficulty(long id, int price) {
-        return new CarryDifficulty(id, "difficulty-" + id, "Difficulty " + id, null, null, null, null, null, price, 1,
+        return new CarryDifficulty(id, "difficulty-" + id, "Difficulty " + id, null, null, null, null, price, 1,
                 null);
     }
 

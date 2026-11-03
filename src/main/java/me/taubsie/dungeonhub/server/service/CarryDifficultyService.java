@@ -1,10 +1,6 @@
 package me.taubsie.dungeonhub.server.service;
 
-import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
-import me.taubsie.dungeonhub.server.entities.CarryDifficultyBulkPrice;
-import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistory;
-import me.taubsie.dungeonhub.server.entities.CarryTier;
-import me.taubsie.dungeonhub.server.entities.DiscordServer;
+import me.taubsie.dungeonhub.server.entities.*;
 import me.taubsie.dungeonhub.server.model.CarryDifficultyInitializeModel;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyHistoryRepository;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
@@ -20,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -184,17 +181,23 @@ public class CarryDifficultyService implements EntityService<CarryDifficulty, Ca
                 .orElse(HISTORY_START);
 
         carryDifficultyHistoryRepository.save(new CarryDifficultyHistory(carryDifficulty, replacedPricing.price(),
-                replacedPricing.bulkPrice(), replacedPricing.bulkAmount(), replacedPricing.score(), validFrom,
-                Instant.now()));
+                CarryDifficultyHistoryBulkPrice.from(replacedPricing.bulkPrices()), replacedPricing.score(),
+                validFrom, Instant.now()));
     }
 
     /**
      * The values of a difficulty that are tracked in its history.
      */
-    private record Pricing(int price, Integer bulkPrice, Integer bulkAmount, int score) {
+    private record Pricing(int price, List<CarryDifficultyBulkPrice> bulkPrices, int score) {
         static Pricing of(CarryDifficulty carryDifficulty) {
-            return new Pricing(carryDifficulty.getPrice(), carryDifficulty.getBulkPrice(),
-                    carryDifficulty.getBulkAmount(), carryDifficulty.getScore());
+            // Copied and sorted, as the difficulty's own list is modified in place and its order is not relevant
+            return new Pricing(
+                    carryDifficulty.getPrice(),
+                    carryDifficulty.getBulkPrices().stream()
+                            .sorted(Comparator.comparingInt(CarryDifficultyBulkPrice::getAmount))
+                            .toList(),
+                    carryDifficulty.getScore()
+            );
         }
     }
 }

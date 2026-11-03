@@ -1,7 +1,9 @@
 package me.taubsie.dungeonhub.server.service;
 
 import me.taubsie.dungeonhub.server.entities.CarryDifficulty;
+import me.taubsie.dungeonhub.server.entities.CarryDifficultyBulkPrice;
 import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistory;
+import me.taubsie.dungeonhub.server.entities.CarryDifficultyHistoryBulkPrice;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyHistoryRepository;
 import me.taubsie.dungeonhub.server.repositories.CarryDifficultyRepository;
 import net.dungeonhub.model.carry_difficulty.CarryDifficultyUpdateModel;
@@ -34,7 +36,7 @@ class CarryDifficultyServiceTest {
 
     @Test
     void firstPriceChangeStoresReplacedValuesFromHistoryStartUntilNow() {
-        CarryDifficulty difficulty = difficulty(null, null, 100, 3);
+        CarryDifficulty difficulty = difficulty(100, 3);
         Instant before = Instant.now();
 
         service.updateEntity(difficulty, updateModel("{\"price\": 200}"));
@@ -42,8 +44,7 @@ class CarryDifficultyServiceTest {
         CarryDifficultyHistory history = capturedHistory();
         assertSame(difficulty, history.getCarryDifficulty());
         assertEquals(100, history.getPrice());
-        assertNull(history.getBulkPrice());
-        assertNull(history.getBulkAmount());
+        assertTrue(history.getBulkPrices().isEmpty());
         assertEquals(3, history.getScore());
         assertEquals(HISTORY_START, history.getDateFrom());
         assertFalse(history.getDateTo().isBefore(before));
@@ -53,36 +54,36 @@ class CarryDifficultyServiceTest {
 
     @Test
     void laterChangeStartsWhereThePreviousPeriodEnded() {
-        CarryDifficulty difficulty = difficulty(450, 5, 100, 3);
+        CarryDifficulty difficulty = difficulty(100, 3, bulk(5, 450));
         Instant previousEnd = Instant.parse("2025-02-01T00:00:00Z");
         when(historyRepository.findFirstByCarryDifficultyOrderByDateToDesc(difficulty))
-                .thenReturn(Optional.of(new CarryDifficultyHistory(difficulty, 50, null, null, 1,
+                .thenReturn(Optional.of(new CarryDifficultyHistory(difficulty, 50, List.of(), 1,
                         Instant.parse("2025-01-01T00:00:00Z"), previousEnd)));
 
-        service.updateEntity(difficulty, updateModel("{\"resetBulkPrice\": true, \"score\": 4}"));
+        service.updateEntity(difficulty, updateModel("{\"bulkPrices\": [], \"score\": 4}"));
 
         CarryDifficultyHistory history = capturedHistory();
         assertEquals(previousEnd, history.getDateFrom());
         assertEquals(100, history.getPrice());
-        assertEquals(450, history.getBulkPrice());
-        assertEquals(5, history.getBulkAmount());
+        assertEquals(List.of(new CarryDifficultyHistoryBulkPrice(5, 450)), history.getBulkPrices());
         assertEquals(3, history.getScore());
-        assertNull(difficulty.getBulkPrice());
+        assertTrue(difficulty.getBulkPrices().isEmpty());
         assertEquals(4, difficulty.getScore());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"{\"price\": 101}", "{\"bulkPrice\": 80}", "{\"resetBulkPrice\": true}",
-            "{\"bulkAmount\": 10}", "{\"resetBulkAmount\": true}", "{\"score\": 9}"})
+    @ValueSource(strings = {"{\"price\": 101}", "{\"bulkPrices\": [{\"amount\": 5, \"price\": 80}]}",
+            "{\"bulkPrices\": []}", "{\"bulkPrices\": [{\"amount\": 5, \"price\": 90}, {\"amount\": 10, \"price\": 80}]}",
+            "{\"score\": 9}"})
     void changingATrackedValueCreatesHistory(String update) {
-        service.updateEntity(difficulty(90, 5, 100, 3), updateModel(update));
+        service.updateEntity(difficulty(100, 3, bulk(5, 90)), updateModel(update));
 
         verify(historyRepository).save(any(CarryDifficultyHistory.class));
     }
 
     @Test
     void untrackedChangeDoesNotCreateHistory() {
-        CarryDifficulty difficulty = difficulty(null, null, 100, 3);
+        CarryDifficulty difficulty = difficulty(100, 3);
 
         service.updateEntity(difficulty, updateModel("{\"displayName\": \"New name\", \"priceName\": \"Coins\"}"));
 
@@ -92,17 +93,17 @@ class CarryDifficultyServiceTest {
 
     @Test
     void settingTheCurrentValuesAgainDoesNotCreateHistory() {
-        CarryDifficulty difficulty = difficulty(90, 5, 100, 3);
+        CarryDifficulty difficulty = difficulty(100, 3, bulk(5, 90));
 
         service.updateEntity(difficulty, updateModel(
-                "{\"price\": 100, \"bulkPrice\": 90, \"bulkAmount\": 5, \"score\": 3}"));
+                "{\"price\": 100, \"bulkPrices\": [{\"amount\": 5, \"price\": 90}], \"score\": 3}"));
 
         verifyNoInteractions(historyRepository);
     }
 
     @Test
     void updateSavesTheChangedDifficulty() {
-        CarryDifficulty difficulty = difficulty(null, null, 100, 3);
+        CarryDifficulty difficulty = difficulty(100, 3);
         when(difficultyRepository.save(difficulty)).thenReturn(difficulty);
 
         CarryDifficulty result = service.update(difficulty, updateModel("{\"price\": 200}"));
@@ -119,8 +120,12 @@ class CarryDifficultyServiceTest {
         verifyNoInteractions(historyRepository);
     }
 
-    private static CarryDifficulty difficulty(Integer bulkPrice, Integer bulkAmount, int price, int score) {
-        return new CarryDifficulty(1, "one", "One", null, null, bulkPrice, bulkAmount, null, price, score, null);
+    private static CarryDifficultyBulkPrice bulk(int amount, int price) {
+        return new CarryDifficultyBulkPrice(amount, price);
+    }
+
+    private static CarryDifficulty difficulty(int price, int score, CarryDifficultyBulkPrice... bulkPrices) {
+        return new CarryDifficulty(1, "one", "One", null, null, List.of(bulkPrices), null, price, score, null);
     }
 
     private static CarryDifficultyUpdateModel updateModel(String json) {
