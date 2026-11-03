@@ -110,13 +110,19 @@ class CarryDifficultyHistoryRepositoryTest {
     }
 
     @Test
-    void historyIsDeletedTogetherWithItsDifficulty() {
-        historyRepository.save(new CarryDifficultyHistory(first, 100, List.of(), 1, JANUARY, FEBRUARY));
+    void historyAndItsBulkPricesAreDeletedTogetherWithTheDifficulty() {
+        historyRepository.save(new CarryDifficultyHistory(first, 100,
+                List.of(new CarryDifficultyHistoryBulkPrice(5, 80), new CarryDifficultyHistoryBulkPrice(10, 70)), 1,
+                JANUARY, FEBRUARY));
         entityManager.flush();
+        assertEquals(2, jdbcTemplate.queryForObject(
+                "select count(*) from \"dungeon-hub\".carry_difficulty_history_bulk_price", Integer.class));
 
         jdbcTemplate.update("delete from \"dungeon-hub\".carry_difficulty where id = 1");
 
         assertEquals(0, jdbcTemplate.queryForObject(
                 "select count(*) from \"dungeon-hub\".carry_difficulty_history", Integer.class));
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "select count(*) from \"dungeon-hub\".carry_difficulty_history_bulk_price", Integer.class));
     }
 }

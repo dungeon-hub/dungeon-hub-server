@@ -52,10 +52,14 @@ class CarryDifficultyHistoryTest {
 
     @Test
     void totalPriceMatchesCurrentPricingOfTheDifficulty() {
-        CarryDifficulty difficulty = new CarryDifficulty(1, "one", "One", null, null, List.of(new CarryDifficultyBulkPrice(5, 80)), null, 100, 1, null);
+        CarryDifficulty difficulty = new CarryDifficulty(1, "one", "One", null, null,
+                List.of(new CarryDifficultyBulkPrice(5, 80), new CarryDifficultyBulkPrice(10, 70)), null, 100, 1, null);
+        CarryDifficultyHistory history = history(100, new CarryDifficultyHistoryBulkPrice(5, 80),
+                new CarryDifficultyHistoryBulkPrice(10, 70));
 
-        for (int amount = 1; amount <= 10; amount++) {
-            assertEquals(difficulty.calculateTotalPrice(amount), history(100, new CarryDifficultyHistoryBulkPrice(5, 80)).calculateTotalPrice(amount));
+        for (int amount = 1; amount <= 11; amount++) {
+            assertEquals(difficulty.calculateTotalPrice(amount), history.calculateTotalPrice(amount),
+                    "amount " + amount);
         }
     }
 

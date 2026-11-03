@@ -102,6 +102,27 @@ class CarryDifficultyServiceTest {
     }
 
     @Test
+    void reorderingTheSameBulkPricesDoesNotCreateHistory() {
+        CarryDifficulty difficulty = difficulty(100, 3, bulk(5, 90), bulk(10, 80));
+
+        service.updateEntity(difficulty, updateModel(
+                "{\"bulkPrices\": [{\"amount\": 10, \"price\": 80}, {\"amount\": 5, \"price\": 90}]}"));
+
+        verifyNoInteractions(historyRepository);
+    }
+
+    @Test
+    void replacingMultipleBulkPricesStoresAllReplacedTiers() {
+        CarryDifficulty difficulty = difficulty(100, 3, bulk(10, 80), bulk(5, 90), bulk(20, 70));
+
+        service.updateEntity(difficulty, updateModel("{\"bulkPrices\": [{\"amount\": 5, \"price\": 95}]}"));
+
+        assertEquals(List.of(new CarryDifficultyHistoryBulkPrice(5, 90), new CarryDifficultyHistoryBulkPrice(10, 80),
+                new CarryDifficultyHistoryBulkPrice(20, 70)), capturedHistory().getBulkPrices());
+        assertEquals(List.of(bulk(5, 95)), difficulty.getBulkPrices());
+    }
+
+    @Test
     void updateSavesTheChangedDifficulty() {
         CarryDifficulty difficulty = difficulty(100, 3);
         when(difficultyRepository.save(difficulty)).thenReturn(difficulty);
